@@ -317,7 +317,7 @@ static int cache_flush(RIFFFILE* rf)
 		int res = write(rf->fd, rf->cache, rf->cache_pos);
 		if (res > 0)
 			rf->cache_pos = 0;
-		fsync(riff->fd);
+		fsync(rf->fd);
 		return res;
 	}
 	return 0;
@@ -349,7 +349,7 @@ int mjpegSetup(void* p, int fwidth, int fheight, double fps, int quality)
 	return 1;
 }
 
-int mjpegSetCache(int sz)
+int mjpegSetCache(void* p, int sz)
 {
 	RIFFFILE* rf = (RIFFFILE*)p;
 	if (!rf)

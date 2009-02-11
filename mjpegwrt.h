@@ -30,7 +30,7 @@ extern "C" {
 
 void* mjpegCreateFile(const char* fname);
 int mjpegSetup(void* rf, int fwidth, int fheight, double fps, int quality);
-int mjpegSetCache(int sz);
+int mjpegSetCache(void* p, int sz);
 int mjpegSetMaxChunkSize(void* rf, unsigned int sz);
 int mjpegWriteChunk(void* rf, const unsigned char* jpeg_data, unsigned int size);
 int mjpegCloseFile(void* rf);
