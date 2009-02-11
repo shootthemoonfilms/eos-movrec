@@ -18,6 +18,9 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+/* Work with one file ONLY in ONE thread!!!
+*/
+
 #ifndef _mjpegwrt_h
 #define _mjpegwrt_h
 
@@ -27,6 +30,7 @@ extern "C" {
 
 void* mjpegCreateFile(const char* fname);
 int mjpegSetup(void* rf, int fwidth, int fheight, double fps, int quality);
+int mjpegSetCache(int sz);
 int mjpegSetMaxChunkSize(void* rf, unsigned int sz);
 int mjpegWriteChunk(void* rf, const unsigned char* jpeg_data, unsigned int size);
 int mjpegCloseFile(void* rf);

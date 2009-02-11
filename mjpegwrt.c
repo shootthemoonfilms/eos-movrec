@@ -36,7 +36,12 @@
 #define O_BINARY	0
 #endif
 
+#if defined(WIN32) || defined (_WIN32)
+#define fsync _commit
+#endif
+
 #define HEADERBYTES 0x1000			// 4k
+#define DEFCACHE_SZ	0x100000		// 1M
 
 #pragma pack(push, 2)
 
@@ -129,6 +134,9 @@ typedef struct
 	struct AVIHeader* aviheader;
 	struct AVIStreamHeader* avistreamheader;
 	struct AVIStreamFormat* avistreamformat;
+	unsigned char* cache;
+	unsigned int cache_sz;
+	unsigned int cache_pos;
 } RIFFFILE;
 
 void* mjpegCreateFile(const char* fname)
@@ -247,7 +255,72 @@ void* mjpegCreateFile(const char* fname)
 		return 0;
 	}
 
+	riff->cache_sz = DEFCACHE_SZ;
+	riff->cache_pos = 0;
+	riff->cache = (unsigned char*)malloc(riff->cache_sz);
+	if (!riff->cache)
+	{
+		close(riff->fd);
+		free(riff->header);
+		free(riff->index);
+		free(riff);
+		return 0;
+	}
+
 	return (void*)riff;
+}
+
+static int cached_write(RIFFFILE* rf, const void* buf, unsigned int sz)
+{
+	if (!rf || !rf->cache)
+		return -1;
+	int res = 0;
+	int inbuf_pos = 0;
+	char* ptr = (char*)rf->cache + rf->cache_pos;
+	char* buf_ptr = (char*)buf;
+	if (rf->cache_pos + sz > rf->cache_sz)
+	{
+		inbuf_pos = rf->cache_sz - rf->cache_pos;
+		memcpy(ptr, buf_ptr, inbuf_pos);
+		res = write(rf->fd, rf->cache, rf->cache_sz);
+		if (res > 0)
+		{
+			rf->cache_pos = 0;
+			ptr = (char*)rf->cache;
+		}
+		else
+			return res;
+
+		buf_ptr += inbuf_pos;
+		int full_count = (sz - inbuf_pos)/rf->cache_sz;
+		if (full_count > 0)
+		{
+			unsigned int f_pos = full_count*rf->cache_sz;
+			res = write(rf->fd, buf_ptr, f_pos);
+			if (res != f_pos)
+				return res;
+			inbuf_pos += f_pos;
+			buf_ptr += f_pos;
+		}
+	}
+	memcpy(ptr, buf_ptr, sz - inbuf_pos);
+	rf->cache_pos += sz - inbuf_pos;
+	return sz;
+}
+
+static int cache_flush(RIFFFILE* rf)
+{
+	if (!rf || !rf->cache)
+		return -1;
+	if (rf->cache_pos > 0)
+	{
+		int res = write(rf->fd, rf->cache, rf->cache_pos);
+		if (res > 0)
+			rf->cache_pos = 0;
+		fsync(riff->fd);
+		return res;
+	}
+	return 0;
 }
 
 int mjpegSetup(void* p, int fwidth, int fheight, double fps, int quality)
@@ -273,6 +346,19 @@ int mjpegSetup(void* p, int fwidth, int fheight, double fps, int quality)
 	rf->avistreamformat->biCompression = 0x47504A4D;			// 'MJPG'
 	rf->avistreamformat->biSizeImage = fwidth*fheight*3;
 
+	return 1;
+}
+
+int mjpegSetCache(int sz)
+{
+	RIFFFILE* rf = (RIFFFILE*)p;
+	if (!rf)
+		return 0;
+	unsigned char* tmp = (unsigned char*)realloc(rf->cache, sz);
+	if (!tmp)
+		return 0;
+	rf->cache = tmp;
+	rf->cache_sz = sz;
 	return 1;
 }
 
@@ -316,14 +402,14 @@ int mjpegWriteChunk(void* p, const unsigned char* jpeg_data, unsigned int size)
 	strncpy(buff, "00dc", 4);
 	__uint32_t* pnum = (__uint32_t*)(buff + 4);
 	*pnum = (__uint32_t)size;
-	if (write(rf->fd, buff, 8) != 8)
+	if (cached_write(rf, buff, 8) != 8)
 		return 0;
-	if (write(rf->fd, jpeg_data, size) != size)
+	if (cached_write(rf, jpeg_data, size) != size)
 		return 0;
 	if (size % 2 != 0)
 	{
 		char junk = 0;
-		if (write(rf->fd, &junk, 1) != 1)
+		if (cached_write(rf, &junk, 1) != 1)
 			return 0;
 	}
 	// fill index
@@ -357,11 +443,12 @@ int mjpegCloseFile(void* p)
 	// write index
 	if (rf->index)
 	{
-		if (write(rf->fd, rf->index, *rf->pindex_real_size + 8) != *rf->pindex_real_size + 8)
+		if (cached_write(rf, rf->index, *rf->pindex_real_size + 8) != *rf->pindex_real_size + 8)
 			res = 0;
 	}
 	else
 		res = 0;
+	cache_flush(rf);
 	// write modified header
 	rf->aviheader->dwTotalFrames = rf->frames;
 	rf->avistreamheader->dwLength = rf->frames;
@@ -373,6 +460,8 @@ int mjpegCloseFile(void* p)
 	free(rf->header);
 	if (rf->index)
 		free(rf->index);
+	if (rf->cache)
+		free(rf->cache);
 	free(rf);
 	return res;
 }
