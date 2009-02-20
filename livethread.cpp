@@ -226,7 +226,6 @@ void GMyLiveThread::run()
 	// get Av value to main window
 	cmdRequestAv();
 	//
-	Inited = true;
 	SkippedCount = 0;
 	AllFramesCount = 0;
 	WritenCount = 0;
@@ -254,6 +253,24 @@ void GMyLiveThread::run()
 	int SDKMsgCheckTime1 = WinGetTickCount();
 	int SDKMsgCheckTime2 = SDKMsgCheckTime1;
 	//WinQueryPerformanceFrequency(&freq);
+	// Wait when LiveView realy started
+	int RealyStartT1 = WinGetTickCount();
+	int RealyStartT2 = WinGetTickCount();
+	while (!LiveViewStarted && RealyStartT2 - RealyStartT1 < 4000)
+	{
+		if (SDKMsgCheckTime2 - SDKMsgCheckTime1 > 100)
+		{
+			WinProcessMsg();
+			SDKMsgCheckTime1 = SDKMsgCheckTime2;
+		}
+		if (!CommandsQueue.isEmpty())
+			processCommand();
+		WinSleep(100);
+		RealyStartT2 = WinGetTickCount();
+	}
+	if (!LiveViewStarted)
+		return;
+	Inited = true;
 	while (!Stoped)
 	{
 /*static int c = 0;
