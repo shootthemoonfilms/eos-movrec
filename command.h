@@ -49,5 +49,7 @@ typedef QQueue<GCameraCommand> GCameraCommandsQueue;
 #define COMMAND_REQ_AVLIST	3
 #define COMMAND_REQ_EVF_OUT	4
 #define COMMAND_REQ_AEMODE	5
+#define COMMAND_ADJ_FOCUS	6
+#define COMMAND_REQ_AFMODE	7
 
 #endif	// _command_h

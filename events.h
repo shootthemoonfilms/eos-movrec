@@ -29,7 +29,7 @@ class GCameraEvent: public QEvent
 public:
 	GCameraEvent(QEvent::Type type, QVariant val)
 	 : QEvent(type), Value(val) {}
-	QVariant& value() { return Value; }
+	const QVariant& value() const { return Value; }
 private:
 	QVariant Value;
 };
@@ -38,7 +38,8 @@ private:
 #define CAMERA_EVENT_AV_CHANGED 	(QEvent::Type)(QEvent::User + 2)
 #define CAMERA_EVENT_AVLIST_CHANGED	(QEvent::Type)(QEvent::User + 3)
 #define CAMERA_EVENT_FPS_UPDATED	(QEvent::Type)(QEvent::User + 4)
-#define CAMERA_EVENT_AEMODE_CHANGED	(QEvent::Type)(QEvent::User + 99)
+#define CAMERA_EVENT_AEMODE_CHANGED	(QEvent::Type)(QEvent::User + 5)
+#define CAMERA_EVENT_AFMODE_CHANGED	(QEvent::Type)(QEvent::User + 6)
 #define CAMERA_EVENT_SHUTDOWN		(QEvent::Type)(QEvent::User + 100)
 
 #endif	// _events_h

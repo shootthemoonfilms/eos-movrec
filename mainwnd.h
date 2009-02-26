@@ -55,6 +55,12 @@ protected slots:
 	void slotWbTempSelected(int wb_temp);
 	void slotShowImageChanged(int);
 	void slotAbout();
+	void slotFocusNear3();
+	void slotFocusNear2();
+	void slotFocusNear1();
+	void slotFocusFar1();
+	void slotFocusFar2();
+	void slotFocusFar3();
 protected:
 	virtual void customEvent(QEvent* event);
 	virtual void closeEvent(QCloseEvent* event);
@@ -72,6 +78,12 @@ private:
 	QSpinBox* wbTempBox;
 	QLabel* fpsLabel;
 	QCheckBox* showBox;
+	QToolButton* focusNear3Btn;
+	QToolButton* focusNear2Btn;
+	QToolButton* focusNear1Btn;
+	QToolButton* focusFar1Btn;
+	QToolButton* focusFar2Btn;
+	QToolButton* focusFar3Btn;
 	QString Path;
 	GMyLiveThread* LiveThread;
 	GEOSCaptureWnd* CaptureWnd;

@@ -50,6 +50,8 @@ public:
 	void cmdRequestAvList();
 	void cmdRequestEvfOut();
 	void cmdRequestAEMode();
+	void cmdRequestAFMode();
+	void cmdAdjFocus(int direction, int val);
 	int* avList() { return AvList; }
 	int avListSize() { return AvListSize; }
 	// stat function

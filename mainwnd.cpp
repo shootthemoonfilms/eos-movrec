@@ -117,6 +117,7 @@ GEOSRecWnd::GEOSRecWnd()
 	btn_layout->addWidget(selFileBtn, 0);
 
 	startBtn = new QPushButton(tr("Write!"), this);
+	startBtn->setEnabled(false);
 	btn_layout->addWidget(startBtn, 0);
 
 	stopBtn = new QPushButton(tr("Stop"), this);
@@ -171,9 +172,43 @@ GEOSRecWnd::GEOSRecWnd()
 	aboutBtn->setText(tr("A"));
 	btn_layout->addWidget(aboutBtn, 0);
 
+	QHBoxLayout* focus_layout = new QHBoxLayout();
+	QLabel* focusLabel = new QLabel(tr("Focus adjust"), this);
+	focus_layout->addWidget(focusLabel, 0);
+	focusFar1Btn = new QToolButton(this);
+	focusFar1Btn->setText(tr("<<<"));
+	focusFar1Btn->setEnabled(false);
+	focus_layout->addWidget(focusFar1Btn, 0);
+	focusFar2Btn = new QToolButton(this);
+	focusFar2Btn->setText(tr("<<"));
+	focusFar2Btn->setEnabled(false);
+	focus_layout->addWidget(focusFar2Btn, 0);
+	focusFar3Btn = new QToolButton(this);
+	focusFar3Btn->setText(tr("<"));
+	focusFar3Btn->setEnabled(false);
+	focus_layout->addWidget(focusFar3Btn, 0);
+
+	focusNear3Btn = new QToolButton(this);
+	focusNear3Btn->setText(tr(">"));
+	focusNear3Btn->setEnabled(false);
+	focus_layout->addWidget(focusNear3Btn, 0);
+	focusNear2Btn = new QToolButton(this);
+	focusNear2Btn->setText(tr(">>"));
+	focusNear2Btn->setEnabled(false);
+	focus_layout->addWidget(focusNear2Btn, 0);
+	focusNear1Btn = new QToolButton(this);
+	focusNear1Btn->setText(tr(">>>"));
+	focusNear1Btn->setEnabled(false);
+	focus_layout->addWidget(focusNear1Btn, 0);
+
+	focus_layout->addStretch(1);
+
 	blinkLabel = new QBlinkLabel(tr("Starting..."), this);
 	main_layout->addWidget(blinkLabel, 0);
+
 	main_layout->addLayout(btn_layout, 0);
+
+	main_layout->addLayout(focus_layout, 0);
 
 	CaptureWnd = new GEOSCaptureWnd(this);
 	main_layout->addWidget(CaptureWnd, 0);
@@ -191,6 +226,12 @@ GEOSRecWnd::GEOSRecWnd()
 	connect(wbTempBox, SIGNAL(valueChanged(int)), this, SLOT(slotWbTempSelected(int)));
 	connect(showBox, SIGNAL(stateChanged(int)), this, SLOT(slotShowImageChanged(int)));
 	connect(aboutBtn, SIGNAL(clicked()), this, SLOT(slotAbout()));
+	connect(focusNear3Btn, SIGNAL(clicked()), this, SLOT(slotFocusNear3()));
+	connect(focusNear2Btn, SIGNAL(clicked()), this, SLOT(slotFocusNear2()));
+	connect(focusNear1Btn, SIGNAL(clicked()), this, SLOT(slotFocusNear1()));
+	connect(focusFar1Btn, SIGNAL(clicked()), this, SLOT(slotFocusFar1()));
+	connect(focusFar2Btn, SIGNAL(clicked()), this, SLOT(slotFocusFar2()));
+	connect(focusFar3Btn, SIGNAL(clicked()), this, SLOT(slotFocusFar3()));
 
 	Path = tr("out.avi");
 
@@ -348,6 +389,35 @@ void GEOSRecWnd::customEvent(QEvent* event)
 			}
 		}
 		break;
+	case CAMERA_EVENT_AFMODE_CHANGED:
+		{
+			int mode = e->value().toInt();
+			//blinkLabel->setText(tr("AE Mode changed to %1").arg(mode));
+			switch (mode)
+			{
+			case 0:
+			case 1:
+			case 2:
+				focusNear3Btn->setEnabled(true);
+				focusNear2Btn->setEnabled(true);
+				focusNear1Btn->setEnabled(true);
+				focusFar1Btn->setEnabled(true);
+				focusFar2Btn->setEnabled(true);
+				focusFar3Btn->setEnabled(true);
+				break;
+			case 3:
+				focusNear3Btn->setEnabled(false);
+				focusNear2Btn->setEnabled(false);
+				focusNear1Btn->setEnabled(false);
+				focusFar1Btn->setEnabled(false);
+				focusFar2Btn->setEnabled(false);
+				focusFar3Btn->setEnabled(false);
+				break;
+			default:
+				break;
+			}
+		}
+		break;
 	case CAMERA_EVENT_SHUTDOWN:
 		// thread say about camera shutdow
 		blinkLabel->setText(tr("Lost connection with camera."));
@@ -423,6 +493,7 @@ void GEOSRecWnd::slotStartTimeout()
 			}
 			else
 			{
+				startBtn->setEnabled(true);
 				blinkLabel->stop();
 				blinkLabel->setText(tr("Ready"));
 			}
@@ -486,6 +557,60 @@ void GEOSRecWnd::slotWbTempSelected(int wb_temp)
 	if (LiveThread && LiveThread->isInit())
 	{
 		LiveThread->cmdSetWB(9, wb_temp);
+	}
+}
+
+void GEOSRecWnd::slotFocusNear3()
+{
+	// send command to camera
+	if (LiveThread && LiveThread->isInit())
+	{
+		LiveThread->cmdAdjFocus(0, 3);
+	}
+}
+
+void GEOSRecWnd::slotFocusNear2()
+{
+	// send command to camera
+	if (LiveThread && LiveThread->isInit())
+	{
+		LiveThread->cmdAdjFocus(0, 2);
+	}
+}
+
+void GEOSRecWnd::slotFocusNear1()
+{
+	// send command to camera
+	if (LiveThread && LiveThread->isInit())
+	{
+		LiveThread->cmdAdjFocus(0, 1);
+	}
+}
+
+void GEOSRecWnd::slotFocusFar1()
+{
+	// send command to camera
+	if (LiveThread && LiveThread->isInit())
+	{
+		LiveThread->cmdAdjFocus(1, 1);
+	}
+}
+
+void GEOSRecWnd::slotFocusFar2()
+{
+	// send command to camera
+	if (LiveThread && LiveThread->isInit())
+	{
+		LiveThread->cmdAdjFocus(1, 2);
+	}
+}
+
+void GEOSRecWnd::slotFocusFar3()
+{
+	// send command to camera
+	if (LiveThread && LiveThread->isInit())
+	{
+		LiveThread->cmdAdjFocus(1, 3);
 	}
 }
 

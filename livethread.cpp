@@ -139,6 +139,22 @@ void GMyLiveThread::cmdRequestAEMode()
 	CommandMutex.unlock();
 }
 
+void GMyLiveThread::cmdAdjFocus(int direction, int val)
+{
+	CommandMutex.lock();
+	GCameraCommand cmd(COMMAND_ADJ_FOCUS, direction, val);
+	CommandsQueue.append(cmd);
+	CommandMutex.unlock();
+}
+
+void GMyLiveThread::cmdRequestAFMode()
+{
+	CommandMutex.lock();
+	GCameraCommand cmd(COMMAND_REQ_AFMODE, 0, 0);
+	CommandsQueue.append(cmd);
+	CommandMutex.unlock();
+}
+
 EdsError GMyLiveThread::processCommand()
 {
 	CommandMutex.lock();
@@ -207,6 +223,35 @@ EdsError GMyLiveThread::processCommand()
 					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AEMODE_CHANGED, QVariant((int)mode)));
 		}
 		break;
+	case COMMAND_ADJ_FOCUS:	// adjust focus
+		{
+			EdsUInt32 inParam = 0;
+			switch (param2)
+			{
+				case 1:
+					inParam = param1 == 0 ? kEdsEvfDriveLens_Near3 : kEdsEvfDriveLens_Far3;
+					break;
+				case 2:
+					inParam = param1 == 0 ? kEdsEvfDriveLens_Near2 : kEdsEvfDriveLens_Far2;
+					break;
+				case 3:
+					inParam = param1 == 0 ? kEdsEvfDriveLens_Near1 : kEdsEvfDriveLens_Far1;
+					break;
+				default:
+					break;
+			}
+			err = EdsSendCommand(camera, kEdsCameraCommand_DriveLensEvf, inParam);
+		}
+		break;
+	case COMMAND_REQ_AFMODE:	// request AF mode
+		{
+			EdsUInt32 mode;
+			err = EdsGetPropertyData(camera, kEdsPropID_AFMode, 0, sizeof(mode), &mode);
+			if (err == EDS_ERR_OK)
+				if (Owner)
+					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AFMODE_CHANGED, QVariant((int)mode)));
+		}
+		break;
 	}
 	return err;
 }
@@ -225,6 +270,8 @@ void GMyLiveThread::run()
 	cmdRequestAvList();
 	// get Av value to main window
 	cmdRequestAv();
+	// get AF mode
+	cmdRequestAFMode();
 	//
 	SkippedCount = 0;
 	AllFramesCount = 0;
@@ -620,8 +667,8 @@ void GMyLiveThread::propertyEvent(EdsPropertyEvent event, EdsPropertyID property
 	{
 		fprintf(f, "event = %04X, prop = %04X, param = %04X\n", (unsigned int)event, (unsigned int)property, (unsigned int)inParam);
 		fclose(f);
-	}
-	if (property == kEdsPropID_Av)
+	}*/
+	/*if (property == kEdsPropID_Av)
 	{
 		FILE* f = fopen("prop_event_av.log", "at");
 		if (f)
@@ -635,45 +682,25 @@ void GMyLiveThread::propertyEvent(EdsPropertyEvent event, EdsPropertyID property
 	{
 		if (property == kEdsPropID_Evf_OutputDevice)
 		{
-			/*EdsUInt32 device;
-			err = EdsGetPropertyData(camera, kEdsPropID_Evf_OutputDevice, 0, sizeof(device), &device);
-			if (err == EDS_ERR_OK)
-			{
-				//printf("\t\tval = %d\n", (int)device);
-				if (device & kEdsEvfOutputDevice_PC)
-					LiveViewStarted = true;
-			}*/
 			cmdRequestEvfOut();
 		}
 		else if (property == kEdsPropID_Av)
 		{
-			/*EdsInt32 av;
-			err = EdsGetPropertyData(camera, kEdsPropID_Av, 0, sizeof(av), &av);
-			printf("err = %04X\n", err);
-			fflush(stdout);
-			if (err == EDS_ERR_OK)
-			{
-				Av = av;
-				if (Owner)
-					QApplication::postEvent(Owner, new QEvent((QEvent::Type)(QEvent::User + 2)));
-			}*/
 			cmdRequestAv();
 		}
 		else if (property == kEdsPropID_AEMode)
 		{
 			cmdRequestAEMode();
 		}
+		else if (property == kEdsPropID_AFMode)
+		{
+			cmdRequestAFMode();
+		}
 	}
 	else if (event == kEdsPropertyEvent_PropertyDescChanged)
 	{
 		if (property == kEdsPropID_Av)
 		{
-			/*err = fillAvList();
-			printf("desc: err = %04X\n", err);
-			fflush(stdout);
-			if (err == EDS_ERR_OK)
-				if (Owner)
-					QApplication::postEvent(Owner, new QEvent((QEvent::Type)(QEvent::User + 3)));*/
 			cmdRequestAvList();
 		}
 	}
