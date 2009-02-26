@@ -155,6 +155,14 @@ void GMyLiveThread::cmdRequestAFMode()
 	CommandMutex.unlock();
 }
 
+void GMyLiveThread::cmdSetZoom(int zoom)
+{
+	CommandMutex.lock();
+	GCameraCommand cmd(COMMAND_SET_ZOOM, zoom, 0);
+	CommandsQueue.append(cmd);
+	CommandMutex.unlock();
+}
+
 EdsError GMyLiveThread::processCommand()
 {
 	CommandMutex.lock();
@@ -252,6 +260,11 @@ EdsError GMyLiveThread::processCommand()
 					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AFMODE_CHANGED, QVariant((int)mode)));
 		}
 		break;
+	case COMMAND_SET_ZOOM:
+		err = EdsSetPropertyData(camera, kEdsPropID_Evf_Zoom, 0, sizeof(EdsUInt32), &param1);
+		break;
+	default:
+		break;
 	}
 	return err;
 }
@@ -279,6 +292,9 @@ void GMyLiveThread::run()
 	ElapsedTime = 0;
 	int StartTime;
 	int EndTime;
+	int OldZoom = -1;
+	int OldZoomPosX = -1;
+	int OldZoomPosY = -1;
 	// 
 	live_buffer::frame = 0;
 	void* mjpeg = 0;
@@ -343,6 +359,11 @@ c++;*/
 				SkippedCount++;
 			else if (CaptureWnd)
 				QApplication::postEvent(CaptureWnd, new GCameraEvent(CAMERA_EVENT_EVF_TRANSMITED, 0));
+			if (Zoom != OldZoom || OldZoomPosX != ZoomPosX || OldZoomPosY != ZoomPosY)
+				QApplication::postEvent(CaptureWnd, new GCameraEvent(CAMERA_EVENT_ZOOM_CHANGED, QVariant(QRect(Zoom, 0, ZoomPosX, ZoomPosY))));
+			OldZoom = Zoom;
+			OldZoomPosX = ZoomPosX;
+			OldZoomPosY = ZoomPosY;
 			// write to file if needed
 			if (!PrevWriteMovie && WriteMovie)			// start record
 			{
@@ -573,13 +594,15 @@ EdsError GMyLiveThread::downloadEvfData()
 	// Get the incidental data of the image.
 	if (err == EDS_ERR_OK)
 	{
-		/* // Get the zoom ratio
+		 // Get the zoom ratio
 		EdsUInt32 zoom;
-		EdsGetPropertyData(evfImage, kEdsPropID_Evf_ZoomPosition, 0 , sizeof(zoom), &zoom);
+		EdsGetPropertyData(evfImage, kEdsPropID_Evf_Zoom, 0 , sizeof(zoom), &zoom);
 		// Get the focus and zoom border position
 		EdsPoint point;
 		EdsGetPropertyData(evfImage, kEdsPropID_Evf_ZoomPosition, 0 , sizeof(point), &point);
-		*/
+		Zoom = (int)zoom;
+		ZoomPosX = point.x;
+		ZoomPosY = point.y;
 
 		err = EdsGetPointer(stream, &ptr);
 		if (err == EDS_ERR_OK)

@@ -20,11 +20,11 @@
 
 #include "capturewnd.h"
 #include "buffer.h"
+#include "events.h"
 
 #include <QBuffer>
 #include <QImageReader>
 #include <QPainter>
-#include <QEvent>
 #include <QLayout>
 
 GEOSCaptureWnd::GEOSCaptureWnd(QWidget* parent)
@@ -55,6 +55,13 @@ void GEOSCaptureWnd::paintEvent(QPaintEvent * event)
 		if (!LiveImage.isNull())
 		{
 			painter.drawImage(QPoint(0, 0), LiveImage);
+			if (Zoom == 1)
+			{
+				QPen p(QColor(255, 255, 255));
+				p.setWidth(3);
+				painter.setPen(p);
+				painter.drawRect(ZoomRect);
+			}
 		}
 	}
 }
@@ -67,7 +74,7 @@ void GEOSCaptureWnd::customEvent(QEvent* event)
 {
 	static int old_width = 0;
 	static int old_height = 0;
-	if (event->type() == QEvent::User + 1 && live_buffer::frame)
+	if (event->type() == CAMERA_EVENT_EVF_TRANSMITED && live_buffer::frame)
 	{
 		if (ShowLiveImage)
 		{
@@ -110,5 +117,18 @@ void GEOSCaptureWnd::customEvent(QEvent* event)
 			live_buffer::IsPainting = false;
 		}
 		event->accept();
+	}
+	else if (event->type() == CAMERA_EVENT_ZOOM_CHANGED)
+	{
+		GCameraEvent* e = (GCameraEvent*)event;
+		QRect r = e->value().toRect();
+		Zoom = r.x();
+		ZoomRect = QRect(r.width()/5, r.height()/5, LiveImage.width()/5, LiveImage.height()/5);
+		FILE* f = fopen("a.txt", "at");
+		if (f)
+		{
+			fprintf(f, "zoom=%d %03d,%03d,%03dx%03d\n", Zoom, ZoomRect.x(), ZoomRect.y(), ZoomRect.width(), ZoomRect.height());
+			fclose(f);
+		}
 	}
 }

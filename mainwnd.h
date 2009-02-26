@@ -61,6 +61,7 @@ protected slots:
 	void slotFocusFar1();
 	void slotFocusFar2();
 	void slotFocusFar3();
+	void slotZoom5x();
 protected:
 	virtual void customEvent(QEvent* event);
 	virtual void closeEvent(QCloseEvent* event);
@@ -84,6 +85,7 @@ private:
 	QToolButton* focusFar1Btn;
 	QToolButton* focusFar2Btn;
 	QToolButton* focusFar3Btn;
+	QToolButton* zoom5xBtn;
 	QString Path;
 	GMyLiveThread* LiveThread;
 	GEOSCaptureWnd* CaptureWnd;

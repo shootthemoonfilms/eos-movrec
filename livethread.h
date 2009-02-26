@@ -52,6 +52,7 @@ public:
 	void cmdRequestAEMode();
 	void cmdRequestAFMode();
 	void cmdAdjFocus(int direction, int val);
+	void cmdSetZoom(int zoom);
 	int* avList() { return AvList; }
 	int avListSize() { return AvListSize; }
 	// stat function
@@ -59,6 +60,9 @@ public:
 	__uint64_t writenCount() { return WritenCount; }
 	__uint64_t skippedCount() { return SkippedCount; }
 	int elapsedTime() { return ElapsedTime; }
+	int zoom() const { return Zoom; }
+	int zoomPosX() const { return ZoomPosX; }
+	int zoomPosY() const { return ZoomPosY; }
 	// handlers
 	// ED-SDK documentation say:
 	// "The callback function is executed on a newly generated thread"
@@ -89,6 +93,9 @@ private:
 	EdsCameraRef camera;
 	int AvList[128];
 	int AvListSize;
+	int Zoom;
+	int ZoomPosX;
+	int ZoomPosY;
 	bool isSDKLoaded;
 	// for statistics
 	__uint64_t AllFramesCount;

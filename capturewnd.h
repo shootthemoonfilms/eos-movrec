@@ -40,6 +40,8 @@ private:
 	int max_frame_size;
 	unsigned char* frame;
 	bool ShowLiveImage;
+	int Zoom;
+	QRect ZoomRect;
 };
 
 #endif	// _capturewnd_h

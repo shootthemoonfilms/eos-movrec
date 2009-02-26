@@ -201,6 +201,14 @@ GEOSRecWnd::GEOSRecWnd()
 	focusNear1Btn->setEnabled(false);
 	focus_layout->addWidget(focusNear1Btn, 0);
 
+	focus_layout->addSpacing(10);
+
+	zoom5xBtn = new QToolButton(this);
+	zoom5xBtn->setText(tr("Zoom 5x"));
+	zoom5xBtn->setEnabled(true);
+	zoom5xBtn->setCheckable(true);
+	focus_layout->addWidget(zoom5xBtn, 0);
+
 	focus_layout->addStretch(1);
 
 	blinkLabel = new QBlinkLabel(tr("Starting..."), this);
@@ -232,6 +240,7 @@ GEOSRecWnd::GEOSRecWnd()
 	connect(focusFar1Btn, SIGNAL(clicked()), this, SLOT(slotFocusFar1()));
 	connect(focusFar2Btn, SIGNAL(clicked()), this, SLOT(slotFocusFar2()));
 	connect(focusFar3Btn, SIGNAL(clicked()), this, SLOT(slotFocusFar3()));
+	connect(zoom5xBtn, SIGNAL(clicked()), this, SLOT(slotZoom5x()));
 
 	Path = tr("out.avi");
 
@@ -611,6 +620,15 @@ void GEOSRecWnd::slotFocusFar3()
 	if (LiveThread && LiveThread->isInit())
 	{
 		LiveThread->cmdAdjFocus(1, 3);
+	}
+}
+
+void GEOSRecWnd::slotZoom5x()
+{
+	int zoom = zoom5xBtn->isChecked() ? 5 : 1;
+	if (LiveThread && LiveThread->isInit())
+	{
+		LiveThread->cmdSetZoom(zoom);
 	}
 }
 

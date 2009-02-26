@@ -40,6 +40,7 @@ private:
 #define CAMERA_EVENT_FPS_UPDATED	(QEvent::Type)(QEvent::User + 4)
 #define CAMERA_EVENT_AEMODE_CHANGED	(QEvent::Type)(QEvent::User + 5)
 #define CAMERA_EVENT_AFMODE_CHANGED	(QEvent::Type)(QEvent::User + 6)
+#define CAMERA_EVENT_ZOOM_CHANGED	(QEvent::Type)(QEvent::User + 7)
 #define CAMERA_EVENT_SHUTDOWN		(QEvent::Type)(QEvent::User + 100)
 
 #endif	// _events_h
