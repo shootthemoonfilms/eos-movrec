@@ -4,7 +4,7 @@ CONFIG += qt
 QT = core gui
 
 HEADERS = mainwnd.h about.h blinklabel.h
-SOURCES = main.cpp mainwnd.cpp livethread.cpp capturewnd.cpp blinklabel.cpp about.cpp command.cpp buffer.cpp mjpegwrt.c freqtimer.c
+SOURCES = main.cpp mainwnd.cpp livethread.cpp capturewnd.cpp blinklabel.cpp about.cpp command.cpp buffer.cpp cam_tables.c mjpegwrt.c freqtimer.c
 
 TARGET  = bin/eos_movrec
 

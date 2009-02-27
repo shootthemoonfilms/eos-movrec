@@ -48,13 +48,18 @@ public:
 	void cmdSetAv(int av, int dof);
 	void cmdRequestAv();
 	void cmdRequestAvList();
+	void cmdSetTv(int tv);
+	void cmdRequestTv();
+	void cmdRequestTvList();
 	void cmdRequestEvfOut();
 	void cmdRequestAEMode();
 	void cmdRequestAFMode();
 	void cmdAdjFocus(int direction, int val);
 	void cmdSetZoom(int zoom);
-	int* avList() { return AvList; }
-	int avListSize() { return AvListSize; }
+	const int* avList() const { return AvList; }
+	int avListSize() const { return AvListSize; }
+	const int* tvList() const { return TvList; }
+	int tvListSize() const { return TvListSize; }
 	// stat function
 	__uint64_t allFramesCount() { return AllFramesCount; }
 	__uint64_t writenCount() { return WritenCount; }
@@ -79,6 +84,7 @@ private:
 	EdsError endLiveView();
 	EdsError processCommand();
 	EdsError fillAvList();
+	EdsError fillTvList();
 private:
 	bool Stoped;
 	bool Inited;
@@ -93,6 +99,8 @@ private:
 	EdsCameraRef camera;
 	int AvList[128];
 	int AvListSize;
+	int TvList[128];
+	int TvListSize;
 	int Zoom;
 	int ZoomPosX;
 	int ZoomPosY;

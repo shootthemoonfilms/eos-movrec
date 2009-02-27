@@ -39,70 +39,9 @@
 #include "capturewnd.h"
 #include "livethread.h"
 #include "events.h"
+#include "cam_tables.h"
 
 #include <stdlib.h>
-
-struct EOSAvTable
-{
-	unsigned int val;
-	char av[4];
-} AvTable[] = {
-	0x00, "0",
-	0x08, "1",
-	0x0B, "1.1",
-	0x0C, "1.2",
-	0x0D, "1.2",	// (1/3)
-	0x10, "1.4",
-	0x13, "1.6",
-	0x14, "1.8",
-	0x15, "1.8",	// (1/3) 
-	0x18, "2",
-	0x1B, "2.2",
-	0x1C, "2.5",
-	0x1D, "2.5",	// (1/3) 
-	0x20, "2.8",
-	0x23, "3.2",
-	0x24, "3.5",
-	0x25, "3.5",	// (1/3) 
-	0x28, "4",
-	0x2B, "4.5",
-	0x2C, "4.5",	// (1/3)
-	0x2D, "5.0",
-	0x30, "5.6",
-	0x33, "6.3",
-	0x34, "6.7",
-	0x35, "7.1",
-	0x38, "8",
-	0x3B, "9",
-	0x3C, "9.5",
-	0x3D, "10",
-	0x40, "11",
-	0x43, "13",
-	0x44, "13",
-	0x45, "14",
-	0x48, "16",
-	0x4B, "18",
-	0x4C, "19",
-	0x4D, "20",
-	0x50, "22",
-	0x53, "25",
-	0x54, "27",
-	0x55, "29",
-	0x58, "32",
-	0x5B, "36",
-	0x5C, "38",
-	0x5D, "40",
-	0x60, "45",
-	0x63, "51",
-	0x64, "54",
-	0x65, "57",
-	0x68, "64",
-	0x6B, "72",
-	0x6C, "76",
-	0x6D, "80",
-	0x70, "91",
-	0xffffffff, "bad"
-};
 
 GEOSRecWnd::GEOSRecWnd()
  : QWidget(0)
@@ -338,14 +277,14 @@ void GEOSRecWnd::customEvent(QEvent* event)
 			//QMessageBox::information(this, tr("Info"), tr("Av list changed."));
 			//blinkLabel->setText(tr("Av list changed."));
 			int curr_av = avBox->itemData(avBox->currentIndex(), Qt::UserRole).toInt();
-			int* avList = LiveThread->avList();
+			const int* avList = LiveThread->avList();
 			int avListSize = LiveThread->avListSize();
 			// fill combo
 			avBox->clear();
 			int i, j, ind = 0;
 			for (i = 0; i < avListSize; i++)
 			{
-				for (j = 0; j < sizeof(AvTable)/sizeof(EOSAvTable); j++)
+				for (j = 0; j < EOS_AV_TABLE_SZ; j++)
 					if (AvTable[j].val == avList[i])
 					{
 						avBox->addItem(QString(AvTable[j].av), QVariant((int)AvTable[j].val));

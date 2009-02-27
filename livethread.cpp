@@ -123,6 +123,30 @@ void GMyLiveThread::cmdRequestAvList()
 	CommandMutex.unlock();
 }
 
+void GMyLiveThread::cmdSetTv(int tv)
+{
+	CommandMutex.lock();
+	GCameraCommand cmd(COMMAND_SET_TV, tv, 0);
+	CommandsQueue.append(cmd);
+	CommandMutex.unlock();
+}
+
+void GMyLiveThread::cmdRequestTv()
+{
+	CommandMutex.lock();
+	GCameraCommand cmd(COMMAND_REQ_TV, 0, 0);
+	CommandsQueue.append(cmd);
+	CommandMutex.unlock();
+}
+
+void GMyLiveThread::cmdRequestTvList()
+{
+	CommandMutex.lock();
+	GCameraCommand cmd(COMMAND_REQ_TVLIST, 0, 0);
+	CommandsQueue.append(cmd);
+	CommandMutex.unlock();
+}
+
 void GMyLiveThread::cmdRequestEvfOut()
 {
 	CommandMutex.lock();
@@ -210,6 +234,33 @@ EdsError GMyLiveThread::processCommand()
 			if (Owner)
 				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AVLIST_CHANGED, 0));
 		break;
+	case COMMAND_SET_TV:		// set Tv
+		if (param1 >= 0x10)
+		{
+			EdsUInt32 tv;
+			err = EdsGetPropertyData(camera, kEdsPropID_Tv, 0, sizeof(EdsUInt32), &tv);
+			if (err == EDS_ERR_OK)
+			{
+				if (tv != (int)param1)
+					err = EdsSetPropertyData(camera, kEdsPropID_Tv, 0, sizeof(EdsUInt32), &param1);
+			}
+		}
+		break;
+	case COMMAND_REQ_TV:		// request Tv
+		{
+			int tv = 0;
+			err = EdsGetPropertyData(camera, kEdsPropID_Tv, 0, sizeof(EdsUInt32), &tv);
+			if (err == EDS_ERR_OK)
+				if (Owner)
+					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_TV_CHANGED, QVariant((int)tv)));
+		}
+		break;
+	case COMMAND_REQ_TVLIST:	// request Tv list
+		err = fillTvList();
+		if (err == EDS_ERR_OK)
+			if (Owner)
+				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_TVLIST_CHANGED, 0));
+		break;
 	case COMMAND_REQ_EVF_OUT:	// request Evf output device
 		{
 			EdsUInt32 device;
@@ -283,6 +334,10 @@ void GMyLiveThread::run()
 	cmdRequestAvList();
 	// get Av value to main window
 	cmdRequestAv();
+	// get Tv list to main window
+	cmdRequestTvList();
+	// get Tv value to main window
+	cmdRequestTv();
 	// get AF mode
 	cmdRequestAFMode();
 	//
@@ -316,7 +371,7 @@ void GMyLiveThread::run()
 	int SDKMsgCheckTime1 = WinGetTickCount();
 	int SDKMsgCheckTime2 = SDKMsgCheckTime1;
 	//WinQueryPerformanceFrequency(&freq);
-	// Wait when LiveView realy started
+	// Wait a camera
 	int RealyStartT1 = WinGetTickCount();
 	int RealyStartT2 = WinGetTickCount();
 	while (!LiveViewStarted && RealyStartT2 - RealyStartT1 < 4000)
@@ -481,6 +536,19 @@ EdsError GMyLiveThread::fillAvList()
 		AvListSize = desc.numElements;
 		for (int i = 0; i < AvListSize; i++)
 			AvList[i] = desc.propDesc[i];
+	}
+	return err;
+}
+
+EdsError GMyLiveThread::fillTvList()
+{
+	EdsPropertyDesc desc;
+	EdsError err = EdsGetPropertyDesc(camera, kEdsPropID_Tv, &desc);
+	if (err == EDS_ERR_OK)
+	{
+		TvListSize = desc.numElements;
+		for (int i = 0; i < TvListSize; i++)
+			TvList[i] = desc.propDesc[i];
 	}
 	return err;
 }

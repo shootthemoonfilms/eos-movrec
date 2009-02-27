@@ -18,31 +18,25 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _events_h
-#define _events_h
+#ifndef _cam_tables_h
+#define _cam_tables_h
 
-#include <QEvent>
-#include <QVariant>
-
-class GCameraEvent: public QEvent
+struct EOSAvTable
 {
-public:
-	GCameraEvent(QEvent::Type type, QVariant val)
-	 : QEvent(type), Value(val) {}
-	const QVariant& value() const { return Value; }
-private:
-	QVariant Value;
+	unsigned int val;
+	char av[4];
 };
 
-#define CAMERA_EVENT_EVF_TRANSMITED	(QEvent::Type)(QEvent::User + 1)
-#define CAMERA_EVENT_AV_CHANGED 	(QEvent::Type)(QEvent::User + 2)
-#define CAMERA_EVENT_TV_CHANGED 	(QEvent::Type)(QEvent::User + 3)
-#define CAMERA_EVENT_AVLIST_CHANGED	(QEvent::Type)(QEvent::User + 4)
-#define CAMERA_EVENT_TVLIST_CHANGED	(QEvent::Type)(QEvent::User + 5)
-#define CAMERA_EVENT_FPS_UPDATED	(QEvent::Type)(QEvent::User + 6)
-#define CAMERA_EVENT_AEMODE_CHANGED	(QEvent::Type)(QEvent::User + 7)
-#define CAMERA_EVENT_AFMODE_CHANGED	(QEvent::Type)(QEvent::User + 8)
-#define CAMERA_EVENT_ZOOM_CHANGED	(QEvent::Type)(QEvent::User + 9)
-#define CAMERA_EVENT_SHUTDOWN		(QEvent::Type)(QEvent::User + 100)
+struct EOSTvTable
+{
+	unsigned int val;
+	char tv[8];
+};
 
-#endif	// _events_h
+#define EOS_AV_TABLE_SZ		55
+#define EOS_TV_TABLE_SZ		73
+
+extern struct EOSAvTable AvTable[];
+extern struct EOSTvTable TvTable[];
+
+#endif	// _cam_tables_h
