@@ -779,6 +779,10 @@ void GMyLiveThread::propertyEvent(EdsPropertyEvent event, EdsPropertyID property
 		{
 			cmdRequestAv();
 		}
+		else if (property == kEdsPropID_Tv)
+		{
+			cmdRequestTv();
+		}
 		else if (property == kEdsPropID_AEMode)
 		{
 			cmdRequestAEMode();
@@ -793,6 +797,10 @@ void GMyLiveThread::propertyEvent(EdsPropertyEvent event, EdsPropertyID property
 		if (property == kEdsPropID_Av)
 		{
 			cmdRequestAvList();
+		}
+		else if (property == kEdsPropID_Tv)
+		{
+			cmdRequestTvList();
 		}
 	}
 }

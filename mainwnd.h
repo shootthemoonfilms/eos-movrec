@@ -51,6 +51,7 @@ protected slots:
 	void slotWorkTimeout();
 	void slotDofPressed();
 	void slotAvSelected(int av_ind);
+	void slotTvSelected(int tv_ind);
 	void slotWbSelected(int wb_ind);
 	void slotWbTempSelected(int wb_temp);
 	void slotShowImageChanged(int);
@@ -75,6 +76,7 @@ private:
 	QPushButton* stopBtn;
 	QToolButton* dofBtn;
 	QComboBox* avBox;
+	QComboBox* tvBox;
 	QComboBox* wbBox;
 	QSpinBox* wbTempBox;
 	QLabel* fpsLabel;

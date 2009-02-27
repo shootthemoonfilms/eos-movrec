@@ -73,6 +73,11 @@ GEOSRecWnd::GEOSRecWnd()
 	avBox->setEditable(false);
 	btn_layout->addWidget(avBox, 0);
 
+	tvBox = new QComboBox(this);
+	//tvBox->setEnabled(false);
+	tvBox->setEditable(false);
+	btn_layout->addWidget(tvBox, 0);
+
 	QLabel* wbLabel = new QLabel(tr("WB"), this);
 	btn_layout->addWidget(wbLabel, 0);
 
@@ -142,8 +147,9 @@ GEOSRecWnd::GEOSRecWnd()
 
 	focus_layout->addSpacing(10);
 
+	focus_layout->addWidget(new QLabel(tr("Zoom:")));
 	zoom5xBtn = new QToolButton(this);
-	zoom5xBtn->setText(tr("Zoom 5x"));
+	zoom5xBtn->setText(tr("5x"));
 	zoom5xBtn->setEnabled(true);
 	zoom5xBtn->setCheckable(true);
 	focus_layout->addWidget(zoom5xBtn, 0);
@@ -169,6 +175,7 @@ GEOSRecWnd::GEOSRecWnd()
 	connect(stopBtn, SIGNAL(clicked()), this, SLOT(slotStop()));
 	connect(dofBtn, SIGNAL(clicked()), this, SLOT(slotDofPressed()));
 	connect(avBox, SIGNAL(activated(int)), this, SLOT(slotAvSelected(int)));
+	connect(tvBox, SIGNAL(activated(int)), this, SLOT(slotTvSelected(int)));
 	connect(wbBox, SIGNAL(activated(int)), this, SLOT(slotWbSelected(int)));
 	connect(wbTempBox, SIGNAL(valueChanged(int)), this, SLOT(slotWbTempSelected(int)));
 	connect(showBox, SIGNAL(stateChanged(int)), this, SLOT(slotShowImageChanged(int)));
@@ -295,6 +302,50 @@ void GEOSRecWnd::customEvent(QEvent* event)
 			}
 		}
 		break;
+	case CAMERA_EVENT_TV_CHANGED:
+		{
+			// Tv changed
+			int tv = e->value().toInt();
+			QString str = tr("Tv changed to %1").arg(tv);
+			blinkLabel->setText(str);
+			//QMessageBox::information(this, tr("Info"), str);
+			// find in combo
+			int val;
+			for (int i = 0; i < tvBox->count(); i++)
+			{
+				val = tvBox->itemData(i, Qt::UserRole).toInt();
+				if (val == tv)
+				{
+					tvBox->setCurrentIndex(i);
+					break;
+				}
+			}
+		}
+		break;
+	case CAMERA_EVENT_TVLIST_CHANGED:
+		{
+			// Tv list changed
+			//QMessageBox::information(this, tr("Info"), tr("Tv list changed."));
+			blinkLabel->setText(tr("Tv list changed."));
+			int curr_tv = tvBox->itemData(tvBox->currentIndex(), Qt::UserRole).toInt();
+			const int* tvList = LiveThread->tvList();
+			int tvListSize = LiveThread->tvListSize();
+			// fill combo
+			tvBox->clear();
+			int i, j, ind = 0;
+			for (i = 0; i < tvListSize; i++)
+			{
+				for (j = 0; j < EOS_TV_TABLE_SZ; j++)
+					if (TvTable[j].val == tvList[i])
+					{
+						tvBox->addItem(QString(TvTable[j].tv), QVariant((int)TvTable[j].val));
+						if (tvList[i] == curr_tv)
+							tvBox->setCurrentIndex(ind);
+						ind++;
+					}
+			}
+		}
+		break;
 	case CAMERA_EVENT_FPS_UPDATED:
 		{
 			double fps = e->value().toDouble();
@@ -309,22 +360,27 @@ void GEOSRecWnd::customEvent(QEvent* event)
 			//blinkLabel->setText(tr("AE Mode changed to %1").arg(mode));
 			switch (mode)
 			{
-			case 0:
-			case 1:
-			case 4:
-			case 5:
-			case 6:
-				dofBtn->setEnabled(false);
-				dofBtn->setChecked(false);
-				avBox->clear();
-				avBox->setEnabled(false);
-				break;
 			case 2:
 			case 3:
 				dofBtn->setEnabled(true);
 				avBox->setEnabled(true);
 				break;
 			default:
+				dofBtn->setEnabled(false);
+				dofBtn->setChecked(false);
+				avBox->clear();
+				avBox->setEnabled(false);
+				break;
+			}
+			switch (mode)
+			{
+			case 1:
+			case 3:
+				tvBox->setEnabled(true);
+				break;
+			default:
+				tvBox->setEnabled(false);
+				tvBox->clear();
 				break;
 			}
 			if (mode > 6)
@@ -334,6 +390,11 @@ void GEOSRecWnd::customEvent(QEvent* event)
 				shutdown();
 				fpsLabel->setText(tr("0 fps"));
 				//QMessageBox::critical(this, tr("Error"), tr("You set invalid AE mode on the camera!"));
+			}
+			if (LiveThread)
+			{
+				LiveThread->cmdRequestAvList();
+				LiveThread->cmdRequestTvList();
 			}
 		}
 		break;
@@ -478,6 +539,15 @@ void GEOSRecWnd::slotAvSelected(int av_ind)
 	if (LiveThread && LiveThread->isInit())
 	{
 		LiveThread->cmdSetAv(av, dof);
+	}
+}
+
+void GEOSRecWnd::slotTvSelected(int tv_ind)
+{
+	int tv = tvBox->itemData(tv_ind, Qt::UserRole).toInt();
+	if (LiveThread && LiveThread->isInit())
+	{
+		LiveThread->cmdSetTv(tv);
 	}
 }
 
