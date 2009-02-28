@@ -147,10 +147,10 @@ GEOSRecWnd::GEOSRecWnd()
 
 	focus_layout->addSpacing(10);
 
-	focus_layout->addWidget(new QLabel(tr("Zoom:")));
+	focus_layout->addWidget(new QLabel(tr("Zoom")));
 	zoom5xBtn = new QToolButton(this);
 	zoom5xBtn->setText(tr("5x"));
-	zoom5xBtn->setEnabled(true);
+	zoom5xBtn->setEnabled(false);
 	zoom5xBtn->setCheckable(true);
 	focus_layout->addWidget(zoom5xBtn, 0);
 
@@ -511,6 +511,7 @@ void GEOSRecWnd::slotStartTimeout()
 			else
 			{
 				startBtn->setEnabled(true);
+				zoom5xBtn->setEnabled(true);
 				blinkLabel->stop();
 				blinkLabel->setText(tr("Ready"));
 			}
@@ -691,6 +692,7 @@ void GEOSRecWnd::shutdown()
 	focusFar1Btn->setEnabled(false);
 	focusFar2Btn->setEnabled(false);
 	focusFar3Btn->setEnabled(false);
+	zoom5xBtn->setEnabled(false);
 	fpsLabel->setText(tr("0 fps"));
 }
 
