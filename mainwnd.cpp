@@ -66,6 +66,7 @@ GEOSRecWnd::GEOSRecWnd()
 	dofBtn = new QToolButton(this);
 	dofBtn->setText("DOF");
 	dofBtn->setCheckable(true);
+	dofBtn->setEnabled(false);
 	btn_layout->addWidget(dofBtn, 0);
 
 	avBox = new QComboBox(this);
@@ -395,6 +396,8 @@ void GEOSRecWnd::customEvent(QEvent* event)
 			{
 				LiveThread->cmdRequestAvList();
 				LiveThread->cmdRequestTvList();
+				LiveThread->cmdRequestAv();
+				LiveThread->cmdRequestTv();
 			}
 		}
 		break;
@@ -433,6 +436,10 @@ void GEOSRecWnd::customEvent(QEvent* event)
 		blinkLabel->start();
 		shutdown();
 		QMessageBox::critical(this, tr("Error"), tr("Lost connection with camera."));
+		break;
+	case CAMERA_EVENT_ZOOM_CHANGED_STOP:
+		slotStop();
+		blinkLabel->setText(tr("Can't continue write when zoom changed!"));
 		break;
 	// from capture windows
 	case CAMERA_EVENT_ZOOMPOS_NEEDCHANGE:
@@ -474,6 +481,7 @@ void GEOSRecWnd::slotStart()
 		showBox->setEnabled(false);
 		startBtn->setEnabled(false);
 		stopBtn->setEnabled(true);
+		zoom5xBtn->setEnabled(false);
 		LiveThread->startWrite();
 		blinkLabel->setText(tr("WRITING"));
 		blinkLabel->start();
@@ -491,6 +499,7 @@ void GEOSRecWnd::slotStop()
 		startBtn->setEnabled(true);
 		stopBtn->setEnabled(false);
 		selFileBtn->setEnabled(true);
+		zoom5xBtn->setEnabled(true);
 	}
 }
 
@@ -511,6 +520,7 @@ void GEOSRecWnd::slotStartTimeout()
 			else
 			{
 				startBtn->setEnabled(true);
+				dofBtn->setEnabled(true);
 				zoom5xBtn->setEnabled(true);
 				blinkLabel->stop();
 				blinkLabel->setText(tr("Ready"));

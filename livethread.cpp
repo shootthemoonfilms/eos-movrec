@@ -432,6 +432,11 @@ c++;*/
 				SkippedCount++;
 			else if (CaptureWnd)
 				QApplication::postEvent(CaptureWnd, new GCameraEvent(CAMERA_EVENT_EVF_TRANSMITED, 0));
+			if (Zoom != OldZoom && WriteMovie)
+			{
+				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_ZOOM_CHANGED_STOP, QVariant(Zoom)));
+				WriteMovie = false;
+			}
 			if (Zoom != OldZoom || OldZoomPosX != ZoomPosX || OldZoomPosY != ZoomPosY)
 				QApplication::postEvent(CaptureWnd, new GCameraEvent(CAMERA_EVENT_ZOOM_CHANGED, QVariant(QRect(Zoom, 0, ZoomPosX, ZoomPosY))));
 			OldZoom = Zoom;
@@ -517,7 +522,6 @@ c++;*/
 		mjpegSetMaxChunkSize(mjpeg, max_frame_size);
 		mjpegCloseFile(mjpeg);
 		mjpeg = 0;
-		mjpegCloseFile(mjpeg);
 	}
 	EndTime = WinGetTickCount();
 	ElapsedTime = EndTime - StartTime;
