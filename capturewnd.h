@@ -34,6 +34,9 @@ protected:
 	//virtual void showEvent(QShowEvent* event);
 	virtual void paintEvent(QPaintEvent * event);
 	virtual void closeEvent(QCloseEvent* event);
+	virtual void mousePressEvent(QMouseEvent* event);
+	virtual void mouseMoveEvent(QMouseEvent* event);
+	virtual void mouseReleaseEvent(QMouseEvent* event);
 	virtual void customEvent(QEvent* event);
 private:
 	QImage LiveImage;
@@ -42,6 +45,8 @@ private:
 	bool ShowLiveImage;
 	int Zoom;
 	QRect ZoomRect;
+	QPoint MousePressPoint;
+	bool ZoomRectMoving;
 };
 
 #endif	// _capturewnd_h

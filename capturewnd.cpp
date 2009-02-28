@@ -26,6 +26,8 @@
 #include <QImageReader>
 #include <QPainter>
 #include <QLayout>
+#include <QMouseEvent>
+#include <QApplication>
 
 GEOSCaptureWnd::GEOSCaptureWnd(QWidget* parent)
  : QWidget(parent)
@@ -36,6 +38,8 @@ GEOSCaptureWnd::GEOSCaptureWnd(QWidget* parent)
 	//setAttribute(Qt::WA_NoSystemBackground, true);
 	setAttribute(Qt::WA_OpaquePaintEvent, true);
 	setMinimumSize(768, 512);
+	setMouseTracking(true);
+	ZoomRectMoving = false;
 }
 
 GEOSCaptureWnd::~GEOSCaptureWnd()
@@ -58,16 +62,108 @@ void GEOSCaptureWnd::paintEvent(QPaintEvent * event)
 			if (Zoom == 1)
 			{
 				QPen p(QColor(255, 255, 255));
-				p.setWidth(3);
+				p.setWidth(2);
 				painter.setPen(p);
 				painter.drawRect(ZoomRect);
 			}
 		}
 	}
+	else
+	{
+		QBrush br(QColor(0, 0, 0), Qt::SolidPattern);
+		painter.fillRect(0, 0, width(), height(), br);
+	}
 }
 
 void GEOSCaptureWnd::closeEvent(QCloseEvent* event)
 {
+}
+
+void GEOSCaptureWnd::mousePressEvent(QMouseEvent* event)
+{
+	ZoomRectMoving = Zoom == 1 && ZoomRect.contains(event->pos(), true) || Zoom == 5;
+	if (ZoomRectMoving)
+		MousePressPoint = event->pos();
+}
+
+void GEOSCaptureWnd::mouseReleaseEvent(QMouseEvent* event)
+{
+	if (ZoomRectMoving)
+	{
+		QPoint p = ZoomRect.topLeft()*5;
+		QApplication::postEvent(parentWidget(), new GCameraEvent(CAMERA_EVENT_ZOOMPOS_NEEDCHANGE, QVariant(p)));
+		ZoomRectMoving = false;
+	}
+}
+
+void GEOSCaptureWnd::mouseMoveEvent(QMouseEvent* event)
+{
+	static int cursor_type = 0;
+	QPoint pos = event->pos();
+	if (Zoom == 1)
+	{
+		if (ZoomRect.contains(pos, true))
+		{
+			if (cursor_type == 0)
+			{
+				setCursor(Qt::OpenHandCursor);
+				cursor_type = 1;
+			}
+			if (ZoomRectMoving)
+			{
+				QRect bak_rect = ZoomRect;
+				QPoint bak_point = MousePressPoint;
+				QPoint off = pos - MousePressPoint;
+				ZoomRect.translate(off);
+				MousePressPoint = pos;
+				if (ZoomRect.left() < 0 || ZoomRect.top() < 0 ||
+					ZoomRect.right() >= LiveImage.width() || ZoomRect.bottom() >= LiveImage.height())
+				{
+					ZoomRect = bak_rect;
+					MousePressPoint = bak_point;
+				}
+			}
+		}
+		else
+		{
+			if (cursor_type == 1)
+			{
+				setCursor(Qt::ArrowCursor);
+				cursor_type = 0;
+			}
+		}
+	}
+	else if (Zoom == 5)
+	{
+		if (cursor_type == 0)
+		{
+			setCursor(Qt::OpenHandCursor);
+			cursor_type = 1;
+		}
+		if (ZoomRectMoving)
+		{
+			QRect bak_rect = ZoomRect;
+			QPoint bak_point = MousePressPoint;
+			QPoint off = MousePressPoint - pos;
+			off /= 3;
+			ZoomRect.translate(off);
+			MousePressPoint = pos;
+			if (ZoomRect.left() < 0 || ZoomRect.top() < 0 ||
+				ZoomRect.right() >= LiveImage.width() || ZoomRect.bottom() >= LiveImage.height())
+			{
+				ZoomRect = bak_rect;
+				MousePressPoint = bak_point;
+			}
+		}
+	}
+	else
+	{
+		if (cursor_type == 1)
+		{
+			setCursor(Qt::ArrowCursor);
+			cursor_type = 0;
+		}
+	}
 }
 
 void GEOSCaptureWnd::customEvent(QEvent* event)
@@ -120,15 +216,12 @@ void GEOSCaptureWnd::customEvent(QEvent* event)
 	}
 	else if (event->type() == CAMERA_EVENT_ZOOM_CHANGED)
 	{
-		GCameraEvent* e = (GCameraEvent*)event;
-		QRect r = e->value().toRect();
-		Zoom = r.x();
-		ZoomRect = QRect(r.width()/5, r.height()/5, LiveImage.width()/5, LiveImage.height()/5);
-		FILE* f = fopen("a.txt", "at");
-		if (f)
+		if (!ZoomRectMoving)
 		{
-			fprintf(f, "zoom=%d %03d,%03d,%03dx%03d\n", Zoom, ZoomRect.x(), ZoomRect.y(), ZoomRect.width(), ZoomRect.height());
-			fclose(f);
+			GCameraEvent* e = (GCameraEvent*)event;
+			QRect r = e->value().toRect();
+			Zoom = r.x();
+			ZoomRect = QRect(r.width()/5, r.height()/5, LiveImage.width()/5, LiveImage.height()/5);
 		}
 	}
 }

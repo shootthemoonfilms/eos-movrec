@@ -306,8 +306,8 @@ void GEOSRecWnd::customEvent(QEvent* event)
 		{
 			// Tv changed
 			int tv = e->value().toInt();
-			QString str = tr("Tv changed to %1").arg(tv);
-			blinkLabel->setText(str);
+			//QString str = tr("Tv changed to %1").arg(tv);
+			//blinkLabel->setText(str);
 			//QMessageBox::information(this, tr("Info"), str);
 			// find in combo
 			int val;
@@ -326,7 +326,7 @@ void GEOSRecWnd::customEvent(QEvent* event)
 		{
 			// Tv list changed
 			//QMessageBox::information(this, tr("Info"), tr("Tv list changed."));
-			blinkLabel->setText(tr("Tv list changed."));
+			//blinkLabel->setText(tr("Tv list changed."));
 			int curr_tv = tvBox->itemData(tvBox->currentIndex(), Qt::UserRole).toInt();
 			const int* tvList = LiveThread->tvList();
 			int tvListSize = LiveThread->tvListSize();
@@ -368,7 +368,7 @@ void GEOSRecWnd::customEvent(QEvent* event)
 			default:
 				dofBtn->setEnabled(false);
 				dofBtn->setChecked(false);
-				avBox->clear();
+				//avBox->clear();
 				avBox->setEnabled(false);
 				break;
 			}
@@ -380,7 +380,7 @@ void GEOSRecWnd::customEvent(QEvent* event)
 				break;
 			default:
 				tvBox->setEnabled(false);
-				tvBox->clear();
+				//tvBox->clear();
 				break;
 			}
 			if (mode > 6)
@@ -433,6 +433,14 @@ void GEOSRecWnd::customEvent(QEvent* event)
 		blinkLabel->start();
 		shutdown();
 		QMessageBox::critical(this, tr("Error"), tr("Lost connection with camera."));
+		break;
+	// from capture windows
+	case CAMERA_EVENT_ZOOMPOS_NEEDCHANGE:
+		if (LiveThread)
+		{
+			QPoint p = e->value().toPoint();
+			LiveThread->cmdSetZoomPos(p.x(), p.y());
+		}
 		break;
 	default:
 		break;
@@ -682,6 +690,7 @@ void GEOSRecWnd::shutdown()
 void GEOSRecWnd::slotShowImageChanged(int state)
 {
 	CaptureWnd->setShowLiveImage(state == Qt::Checked);
+	CaptureWnd->update();
 }
 
 void GEOSRecWnd::slotAbout()

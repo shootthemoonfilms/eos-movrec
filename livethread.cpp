@@ -187,6 +187,14 @@ void GMyLiveThread::cmdSetZoom(int zoom)
 	CommandMutex.unlock();
 }
 
+void GMyLiveThread::cmdSetZoomPos(int x, int y)
+{
+	CommandMutex.lock();
+	GCameraCommand cmd(COMMAND_SET_ZOOMPOS, x, y);
+	CommandsQueue.append(cmd);
+	CommandMutex.unlock();
+}
+
 EdsError GMyLiveThread::processCommand()
 {
 	CommandMutex.lock();
@@ -314,6 +322,14 @@ EdsError GMyLiveThread::processCommand()
 	case COMMAND_SET_ZOOM:
 		err = EdsSetPropertyData(camera, kEdsPropID_Evf_Zoom, 0, sizeof(EdsUInt32), &param1);
 		break;
+	case COMMAND_SET_ZOOMPOS:
+		{
+			EdsPoint p;
+			p.x = (EdsInt32)param1;
+			p.y = (EdsInt32)param2;
+			err = EdsSetPropertyData(camera, kEdsPropID_Evf_ZoomPosition, 0, sizeof(EdsPoint), &p);
+		}
+		break;
 	default:
 		break;
 	}
@@ -340,6 +356,8 @@ void GMyLiveThread::run()
 	cmdRequestTv();
 	// get AF mode
 	cmdRequestAFMode();
+	// get AE mode
+	cmdRequestAEMode();
 	//
 	SkippedCount = 0;
 	AllFramesCount = 0;

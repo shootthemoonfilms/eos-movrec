@@ -56,6 +56,7 @@ public:
 	void cmdRequestAFMode();
 	void cmdAdjFocus(int direction, int val);
 	void cmdSetZoom(int zoom);
+	void cmdSetZoomPos(int x, int y);
 	const int* avList() const { return AvList; }
 	int avListSize() const { return AvListSize; }
 	const int* tvList() const { return TvList; }
