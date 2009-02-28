@@ -682,8 +682,15 @@ void GEOSRecWnd::shutdown()
 	selFileBtn->setEnabled(false);
 	dofBtn->setEnabled(false);
 	avBox->setEnabled(false);
+	tvBox->setEnabled(false);
 	wbBox->setEnabled(false);
 	wbTempBox->setEnabled(false);
+	focusNear3Btn->setEnabled(false);
+	focusNear2Btn->setEnabled(false);
+	focusNear1Btn->setEnabled(false);
+	focusFar1Btn->setEnabled(false);
+	focusFar2Btn->setEnabled(false);
+	focusFar3Btn->setEnabled(false);
 	fpsLabel->setText(tr("0 fps"));
 }
 
