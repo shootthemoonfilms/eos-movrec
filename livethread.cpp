@@ -83,12 +83,16 @@ void GMyLiveThread::stop()
 
 void GMyLiveThread::startWrite()
 {
+	WrtFlagMutex.lock();
 	WriteMovie = true;
+	WrtFlagMutex.unlock();
 }
 
 void GMyLiveThread::stopWrite()
 {
+	WrtFlagMutex.lock();
 	WriteMovie = false;
+	WrtFlagMutex.unlock();
 }
 
 void GMyLiveThread::cmdSetWB(int wb, int temp)
@@ -427,6 +431,7 @@ c++;*/
 		// fetch image.
 		if (downloadEvfData() == EDS_ERR_OK)
 		{
+			WrtFlagMutex.lock();
 			AllFramesCount++;
 			if (live_buffer::IsPainting)
 				SkippedCount++;
@@ -446,6 +451,7 @@ c++;*/
 			if (!PrevWriteMovie && WriteMovie)			// start record
 			{
 				StartWriteTime = WinGetTickCount();
+				WritenCount = 0;
 				if (mjpeg)
 					mjpegCloseFile(mjpeg);
 				mjpeg = mjpegCreateFile(FileName);
@@ -474,6 +480,7 @@ c++;*/
 			}
 			PrevWriteMovie = WriteMovie;
 			TempFrameCount++;
+			WrtFlagMutex.unlock();
 		}
 
 		// calc temp fps

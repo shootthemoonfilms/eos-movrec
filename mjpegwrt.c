@@ -41,7 +41,7 @@
 #endif
 
 #define HEADERBYTES 0x1000			// 4k
-#define DEFCACHE_SZ	0x200000		// 2M
+#define DEFCACHE_SZ	0x100000		// 1M
 
 #pragma pack(push, 2)
 

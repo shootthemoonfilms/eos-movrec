@@ -95,6 +95,7 @@ private:
 	bool WriteMovie;
 	char* FileName;
 	QMutex CommandMutex;
+	QMutex WrtFlagMutex;
 	GCameraCommandsQueue CommandsQueue;
 	int max_frame_size;
 	EdsCameraRef camera;
