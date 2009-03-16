@@ -44,7 +44,8 @@ public:
 	GEOSRecWnd();
 	~GEOSRecWnd();
 protected slots:
-	void slotSelFile();
+        void slotReconnect();
+        void slotSelFile();
 	void slotStart();
 	void slotStop();
 	void slotStartTimeout();
@@ -71,6 +72,7 @@ private:
 	void shutdown();
 private:
 	QBlinkLabel* blinkLabel;
+        QToolButton* reconnBtn;
 	QToolButton* selFileBtn;
 	QPushButton* startBtn;
 	QPushButton* stopBtn;

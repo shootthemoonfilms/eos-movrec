@@ -53,7 +53,8 @@ GEOSRecWnd::GEOSRecWnd()
 
 	selFileBtn = new QToolButton(this);
 	selFileBtn->setText(tr("..."));
-	btn_layout->addWidget(selFileBtn, 0);
+        selFileBtn->setEnabled(false);
+        btn_layout->addWidget(selFileBtn, 0);
 
 	startBtn = new QPushButton(tr("Write!"), this);
 	startBtn->setEnabled(false);
@@ -118,7 +119,12 @@ GEOSRecWnd::GEOSRecWnd()
 	btn_layout->addWidget(aboutBtn, 0);
 
 	QHBoxLayout* focus_layout = new QHBoxLayout();
-	QLabel* focusLabel = new QLabel(tr("Focus adjust"), this);
+        reconnBtn = new QToolButton(this);
+        reconnBtn->setText(tr("R"));
+        reconnBtn->setEnabled(false);
+        focus_layout->addWidget(reconnBtn, 0);
+        focus_layout->addSpacing(10);
+        QLabel* focusLabel = new QLabel(tr("Focus adjust"), this);
 	focus_layout->addWidget(focusLabel, 0);
 	focusFar1Btn = new QToolButton(this);
 	focusFar1Btn->setText(tr("<<<"));
@@ -172,7 +178,8 @@ GEOSRecWnd::GEOSRecWnd()
 	setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
 	connect(selFileBtn, SIGNAL(clicked()), this, SLOT(slotSelFile()));
-	connect(startBtn, SIGNAL(clicked()), this, SLOT(slotStart()));
+        connect(reconnBtn, SIGNAL(clicked()), this, SLOT(slotReconnect()));
+        connect(startBtn, SIGNAL(clicked()), this, SLOT(slotStart()));
 	connect(stopBtn, SIGNAL(clicked()), this, SLOT(slotStop()));
 	connect(dofBtn, SIGNAL(clicked()), this, SLOT(slotDofPressed()));
 	connect(avBox, SIGNAL(activated(int)), this, SLOT(slotAvSelected(int)));
@@ -454,6 +461,20 @@ void GEOSRecWnd::customEvent(QEvent* event)
 	}
 }
 
+void GEOSRecWnd::slotReconnect()
+{
+    blinkLabel->stop();
+    blinkLabel->setText(tr("Starting..."));
+    reconnBtn->setEnabled(false);
+
+    LiveThread = new GMyLiveThread(this);
+    LiveThread->setCaptureWnd(CaptureWnd);
+    LiveThread->start(QThread::HighestPriority);
+
+    QTimer::singleShot(4000, this, SLOT(slotStartTimeout()));
+    QTimer::singleShot(1200000, this, SLOT(slotWorkTimeout()));		// max work time is 20 min
+}
+
 void GEOSRecWnd::slotSelFile()
 {
 	QString path = QFileDialog::getSaveFileName(this, tr("Save file"), tr("out.avi"),
@@ -519,7 +540,8 @@ void GEOSRecWnd::slotStartTimeout()
 			}
 			else
 			{
-				startBtn->setEnabled(true);
+                                selFileBtn->setEnabled(true);
+                                startBtn->setEnabled(true);
 				dofBtn->setEnabled(true);
 				zoom5xBtn->setEnabled(true);
 				blinkLabel->stop();
@@ -691,6 +713,7 @@ void GEOSRecWnd::shutdown()
 	startBtn->setEnabled(false);
 	stopBtn->setEnabled(false);
 	selFileBtn->setEnabled(false);
+        reconnBtn->setEnabled(true);
 	dofBtn->setEnabled(false);
 	avBox->setEnabled(false);
 	tvBox->setEnabled(false);
