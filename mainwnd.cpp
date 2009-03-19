@@ -42,6 +42,9 @@
 #include "events.h"
 #include "cam_tables.h"
 
+// icons
+#include "usb-sign-black.xpm"
+
 #include <stdlib.h>
 
 GEOSRecWnd::GEOSRecWnd()
@@ -121,7 +124,8 @@ GEOSRecWnd::GEOSRecWnd()
 
 	QHBoxLayout* focus_layout = new QHBoxLayout();
 	reconnBtn = new QToolButton(this);
-	reconnBtn->setText(tr("R"));
+	//reconnBtn->setText(tr("R"));
+	reconnBtn->setIcon(QPixmap(usb_sign_black));
 	reconnBtn->setEnabled(false);
 	focus_layout->addWidget(reconnBtn, 0);
 	focus_layout->addSpacing(10);
@@ -156,8 +160,8 @@ GEOSRecWnd::GEOSRecWnd()
 	focus_layout->addSpacing(10);
 	AFBtn = new QToolButton(this);
 	AFBtn->setText(tr("AF"));
+	AFBtn->setCheckable(true);
 	AFBtn->setEnabled(false);
-	dofBtn->setCheckable(true);
 	focus_layout->addWidget(AFBtn, 0);
 
 	focus_layout->addSpacing(10);
@@ -211,7 +215,7 @@ GEOSRecWnd::GEOSRecWnd()
 	LiveThread->setCaptureWnd(CaptureWnd);
 	LiveThread->start(QThread::HighestPriority);
 
-		AFThread = 0;
+	AFThread = 0;
 
 	QTimer::singleShot(4000, this, SLOT(slotStartTimeout()));
 	QTimer::singleShot(1200000, this, SLOT(slotWorkTimeout()));		// max work time is 20 min

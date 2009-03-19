@@ -53,7 +53,7 @@ GEOSCaptureWnd::~GEOSCaptureWnd()
 	if (FocusArea)
 	{
 		int i;
-		for (i = 0; i < FocusAreaSize.width(); i++)
+		for (i = 0; i < FocusAreaSize.height(); i++)
 			free(FocusArea[i]);
 		free(FocusArea);
 		FocusArea = 0;
@@ -203,6 +203,8 @@ void GEOSCaptureWnd::customEvent(QEvent* event)
 			static QImageReader ir;
 			ir.setDevice(&b);
 			ir.setFormat("jpeg");
+// !!! Start critical section
+			FocusMutex.lock();
 			if (ir.read(&LiveImage))
 			{
 				if (!LiveImage.isNull())
@@ -220,6 +222,8 @@ void GEOSCaptureWnd::customEvent(QEvent* event)
 				update(0, 0, live_buffer::frame_width, live_buffer::frame_height);
 			}
 			live_buffer::IsPainting = false;
+			FocusMutex.unlock();
+// !!! End of critical section
 		}
 		event->accept();
 	}
@@ -243,16 +247,49 @@ double** GEOSCaptureWnd::getFocusingArea()
 	{
 		int w = ZoomRect.width();
 		int h = ZoomRect.height();
-		int i, j;
-		for (i = 0; i < h; i++)
+		int i;
+		FocusArea = (double**)malloc(sizeof(double*)*w);
+		for (i = 0; i < w; i++)
 		{
-			FocusArea = (double**)malloc(sizeof(double*)*h);
-			for (j = 0; j < w; j++)
-				FocusArea[i] = (double*)malloc(sizeof(double)*w);
+			FocusArea[i] = (double*)malloc(sizeof(double)*h);
 		}
 		FocusAreaSize = QSize(w, h);
 	}
-	// to-do: fill FocusArea
+// !!! Start critical section
+	FocusMutex.lock();
+	QImage img = LiveImage.copy(ZoomRect).convertToFormat(QImage::Format_RGB32, Qt::ColorOnly);
+	FocusMutex.unlock();
+// !!! End of critical section
+	unsigned char* bits = img.bits();
+	int num_bytes = img.numBytes();
+
+	// debug code ...
+	img.save("focus.bmp", "bmp");
+	FILE* f = fopen("focus.txt", "wb");
+	if (f)
+	{
+		fwrite(bits, num_bytes, 1, f);
+		fclose(f);
+	}
+	// end of debug code
+
+	// image data already aligned by a 32-bit
+	// image is 32 bit
+	int i, j;
+	int ind = 0;
+	for (i = 0; i < FocusAreaSize.height(); i++)
+	{
+		for (j = 0; j < FocusAreaSize.width(); j++)
+		{
+			FocusArea[j][i] = bits[ind] + bits[ind + 1] + bits[ind + 2];
+			FocusArea[j][i] /= 3.0;
+			ind += 4;			// RGB32 format
+			if (ind >= num_bytes)
+				break;
+		}
+	}
+	// ???????????????????
+	//free(bits);
 	return FocusArea;
 }
 

@@ -23,6 +23,7 @@
 
 #include <QWidget>
 #include <QImage>
+#include <QMutex>
 
 class GEOSCaptureWnd: public QWidget
 {
@@ -30,6 +31,7 @@ public:
 	GEOSCaptureWnd(QWidget* parent);
 	~GEOSCaptureWnd();
 	void setShowLiveImage(bool s) { ShowLiveImage = s; }
+	// called from other thread
 	double** getFocusingArea();
 	QSize getFocusingAreaSize();
 protected:
@@ -51,6 +53,7 @@ private:
 	bool ZoomRectMoving;
 	double** FocusArea;
 	QSize FocusAreaSize;
+	QMutex FocusMutex;
 };
 
 #endif	// _capturewnd_h

@@ -66,9 +66,10 @@ void GAFThread::run()
 			nextfocus = fc->getNextFocus();
 			dir = nextfocus < 0 ? 0 : 1;
 			val = nextfocus; if (val < 0) val = -val;
+			val *= 2;
 			if (val != 0)
 				LiveThread->cmdAdjFocus(dir, val);
 		}
-		WinSleep(200);
+		WinSleep(500);
 	}
 }
