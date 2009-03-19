@@ -18,39 +18,57 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _capturewnd_h
-#define _capturewnd_h
+#include "afthread.h"
+#include "livethread.h"
+#include "capturewnd.h"
+#include "freqtimer.h"
+#include "events.h"
+#include "command.h"
+#include "FocuserClass.h"
 
 #include <QWidget>
-#include <QImage>
+#include <QApplication>
 
-class GEOSCaptureWnd: public QWidget
+GAFThread::GAFThread(QWidget* owner, GMyLiveThread* liveThread, GEOSCaptureWnd* capwnd)
+ : QThread()
 {
-public:
-	GEOSCaptureWnd(QWidget* parent);
-	~GEOSCaptureWnd();
-	void setShowLiveImage(bool s) { ShowLiveImage = s; }
-	double** getFocusingArea();
-	QSize getFocusingAreaSize();
-protected:
-	//virtual void showEvent(QShowEvent* event);
-	virtual void paintEvent(QPaintEvent * event);
-	virtual void closeEvent(QCloseEvent* event);
-	virtual void mousePressEvent(QMouseEvent* event);
-	virtual void mouseMoveEvent(QMouseEvent* event);
-	virtual void mouseReleaseEvent(QMouseEvent* event);
-	virtual void customEvent(QEvent* event);
-private:
-	QImage LiveImage;
-	int max_frame_size;
-	unsigned char* frame;
-	bool ShowLiveImage;
-	int Zoom;
-	QRect ZoomRect;
-	QPoint MousePressPoint;
-	bool ZoomRectMoving;
-	double** FocusArea;
-	QSize FocusAreaSize;
-};
+	Owner = owner;
+	LiveThread = liveThread;
+	CapWnd = capwnd;
+	Stopped = false;
+	fc = new FocusingClass;
+}
 
-#endif	// _capturewnd_h
+GAFThread::~GAFThread()
+{
+	delete fc;
+}
+
+void GAFThread::stop()
+{
+	Stopped = true;
+}
+
+void GAFThread::run()
+{
+	double** pict;
+	QSize pictSz;
+	int nextfocus;
+	int dir;
+	int val;
+	while (!Stopped)
+	{
+		pict = CapWnd->getFocusingArea();
+		if (pict)
+		{
+			pictSz = CapWnd->getFocusingAreaSize();
+			fc->NextIter(pict, pictSz.width(), pictSz.height());
+			nextfocus = fc->getNextFocus();
+			dir = nextfocus < 0 ? 0 : 1;
+			val = nextfocus; if (val < 0) val = -val;
+			if (val != 0)
+				LiveThread->cmdAdjFocus(dir, val);
+		}
+		WinSleep(200);
+	}
+}

@@ -40,6 +40,7 @@ GEOSCaptureWnd::GEOSCaptureWnd(QWidget* parent)
 	setMinimumSize(768, 512);
 	setMouseTracking(true);
 	ZoomRectMoving = false;
+	FocusArea = 0;
 }
 
 GEOSCaptureWnd::~GEOSCaptureWnd()
@@ -48,6 +49,14 @@ GEOSCaptureWnd::~GEOSCaptureWnd()
 	{
 		free(frame);
 		frame = 0;
+	}
+	if (FocusArea)
+	{
+		int i;
+		for (i = 0; i < FocusAreaSize.width(); i++)
+			free(FocusArea[i]);
+		free(FocusArea);
+		FocusArea = 0;
 	}
 }
 
@@ -224,4 +233,30 @@ void GEOSCaptureWnd::customEvent(QEvent* event)
 			ZoomRect = QRect(r.width()/5, r.height()/5, LiveImage.width()/5, LiveImage.height()/5);
 		}
 	}
+}
+
+double** GEOSCaptureWnd::getFocusingArea()
+{
+	if (ZoomRect.width() == 0 || LiveImage.isNull())
+		return 0;
+	if (!FocusArea)
+	{
+		int w = ZoomRect.width();
+		int h = ZoomRect.height();
+		int i, j;
+		for (i = 0; i < h; i++)
+		{
+			FocusArea = (double**)malloc(sizeof(double*)*h);
+			for (j = 0; j < w; j++)
+				FocusArea[i] = (double*)malloc(sizeof(double)*w);
+		}
+		FocusAreaSize = QSize(w, h);
+	}
+	// to-do: fill FocusArea
+	return FocusArea;
+}
+
+QSize GEOSCaptureWnd::getFocusingAreaSize()
+{
+	return FocusAreaSize;
 }

@@ -300,13 +300,13 @@ EdsError GMyLiveThread::processCommand()
 			switch (param2)
 			{
 				case 1:
-					inParam = param1 == 0 ? kEdsEvfDriveLens_Near3 : kEdsEvfDriveLens_Far3;
+					inParam = param1 == 0 ? kEdsEvfDriveLens_Near3 : kEdsEvfDriveLens_Far1;
 					break;
 				case 2:
 					inParam = param1 == 0 ? kEdsEvfDriveLens_Near2 : kEdsEvfDriveLens_Far2;
 					break;
 				case 3:
-					inParam = param1 == 0 ? kEdsEvfDriveLens_Near1 : kEdsEvfDriveLens_Far1;
+					inParam = param1 == 0 ? kEdsEvfDriveLens_Near1 : kEdsEvfDriveLens_Far3;
 					break;
 				default:
 					break;
@@ -372,7 +372,7 @@ void GMyLiveThread::run()
 	int OldZoom = -1;
 	int OldZoomPosX = -1;
 	int OldZoomPosY = -1;
-	// 
+	//
 	live_buffer::frame = 0;
 	void* mjpeg = 0;
 	bool PrevWriteMovie = false;

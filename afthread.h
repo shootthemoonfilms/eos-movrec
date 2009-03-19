@@ -18,39 +18,30 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _capturewnd_h
-#define _capturewnd_h
+#ifndef _afthread_h
+#define _afthread_h
 
-#include <QWidget>
-#include <QImage>
+#include <QThread>
 
-class GEOSCaptureWnd: public QWidget
+class QWidget;
+class GMyLiveThread;
+class GEOSCaptureWnd;
+class FocusingClass;
+
+class GAFThread: public QThread
 {
 public:
-	GEOSCaptureWnd(QWidget* parent);
-	~GEOSCaptureWnd();
-	void setShowLiveImage(bool s) { ShowLiveImage = s; }
-	double** getFocusingArea();
-	QSize getFocusingAreaSize();
+	GAFThread(QWidget* owner, GMyLiveThread* liveThread, GEOSCaptureWnd* capwnd);
+	~GAFThread();
+	void stop();
 protected:
-	//virtual void showEvent(QShowEvent* event);
-	virtual void paintEvent(QPaintEvent * event);
-	virtual void closeEvent(QCloseEvent* event);
-	virtual void mousePressEvent(QMouseEvent* event);
-	virtual void mouseMoveEvent(QMouseEvent* event);
-	virtual void mouseReleaseEvent(QMouseEvent* event);
-	virtual void customEvent(QEvent* event);
+	virtual void run();
 private:
-	QImage LiveImage;
-	int max_frame_size;
-	unsigned char* frame;
-	bool ShowLiveImage;
-	int Zoom;
-	QRect ZoomRect;
-	QPoint MousePressPoint;
-	bool ZoomRectMoving;
-	double** FocusArea;
-	QSize FocusAreaSize;
+	bool Stopped;
+	QWidget* Owner;
+	GMyLiveThread* LiveThread;
+	GEOSCaptureWnd* CapWnd;
+	FocusingClass* fc;
 };
 
-#endif	// _capturewnd_h
+#endif // _afthread_h

@@ -34,6 +34,7 @@ class QSpinBox;
 class QLabel;
 
 class GMyLiveThread;
+class GAFThread;
 class GEOSCaptureWnd;
 class QBlinkLabel;
 
@@ -44,8 +45,8 @@ public:
 	GEOSRecWnd();
 	~GEOSRecWnd();
 protected slots:
-        void slotReconnect();
-        void slotSelFile();
+	void slotReconnect();
+	void slotSelFile();
 	void slotStart();
 	void slotStop();
 	void slotStartTimeout();
@@ -64,6 +65,8 @@ protected slots:
 	void slotFocusFar2();
 	void slotFocusFar3();
 	void slotZoom5x();
+	void slotAutoFocus();
+	void slotStopAutoFocus();
 protected:
 	virtual void customEvent(QEvent* event);
 	virtual void closeEvent(QCloseEvent* event);
@@ -72,7 +75,7 @@ private:
 	void shutdown();
 private:
 	QBlinkLabel* blinkLabel;
-        QToolButton* reconnBtn;
+	QToolButton* reconnBtn;
 	QToolButton* selFileBtn;
 	QPushButton* startBtn;
 	QPushButton* stopBtn;
@@ -90,8 +93,10 @@ private:
 	QToolButton* focusFar2Btn;
 	QToolButton* focusFar3Btn;
 	QToolButton* zoom5xBtn;
+	QToolButton* AFBtn;
 	QString Path;
 	GMyLiveThread* LiveThread;
+	GAFThread* AFThread;
 	GEOSCaptureWnd* CaptureWnd;
 };
 

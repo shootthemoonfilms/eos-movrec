@@ -38,6 +38,7 @@
 #include "blinklabel.h"
 #include "capturewnd.h"
 #include "livethread.h"
+#include "afthread.h"
 #include "events.h"
 #include "cam_tables.h"
 
@@ -53,8 +54,8 @@ GEOSRecWnd::GEOSRecWnd()
 
 	selFileBtn = new QToolButton(this);
 	selFileBtn->setText(tr("..."));
-        selFileBtn->setEnabled(false);
-        btn_layout->addWidget(selFileBtn, 0);
+		selFileBtn->setEnabled(false);
+		btn_layout->addWidget(selFileBtn, 0);
 
 	startBtn = new QPushButton(tr("Write!"), this);
 	startBtn->setEnabled(false);
@@ -119,38 +120,45 @@ GEOSRecWnd::GEOSRecWnd()
 	btn_layout->addWidget(aboutBtn, 0);
 
 	QHBoxLayout* focus_layout = new QHBoxLayout();
-        reconnBtn = new QToolButton(this);
-        reconnBtn->setText(tr("R"));
-        reconnBtn->setEnabled(false);
-        focus_layout->addWidget(reconnBtn, 0);
-        focus_layout->addSpacing(10);
-        QLabel* focusLabel = new QLabel(tr("Focus adjust"), this);
+	reconnBtn = new QToolButton(this);
+	reconnBtn->setText(tr("R"));
+	reconnBtn->setEnabled(false);
+	focus_layout->addWidget(reconnBtn, 0);
+	focus_layout->addSpacing(10);
+	QLabel* focusLabel = new QLabel(tr("Focus adjust"), this);
 	focus_layout->addWidget(focusLabel, 0);
-	focusFar1Btn = new QToolButton(this);
-	focusFar1Btn->setText(tr("<<<"));
-	focusFar1Btn->setEnabled(false);
-	focus_layout->addWidget(focusFar1Btn, 0);
+	focusFar3Btn = new QToolButton(this);
+	focusFar3Btn->setText(tr("<<<"));
+	focusFar3Btn->setEnabled(false);
+	focus_layout->addWidget(focusFar3Btn, 0);
 	focusFar2Btn = new QToolButton(this);
 	focusFar2Btn->setText(tr("<<"));
 	focusFar2Btn->setEnabled(false);
 	focus_layout->addWidget(focusFar2Btn, 0);
-	focusFar3Btn = new QToolButton(this);
-	focusFar3Btn->setText(tr("<"));
-	focusFar3Btn->setEnabled(false);
-	focus_layout->addWidget(focusFar3Btn, 0);
+	focusFar1Btn = new QToolButton(this);
+	focusFar1Btn->setText(tr("<"));
+	focusFar1Btn->setEnabled(false);
+	focus_layout->addWidget(focusFar1Btn, 0);
 
-	focusNear3Btn = new QToolButton(this);
-	focusNear3Btn->setText(tr(">"));
-	focusNear3Btn->setEnabled(false);
-	focus_layout->addWidget(focusNear3Btn, 0);
+	focusNear1Btn = new QToolButton(this);
+	focusNear1Btn->setText(tr(">"));
+	focusNear1Btn->setEnabled(false);
+	focus_layout->addWidget(focusNear1Btn, 0);
 	focusNear2Btn = new QToolButton(this);
 	focusNear2Btn->setText(tr(">>"));
 	focusNear2Btn->setEnabled(false);
 	focus_layout->addWidget(focusNear2Btn, 0);
-	focusNear1Btn = new QToolButton(this);
-	focusNear1Btn->setText(tr(">>>"));
-	focusNear1Btn->setEnabled(false);
-	focus_layout->addWidget(focusNear1Btn, 0);
+	focusNear3Btn = new QToolButton(this);
+	focusNear3Btn->setText(tr(">>>"));
+	focusNear3Btn->setEnabled(false);
+	focus_layout->addWidget(focusNear3Btn, 0);
+
+	focus_layout->addSpacing(10);
+	AFBtn = new QToolButton(this);
+	AFBtn->setText(tr("AF"));
+	AFBtn->setEnabled(false);
+	dofBtn->setCheckable(true);
+	focus_layout->addWidget(AFBtn, 0);
 
 	focus_layout->addSpacing(10);
 
@@ -178,8 +186,8 @@ GEOSRecWnd::GEOSRecWnd()
 	setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
 	connect(selFileBtn, SIGNAL(clicked()), this, SLOT(slotSelFile()));
-        connect(reconnBtn, SIGNAL(clicked()), this, SLOT(slotReconnect()));
-        connect(startBtn, SIGNAL(clicked()), this, SLOT(slotStart()));
+	connect(reconnBtn, SIGNAL(clicked()), this, SLOT(slotReconnect()));
+	connect(startBtn, SIGNAL(clicked()), this, SLOT(slotStart()));
 	connect(stopBtn, SIGNAL(clicked()), this, SLOT(slotStop()));
 	connect(dofBtn, SIGNAL(clicked()), this, SLOT(slotDofPressed()));
 	connect(avBox, SIGNAL(activated(int)), this, SLOT(slotAvSelected(int)));
@@ -195,12 +203,15 @@ GEOSRecWnd::GEOSRecWnd()
 	connect(focusFar2Btn, SIGNAL(clicked()), this, SLOT(slotFocusFar2()));
 	connect(focusFar3Btn, SIGNAL(clicked()), this, SLOT(slotFocusFar3()));
 	connect(zoom5xBtn, SIGNAL(clicked()), this, SLOT(slotZoom5x()));
+	connect(AFBtn, SIGNAL(clicked()), this, SLOT(slotAutoFocus()));
 
 	Path = tr("out.avi");
 
 	LiveThread = new GMyLiveThread(this);
 	LiveThread->setCaptureWnd(CaptureWnd);
 	LiveThread->start(QThread::HighestPriority);
+
+		AFThread = 0;
 
 	QTimer::singleShot(4000, this, SLOT(slotStartTimeout()));
 	QTimer::singleShot(1200000, this, SLOT(slotWorkTimeout()));		// max work time is 20 min
@@ -256,6 +267,13 @@ void GEOSRecWnd::closeEvent(QCloseEvent* event)
 			fclose(f);
 		}
 		delete p;
+	}
+	if (AFThread)
+	{
+		AFThread->stop();
+		AFThread->wait();
+		delete AFThread;
+		AFThread = 0;
 	}
 }
 
@@ -423,6 +441,7 @@ void GEOSRecWnd::customEvent(QEvent* event)
 				focusFar1Btn->setEnabled(true);
 				focusFar2Btn->setEnabled(true);
 				focusFar3Btn->setEnabled(true);
+								AFBtn->setEnabled(true);
 				break;
 			case 3:
 				focusNear3Btn->setEnabled(false);
@@ -431,7 +450,8 @@ void GEOSRecWnd::customEvent(QEvent* event)
 				focusFar1Btn->setEnabled(false);
 				focusFar2Btn->setEnabled(false);
 				focusFar3Btn->setEnabled(false);
-				break;
+								AFBtn->setEnabled(true);
+								break;
 			default:
 				break;
 			}
@@ -463,16 +483,16 @@ void GEOSRecWnd::customEvent(QEvent* event)
 
 void GEOSRecWnd::slotReconnect()
 {
-    blinkLabel->stop();
-    blinkLabel->setText(tr("Starting..."));
-    reconnBtn->setEnabled(false);
+	blinkLabel->stop();
+	blinkLabel->setText(tr("Starting..."));
+	reconnBtn->setEnabled(false);
 
-    LiveThread = new GMyLiveThread(this);
-    LiveThread->setCaptureWnd(CaptureWnd);
-    LiveThread->start(QThread::HighestPriority);
+	LiveThread = new GMyLiveThread(this);
+	LiveThread->setCaptureWnd(CaptureWnd);
+	LiveThread->start(QThread::HighestPriority);
 
-    QTimer::singleShot(4000, this, SLOT(slotStartTimeout()));
-    QTimer::singleShot(1200000, this, SLOT(slotWorkTimeout()));		// max work time is 20 min
+	QTimer::singleShot(4000, this, SLOT(slotStartTimeout()));
+	QTimer::singleShot(1200000, this, SLOT(slotWorkTimeout()));		// max work time is 20 min
 }
 
 void GEOSRecWnd::slotSelFile()
@@ -540,8 +560,8 @@ void GEOSRecWnd::slotStartTimeout()
 			}
 			else
 			{
-                                selFileBtn->setEnabled(true);
-                                startBtn->setEnabled(true);
+								selFileBtn->setEnabled(true);
+								startBtn->setEnabled(true);
 				dofBtn->setEnabled(true);
 				zoom5xBtn->setEnabled(true);
 				blinkLabel->stop();
@@ -682,6 +702,33 @@ void GEOSRecWnd::slotZoom5x()
 	}
 }
 
+void GEOSRecWnd::slotAutoFocus()
+{
+	bool af = AFBtn->isChecked();
+	if (af)
+	{
+		if (!AFThread)
+		{
+			AFThread = new GAFThread(this, LiveThread, CaptureWnd);
+			AFThread->start();
+		}
+	}
+	else
+		slotStopAutoFocus();
+}
+
+void GEOSRecWnd::slotStopAutoFocus()
+{
+	if (AFThread)
+	{
+		AFThread->stop();
+		AFThread->wait();
+		delete AFThread;
+		AFThread = 0;
+		//AFBtn->setChecked(false);
+	}
+}
+
 void GEOSRecWnd::slotWorkTimeout()
 {
 	shutdown();
@@ -713,7 +760,7 @@ void GEOSRecWnd::shutdown()
 	startBtn->setEnabled(false);
 	stopBtn->setEnabled(false);
 	selFileBtn->setEnabled(false);
-        reconnBtn->setEnabled(true);
+	reconnBtn->setEnabled(true);
 	dofBtn->setEnabled(false);
 	avBox->setEnabled(false);
 	tvBox->setEnabled(false);
@@ -726,6 +773,7 @@ void GEOSRecWnd::shutdown()
 	focusFar2Btn->setEnabled(false);
 	focusFar3Btn->setEnabled(false);
 	zoom5xBtn->setEnabled(false);
+	AFBtn->setEnabled(false);
 	fpsLabel->setText(tr("0 fps"));
 }
 
