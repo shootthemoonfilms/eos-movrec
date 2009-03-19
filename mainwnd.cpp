@@ -760,6 +760,7 @@ void GEOSRecWnd::shutdown()
 		fclose(f);
 	}
 	delete p;
+	slotStopAutoFocus();
 	showBox->setEnabled(false);
 	startBtn->setEnabled(false);
 	stopBtn->setEnabled(false);

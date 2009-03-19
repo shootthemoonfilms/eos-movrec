@@ -70,6 +70,6 @@ void GAFThread::run()
 			if (val != 0)
 				LiveThread->cmdAdjFocus(dir, val);
 		}
-		WinSleep(500);
+		WinSleep(200);
 	}
 }
