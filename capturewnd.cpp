@@ -265,7 +265,7 @@ double** GEOSCaptureWnd::getFocusingArea()
 
 	// debug code ...
 	img.save("focus.bmp", "bmp");
-	FILE* f = fopen("focus.txt", "wb");
+	FILE* f = fopen("focus.bin", "wb");
 	if (f)
 	{
 		fwrite(bits, num_bytes, 1, f);
