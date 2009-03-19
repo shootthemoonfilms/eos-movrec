@@ -62,11 +62,11 @@ class FocusingClass
 			int last_index=(int)finfos.size()-1;
 			if(finfos[last_index]->dispersion > finfos[last_index-1]->dispersion)
 			{
-				NextFocus=1;
+				NextFocus=finfos[last_index]->focusPosition-finfos[last_index-1]->focusPosition;
 			}
 			else
 			{
-				NextFocus=-1;
+				NextFocus=finfos[last_index-1]->focusPosition-finfos[last_index]->focusPosition;
 			}
 
 			if(finfos.size()>10)
@@ -89,6 +89,7 @@ class FocusingClass
 
 	int getNextFocus()
 	{
+		currentFocusPosition=NextFocus;
 		return NextFocus;
 	}
 
