@@ -43,7 +43,9 @@
 #include "cam_tables.h"
 
 // icons
-#include "usb-sign-black.xpm"
+#include "pixmaps/usb-sign-black.xpm"
+#include "pixmaps/record.xpm"
+#include "pixmaps/stop.xpm"
 
 #include <stdlib.h>
 
@@ -57,14 +59,16 @@ GEOSRecWnd::GEOSRecWnd()
 
 	selFileBtn = new QToolButton(this);
 	selFileBtn->setText(tr("..."));
-		selFileBtn->setEnabled(false);
-		btn_layout->addWidget(selFileBtn, 0);
+	selFileBtn->setEnabled(false);
+	btn_layout->addWidget(selFileBtn, 0);
 
 	startBtn = new QPushButton(tr("Write!"), this);
+	startBtn->setIcon(QPixmap(record_xpm));
 	startBtn->setEnabled(false);
 	btn_layout->addWidget(startBtn, 0);
 
 	stopBtn = new QPushButton(tr("Stop"), this);
+	stopBtn->setIcon(QPixmap(stop_xpm));
 	stopBtn->setEnabled(false);
 	btn_layout->addWidget(stopBtn, 0);
 
@@ -125,7 +129,7 @@ GEOSRecWnd::GEOSRecWnd()
 	QHBoxLayout* focus_layout = new QHBoxLayout();
 	reconnBtn = new QToolButton(this);
 	//reconnBtn->setText(tr("R"));
-	reconnBtn->setIcon(QPixmap(usb_sign_black));
+	reconnBtn->setIcon(QPixmap(usb_sign_black_xpm));
 	reconnBtn->setEnabled(false);
 	focus_layout->addWidget(reconnBtn, 0);
 	focus_layout->addSpacing(10);

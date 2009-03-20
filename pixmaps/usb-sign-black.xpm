@@ -1,5 +1,5 @@
 /* XPM */
-static const char *usb_sign_black[] = {
+static const char *usb_sign_black_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "26 16 2 1",
 "  c black",
