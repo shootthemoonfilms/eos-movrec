@@ -29,7 +29,7 @@ class FocusingClass
 	FocusingClass()
 	{
 		currentFocusPosition=0;
-		NextFocus=1;
+		NextFocus=5;
 		stop=false;
 	}
 
@@ -55,36 +55,42 @@ class FocusingClass
 		finfos.push_back(finf);
 	}*/
 	bool stop;
+	double dabs(double i)
+	{
+		return i>0?i:-1*i;
+	}
 	void NextIter(double **Luminance,int x_dim,int y_dim)
 	{
-		if(finfos.size()>1 && stop==false)
-		{
-			int last_index=(int)finfos.size()-1;
-			if(finfos[last_index]->dispersion > finfos[last_index-1]->dispersion)
-			{
-				NextFocus=finfos[last_index]->focusPosition-finfos[last_index-1]->focusPosition;
-			}
-			else
-			{
-				NextFocus=finfos[last_index-1]->focusPosition-finfos[last_index]->focusPosition;
-			}
-
-			if(finfos.size()>10)
-			{
-				if((finfos[last_index]->dispersion - finfos[last_index-8]->dispersion)/finfos[last_index]->dispersion<0.01)
-					stop=true;
-			}
-		}
-		if(stop)
-			NextFocus=0;
-
 		focusingInfo*finf=new focusingInfo;
-
 		double Disp=Dispersion(Luminance,x_dim,y_dim);
 		finf->dispersion=Disp;
 		finf->focusPosition=currentFocusPosition;
-
 		finfos.push_back(finf);
+
+		if(finfos.size()>1 && stop==false)
+		{		
+			int last_index=(int)finfos.size()-1;	
+			if(finfos.size()>50)
+			{
+				if(dabs((finfos[last_index]->dispersion - finfos[last_index-8]->dispersion)/finfos[last_index]->dispersion)<0.001)
+					stop=true;
+			}
+
+
+			
+			if(finfos[last_index]->dispersion > finfos[last_index-1]->dispersion || dabs((finfos[last_index]->dispersion - finfos[last_index-1]->dispersion)/finfos[last_index]->dispersion)<0.001)
+			{
+				NextFocus=finfos[last_index-1]->focusPosition;		 
+			}
+			else
+			{
+				NextFocus=finfos[last_index-1]->focusPosition*-1;
+			}
+
+
+		}
+		if(stop)
+			NextFocus=0;
 	}
 
 	int getNextFocus()
