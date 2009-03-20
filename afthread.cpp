@@ -22,8 +22,7 @@
 #include "livethread.h"
 #include "capturewnd.h"
 #include "freqtimer.h"
-#include "events.h"
-#include "command.h"
+//#include "events.h"
 #include "FocuserClass.h"
 
 #include <QWidget>

@@ -349,7 +349,10 @@ void GMyLiveThread::run()
 		err = startLiveView();
 	}
 	if (err != EDS_ERR_OK)
+	{
+		deInitializeEds();
 		return;
+	}
 	// get Av list to main window
 	cmdRequestAvList();
 	// get Av value to main window
@@ -409,7 +412,10 @@ void GMyLiveThread::run()
 		RealyStartT2 = WinGetTickCount();
 	}
 	if (!LiveViewStarted)
+	{
+		deInitializeEds();
 		return;
+	}
 	Inited = true;
 	while (!Stoped)
 	{
@@ -534,20 +540,7 @@ c++;*/
 	ElapsedTime = EndTime - StartTime;
 
 	err = endLiveView();
-	/*if (err != EDS_ERR_OK)
-		QMessageBox::critical(this, "Error", "Can't off LiveView mode!");*/
-	// Close session with camera
-	err = EdsCloseSession(camera);
-	// Release camera
-	if (camera != NULL)
-	{
-		EdsRelease(camera);
-	}
-	// Terminate SDK
-	if (isSDKLoaded)
-	{
-		EdsTerminateSDK();
-	}
+	deInitializeEds();
 
 	if (live_buffer::frame)
 	{
@@ -596,7 +589,27 @@ EdsError GMyLiveThread::initializeEds()
 	// Get first camera
 	if (err == EDS_ERR_OK)
 	{
-		err = getFirstCamera();
+		EdsCameraListRef cameraList = NULL;
+		EdsUInt32 count = 0;
+		// Get camera list
+		err = EdsGetCameraList(&cameraList);
+		// Get number of cameras
+		if (err == EDS_ERR_OK)
+		{
+			err = EdsGetChildCount(cameraList, &count);
+			if (count == 0)
+			{
+				err = EDS_ERR_DEVICE_NOT_FOUND;
+			}
+		}
+		// Get first camera retrieved
+		if (err == EDS_ERR_OK)
+		{
+			err = EdsGetChildAtIndex(cameraList, 0, &camera);
+		}
+		// Release camera list
+		if (cameraList != NULL)
+			EdsRelease(cameraList);
 	}
 	// Set event handler
 	if (err == EDS_ERR_OK)
@@ -621,36 +634,20 @@ EdsError GMyLiveThread::initializeEds()
 	return err;
 }
 
-EdsError GMyLiveThread::getFirstCamera()
+EdsError GMyLiveThread::deInitializeEds()
 {
-	EdsError err = EDS_ERR_OK;
-	EdsCameraListRef cameraList = NULL;
-	EdsUInt32 count = 0;
-	// Get camera list
-	err = EdsGetCameraList(&cameraList);
-	// Get number of cameras
-	if (err == EDS_ERR_OK)
+	EdsError err = endLiveView();
+	// Close session with camera
+	// and release camera
+	if (camera != NULL)
 	{
-		err = EdsGetChildCount(cameraList, &count);
-		if(count == 0)
-		{
-			err = EDS_ERR_DEVICE_NOT_FOUND;
-		}
+		err = EdsCloseSession(camera);
+		EdsRelease(camera);
 	}
-	// Get first camera retrieved
-	if(err == EDS_ERR_OK)
-	{
-		err = EdsGetChildAtIndex(cameraList, 0, &camera);
-	}
-	// Release camera list
-	if(cameraList != NULL)
-	{
-		EdsRelease(cameraList);
-		cameraList = NULL;
-	}
-	return err;
+	// Terminate SDK
+	if (isSDKLoaded)
+		EdsTerminateSDK();
 }
-
 
 EdsError GMyLiveThread::startLiveView()
 {
@@ -749,7 +746,8 @@ EdsError GMyLiveThread::endLiveView()
 		device &= ~kEdsEvfOutputDevice_PC;
 		err = EdsSetPropertyData(camera, kEdsPropID_Evf_OutputDevice, 0, sizeof(device), &device);
 	}
-	LiveViewStarted = false;
+	if (err == EDS_ERR_OK)
+		LiveViewStarted = false;
 	return err;
 }
 

@@ -79,7 +79,7 @@ protected:
 	virtual void run();
 private:
 	EdsError initializeEds();
-	EdsError getFirstCamera();
+	EdsError deInitializeEds();
 	EdsError startLiveView();
 	EdsError downloadEvfData();
 	EdsError endLiveView();
