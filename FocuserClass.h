@@ -2,13 +2,6 @@
 #include <vector>
 using namespace std;
 
-//struct RGB
-//{
-//int R;
-//int G;
-//int B;
-//};
-
 class FocusingClass
 {
 	private:
@@ -29,31 +22,19 @@ class FocusingClass
 	FocusingClass()
 	{
 		currentFocusPosition=0;
-		NextFocus=5;
+		NextFocus=12;
 		stop=false;
 	}
-
-	/*
-	void NextIter(RGB**inc_arr,int x_dim,int y_dim)
+	~FocusingClass()
 	{
-		//Luminance=0.3*R+0.59*G+0.11*B
-		double ** Luminance=new double*[y_dim];
-		for(int i=0;i<y_dim;i++)
+		int infs=finfos.size();
+		for(int i=0;i<infs;i++)
 		{
-			Luminance[i]=new double[x_dim];
-			for(int j=0;j<x_dim;j++)
-			{
-				Luminance[i][j]=inc_arr[i][j].R*0.3+0.59*inc_arr[i][j].G+0.11*inc_arr[i][j].B;
-			}
+			delete finfos[i];
 		}
-		focusingInfo*finf=new focusingInfo;
+		finfos.clear();
+	}
 
-		double Disp=Dispersion(Luminance,x_dim,y_dim);
-		finf->dispersion=Disp;
-		finf->focusPosition=currentFocusPosition;
-
-		finfos.push_back(finf);
-	}*/
 	bool stop;
 	double dabs(double i)
 	{
@@ -76,21 +57,38 @@ class FocusingClass
 					stop=true;
 			}
 
-
-			
-			if(finfos[last_index]->dispersion > finfos[last_index-1]->dispersion || dabs((finfos[last_index]->dispersion - finfos[last_index-1]->dispersion)/finfos[last_index]->dispersion)<0.001)
+			if(Disp>maxdispersion()*0.997 && finfos.size()>20)
 			{
-				NextFocus=finfos[last_index-1]->focusPosition;		 
+				stop=true;
+			}
+			
+			if(finfos[last_index]->dispersion > finfos[last_index-1]->dispersion || dabs((finfos[last_index]->dispersion - finfos[last_index-1]->dispersion)/finfos[last_index]->dispersion)<0.01)
+			{
+				NextFocus=finfos[last_index-1]->focusPosition>0?3:-3;		 
 			}
 			else
 			{
-				NextFocus=finfos[last_index-1]->focusPosition*-1;
+				NextFocus=(finfos[last_index-1]->focusPosition*-1)>0?12:-12;
 			}
 
 
 		}
 		if(stop)
+		{
 			NextFocus=0;
+		}
+	}
+
+	double maxdispersion()
+	{
+		double ret=finfos[0]->dispersion;
+		int infs=finfos.size();
+		for(int i=0;i<infs;i++)
+		{
+			if(ret<finfos[i]->dispersion)
+				ret=finfos[i]->dispersion;
+		}
+		return ret;
 	}
 
 	int getNextFocus()
