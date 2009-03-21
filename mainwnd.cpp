@@ -449,7 +449,7 @@ void GEOSRecWnd::customEvent(QEvent* event)
 				focusFar1Btn->setEnabled(true);
 				focusFar2Btn->setEnabled(true);
 				focusFar3Btn->setEnabled(true);
-								AFBtn->setEnabled(true);
+				AFBtn->setEnabled(true);
 				break;
 			case 3:
 				focusNear3Btn->setEnabled(false);
@@ -458,8 +458,8 @@ void GEOSRecWnd::customEvent(QEvent* event)
 				focusFar1Btn->setEnabled(false);
 				focusFar2Btn->setEnabled(false);
 				focusFar3Btn->setEnabled(false);
-								AFBtn->setEnabled(true);
-								break;
+				AFBtn->setEnabled(false);
+				break;
 			default:
 				break;
 			}
@@ -483,6 +483,10 @@ void GEOSRecWnd::customEvent(QEvent* event)
 			QPoint p = e->value().toPoint();
 			LiveThread->cmdSetZoomPos(p.x(), p.y());
 		}
+		break;
+	case CAMERA_EVENT_AF_STOPPED:
+		slotStopAutoFocus();
+		AFBtn->setChecked(false);
 		break;
 	default:
 		break;

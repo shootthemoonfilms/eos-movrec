@@ -43,6 +43,8 @@ protected:
 	virtual void mouseReleaseEvent(QMouseEvent* event);
 	virtual void customEvent(QEvent* event);
 private:
+	void clearFocusArea();
+private:
 	QImage LiveImage;
 	int max_frame_size;
 	unsigned char* frame;

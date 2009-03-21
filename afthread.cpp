@@ -22,7 +22,7 @@
 #include "livethread.h"
 #include "capturewnd.h"
 #include "freqtimer.h"
-//#include "events.h"
+#include "events.h"
 #include "FocuserClass.h"
 
 #include <QWidget>
@@ -54,7 +54,8 @@ void GAFThread::run()
 	QSize pictSz;
 	int nextfocus;
 	int dir;
-	int val;
+	int count1, count2, count3;
+	int i;
 	while (!Stopped)
 	{
 		pict = CapWnd->getFocusingArea();
@@ -63,15 +64,27 @@ void GAFThread::run()
 			pictSz = CapWnd->getFocusingAreaSize();
 			fc->NextIter(pict, pictSz.width(), pictSz.height());
 			nextfocus = fc->getNextFocus();
-			dir = nextfocus < 0 ? 0 : 1;
-			val = nextfocus; if (val < 0) val = -val;
-			if (val > 1)
-				val /= 2;
-			if (val > 3)
-				val = 3;
-			// 1 <= val <= 3
-			if (val != 0)
-				LiveThread->cmdAdjFocus(dir, val);
+			if (!fc->stop)
+			{
+				dir = nextfocus < 0 ? 0 : 1;
+				if (nextfocus < 0)
+					nextfocus = -nextfocus;
+				// adjust nextfocus
+				nextfocus *= 7;
+				count3 = nextfocus / 30;
+				count2 = (nextfocus - count3*30) / 8;
+				count1 = nextfocus - count3*30 - count2*8;
+				for (i = 0; i < count3; i++)
+					LiveThread->cmdAdjFocus(dir, 3);
+				for (i = 0; i < count2; i++)
+					LiveThread->cmdAdjFocus(dir, 2);
+				for (i = 0; i < count1; i++)
+					LiveThread->cmdAdjFocus(dir, 1);
+			}
+			else
+			{
+				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AF_STOPPED));
+			}
 		}
 		WinSleep(200);
 	}

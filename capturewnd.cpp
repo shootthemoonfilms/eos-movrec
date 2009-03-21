@@ -50,14 +50,7 @@ GEOSCaptureWnd::~GEOSCaptureWnd()
 		free(frame);
 		frame = 0;
 	}
-	if (FocusArea)
-	{
-		int i;
-		for (i = 0; i < FocusAreaSize.height(); i++)
-			free(FocusArea[i]);
-		free(FocusArea);
-		FocusArea = 0;
-	}
+	clearFocusArea();
 }
 
 void GEOSCaptureWnd::paintEvent(QPaintEvent * event)
@@ -236,6 +229,7 @@ void GEOSCaptureWnd::customEvent(QEvent* event)
 			Zoom = r.x();
 			ZoomRect = QRect(r.width()/5, r.height()/5, LiveImage.width()/5, LiveImage.height()/5);
 		}
+		clearFocusArea();
 	}
 }
 
@@ -245,8 +239,17 @@ double** GEOSCaptureWnd::getFocusingArea()
 		return 0;
 	if (!FocusArea)
 	{
-		int w = ZoomRect.width();
-		int h = ZoomRect.height();
+		int w, h;
+		if (Zoom == 1)
+		{
+			w = ZoomRect.width();
+			h = ZoomRect.height();
+		}
+		else
+		{
+			w = LiveImage.width();
+			h = LiveImage.height();
+		}
 		int i;
 		FocusArea = (double**)malloc(sizeof(double*)*w);
 		for (i = 0; i < w; i++)
@@ -296,4 +299,16 @@ double** GEOSCaptureWnd::getFocusingArea()
 QSize GEOSCaptureWnd::getFocusingAreaSize()
 {
 	return FocusAreaSize;
+}
+
+void GEOSCaptureWnd::clearFocusArea()
+{
+	if (FocusArea)
+	{
+		int i;
+		for (i = 0; i < FocusAreaSize.height(); i++)
+			free(FocusArea[i]);
+		free(FocusArea);
+		FocusArea = 0;
+	}
 }

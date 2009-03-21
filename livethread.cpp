@@ -425,13 +425,14 @@ fprintf(f, "%d\n", c);
 fclose(f);
 c++;*/
 		// process internal EDSDK message queue
-		if (SDKMsgCheckTime2 - SDKMsgCheckTime1 > 800)
+		if (SDKMsgCheckTime2 - SDKMsgCheckTime1 > 500)
 		{
 			WinProcessMsg();
 			SDKMsgCheckTime1 = SDKMsgCheckTime2;
 		}
 
-		if (!CommandsQueue.isEmpty())
+		//if (!CommandsQueue.isEmpty())
+		while (!CommandsQueue.isEmpty())
 			processCommand();
 		//WinQueryPerformanceCounter(&t1);
 		// fetch image.

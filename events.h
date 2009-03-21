@@ -27,7 +27,7 @@
 class GCameraEvent: public QEvent
 {
 public:
-	GCameraEvent(QEvent::Type type, QVariant val)
+	GCameraEvent(QEvent::Type type, QVariant val = QVariant())
 	 : QEvent(type), Value(val) {}
 	const QVariant& value() const { return Value; }
 private:
@@ -45,6 +45,7 @@ private:
 #define CAMERA_EVENT_ZOOM_CHANGED	(QEvent::Type)(QEvent::User + 9)
 #define CAMERA_EVENT_ZOOM_CHANGED_STOP	(QEvent::Type)(QEvent::User + 10)
 #define CAMERA_EVENT_ZOOMPOS_NEEDCHANGE	(QEvent::Type)(QEvent::User + 11)
+#define CAMERA_EVENT_AF_STOPPED		(QEvent::Type)(QEvent::User + 12)
 #define CAMERA_EVENT_SHUTDOWN		(QEvent::Type)(QEvent::User + 100)
 
 #endif	// _events_h
