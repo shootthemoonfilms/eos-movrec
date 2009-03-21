@@ -244,11 +244,13 @@ double** GEOSCaptureWnd::getFocusingArea()
 		{
 			w = ZoomRect.width();
 			h = ZoomRect.height();
+			FocusAreaRect = ZoomRect;
 		}
 		else
 		{
 			w = LiveImage.width();
 			h = LiveImage.height();
+			FocusAreaRect = QRect(0, 0, w, h);
 		}
 		int i;
 		FocusArea = (double**)malloc(sizeof(double*)*w);
@@ -256,11 +258,10 @@ double** GEOSCaptureWnd::getFocusingArea()
 		{
 			FocusArea[i] = (double*)malloc(sizeof(double)*h);
 		}
-		FocusAreaSize = QSize(w, h);
 	}
 // !!! Start critical section
 	FocusMutex.lock();
-	QImage img = LiveImage.copy(ZoomRect).convertToFormat(QImage::Format_RGB32, Qt::ColorOnly);
+	QImage img = LiveImage.copy(FocusAreaRect).convertToFormat(QImage::Format_RGB32, Qt::ColorOnly);
 	FocusMutex.unlock();
 // !!! End of critical section
 	unsigned char* bits = img.bits();
@@ -280,9 +281,9 @@ double** GEOSCaptureWnd::getFocusingArea()
 	// image is 32 bit
 	int i, j;
 	int ind = 0;
-	for (i = 0; i < FocusAreaSize.height(); i++)
+	for (i = 0; i < FocusAreaRect.height(); i++)
 	{
-		for (j = 0; j < FocusAreaSize.width(); j++)
+		for (j = 0; j < FocusAreaRect.width(); j++)
 		{
 			FocusArea[j][i] = bits[ind] + bits[ind + 1] + bits[ind + 2];
 			FocusArea[j][i] /= 3.0;
@@ -298,7 +299,7 @@ double** GEOSCaptureWnd::getFocusingArea()
 
 QSize GEOSCaptureWnd::getFocusingAreaSize()
 {
-	return FocusAreaSize;
+	return FocusAreaRect.size();
 }
 
 void GEOSCaptureWnd::clearFocusArea()
@@ -306,7 +307,7 @@ void GEOSCaptureWnd::clearFocusArea()
 	if (FocusArea)
 	{
 		int i;
-		for (i = 0; i < FocusAreaSize.height(); i++)
+		for (i = 0; i < FocusAreaRect.height(); i++)
 			free(FocusArea[i]);
 		free(FocusArea);
 		FocusArea = 0;

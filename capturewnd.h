@@ -54,7 +54,7 @@ private:
 	QPoint MousePressPoint;
 	bool ZoomRectMoving;
 	double** FocusArea;
-	QSize FocusAreaSize;
+	QRect FocusAreaRect;
 	QMutex FocusMutex;
 };
 
