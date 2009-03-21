@@ -70,7 +70,7 @@ void GAFThread::run()
 				if (nextfocus < 0)
 					nextfocus = -nextfocus;
 				// adjust nextfocus
-				nextfocus *= 7;
+				//nextfocus *= 7;
 				count3 = nextfocus / 30;
 				count2 = (nextfocus - count3*30) / 8;
 				count1 = nextfocus - count3*30 - count2*8;
