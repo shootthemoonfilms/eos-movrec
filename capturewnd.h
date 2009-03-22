@@ -32,7 +32,9 @@ public:
 	~GEOSCaptureWnd();
 	void setShowLiveImage(bool s) { ShowLiveImage = s; }
 	// called from other thread
-	double** getFocusingArea();
+    void lockFocusingArea();
+    void unlockFocusingArea();
+    double** getFocusingArea();
 	QSize getFocusingAreaSize();
 protected:
 	//virtual void showEvent(QShowEvent* event);

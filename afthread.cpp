@@ -58,6 +58,7 @@ void GAFThread::run()
 	int i;
 	while (!Stopped)
 	{
+		CapWnd->lockFocusingArea();
 		pict = CapWnd->getFocusingArea();
 		if (pict)
 		{
@@ -86,6 +87,7 @@ void GAFThread::run()
 				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AF_STOPPED));
 			}
 		}
+		CapWnd->unlockFocusingArea();
 		WinSleep(200);
 	}
 }
