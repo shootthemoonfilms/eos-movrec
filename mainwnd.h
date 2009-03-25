@@ -37,6 +37,7 @@ class GMyLiveThread;
 class GAFThread;
 class GEOSCaptureWnd;
 class QBlinkLabel;
+class GHistogramWnd;
 
 class GEOSRecWnd: public QWidget
 {
@@ -67,6 +68,7 @@ protected slots:
 	void slotZoom5x();
 	void slotAutoFocus();
 	void slotStopAutoFocus();
+	void slotHistogram();
 protected:
 	virtual void customEvent(QEvent* event);
 	virtual void closeEvent(QCloseEvent* event);
@@ -94,10 +96,12 @@ private:
 	QToolButton* focusFar3Btn;
 	QToolButton* zoom5xBtn;
 	QToolButton* AFBtn;
+	QToolButton* HistBtn;
 	QString Path;
 	GMyLiveThread* LiveThread;
 	GAFThread* AFThread;
 	GEOSCaptureWnd* CaptureWnd;
+	GHistogramWnd* HistogramWnd;
 };
 
 #endif	// _mainwnd_h

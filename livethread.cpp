@@ -48,6 +48,7 @@ GMyLiveThread::GMyLiveThread(QWidget* owner)
 	WriteMovie = false;
 	max_frame_size = 0;
 	Inited = false;
+	WantHistogram = false;
 
 	SkippedCount = 0;
 	AllFramesCount = 0;
@@ -444,7 +445,8 @@ c++;*/
 				SkippedCount++;
 			else if (CaptureWnd)
 				QApplication::postEvent(CaptureWnd, new GCameraEvent(CAMERA_EVENT_EVF_TRANSMITED, 0));
-			QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_HISTOGRAM, 0));
+			if (WantHistogram)
+				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_HISTOGRAM, 0));
 			if (Zoom != OldZoom && WriteMovie)
 			{
 				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_ZOOM_CHANGED_STOP, QVariant(Zoom)));
@@ -719,11 +721,14 @@ EdsError GMyLiveThread::downloadEvfData()
 		live_buffer::frame_size = (int)stream_len;
 		live_buffer::ImageMutex.unlock();
 // end of critical section!!!
+		if (WantHistogram)
+		{
 // start critical section!!!
-		HistogramMutex.lock();
-		EdsGetPropertyData(evfImage, kEdsPropID_Evf_Histogram, 0, sizeof(Histogram), Histogram);
-		HistogramMutex.unlock();
+			HistogramMutex.lock();
+			EdsGetPropertyData(evfImage, kEdsPropID_Evf_Histogram, 0, sizeof(Histogram), Histogram);
+			HistogramMutex.unlock();
 // end of critical section!!!
+		}
 	}
 
 	// Release stream

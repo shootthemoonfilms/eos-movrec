@@ -39,6 +39,7 @@
 #include "capturewnd.h"
 #include "livethread.h"
 #include "afthread.h"
+#include "histogramwnd.h"
 #include "events.h"
 #include "cam_tables.h"
 
@@ -177,6 +178,12 @@ GEOSRecWnd::GEOSRecWnd()
 	zoom5xBtn->setCheckable(true);
 	focus_layout->addWidget(zoom5xBtn, 0);
 
+	HistBtn = new QToolButton(this);
+	HistBtn->setText(tr("Histogram"));
+	HistBtn->setEnabled(false);
+	HistBtn->setCheckable(true);
+	focus_layout->addWidget(HistBtn, 0);
+
 	focus_layout->addStretch(1);
 
 	blinkLabel = new QBlinkLabel(tr("Starting..."), this);
@@ -212,6 +219,7 @@ GEOSRecWnd::GEOSRecWnd()
 	connect(focusFar3Btn, SIGNAL(clicked()), this, SLOT(slotFocusFar3()));
 	connect(zoom5xBtn, SIGNAL(clicked()), this, SLOT(slotZoom5x()));
 	connect(AFBtn, SIGNAL(clicked()), this, SLOT(slotAutoFocus()));
+	connect(HistBtn, SIGNAL(clicked()), this, SLOT(slotHistogram()));
 
 	Path = tr("out.avi");
 
@@ -220,6 +228,7 @@ GEOSRecWnd::GEOSRecWnd()
 	LiveThread->start(QThread::HighestPriority);
 
 	AFThread = 0;
+	HistogramWnd = 0;
 
 	QTimer::singleShot(4000, this, SLOT(slotStartTimeout()));
 	QTimer::singleShot(1200000, this, SLOT(slotWorkTimeout()));		// max work time is 20 min
@@ -282,6 +291,12 @@ void GEOSRecWnd::closeEvent(QCloseEvent* event)
 		AFThread->wait();
 		delete AFThread;
 		AFThread = 0;
+	}
+	if (HistogramWnd)
+	{
+		HistogramWnd->close();
+		delete HistogramWnd;
+		HistogramWnd = 0;
 	}
 }
 
@@ -488,6 +503,18 @@ void GEOSRecWnd::customEvent(QEvent* event)
 		slotStopAutoFocus();
 		AFBtn->setChecked(false);
 		break;
+	case CAMERA_EVENT_HISTOGRAM:
+		if (HistogramWnd)
+			HistogramWnd->updateHistogram();
+		break;
+	case CAMERA_EVENT_HISTOGRAM_CLOSED:
+		if (HistogramWnd)
+		{
+			delete HistogramWnd;
+			HistogramWnd = 0;
+		}
+		HistBtn->setChecked(false);
+		break;
 	default:
 		break;
 	}
@@ -576,6 +603,7 @@ void GEOSRecWnd::slotStartTimeout()
 								startBtn->setEnabled(true);
 				dofBtn->setEnabled(true);
 				zoom5xBtn->setEnabled(true);
+				HistBtn->setEnabled(true);
 				blinkLabel->stop();
 				blinkLabel->setText(tr("Ready"));
 			}
@@ -741,6 +769,30 @@ void GEOSRecWnd::slotStopAutoFocus()
 	}
 }
 
+void GEOSRecWnd::slotHistogram()
+{
+	bool hist = HistBtn->isChecked();
+	if (LiveThread)
+		LiveThread->setWantHistogram(hist);
+	if (!hist)
+	{
+		if (HistogramWnd)
+		{
+			HistogramWnd->close();
+			// don't delete here
+			// it deleted in customEvent()
+		}
+	}
+	else
+	{
+		if (!HistogramWnd)
+		{
+			HistogramWnd = new GHistogramWnd(this, LiveThread);
+			HistogramWnd->show();
+		}
+	}
+}
+
 void GEOSRecWnd::slotWorkTimeout()
 {
 	shutdown();
@@ -769,6 +821,13 @@ void GEOSRecWnd::shutdown()
 	}
 	delete p;
 	slotStopAutoFocus();
+	if (HistogramWnd)
+	{
+		HistogramWnd->close();
+		delete HistogramWnd;
+		HistogramWnd = 0;
+		HistBtn->setChecked(false);
+	}
 	showBox->setEnabled(false);
 	startBtn->setEnabled(false);
 	stopBtn->setEnabled(false);
@@ -787,6 +846,7 @@ void GEOSRecWnd::shutdown()
 	focusFar3Btn->setEnabled(false);
 	zoom5xBtn->setEnabled(false);
 	AFBtn->setEnabled(false);
+	HistBtn->setEnabled(false);
 	fpsLabel->setText(tr("0 fps"));
 }
 

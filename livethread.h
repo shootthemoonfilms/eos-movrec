@@ -71,6 +71,7 @@ public:
 	int zoomPosY() const { return ZoomPosY; }
 	int* histogram() { return (int*)Histogram; }
 	int histogramSize() { return 256 * 4; }
+	void setWantHistogram(bool w) { WantHistogram = w; }
 	void lockHistogram() { HistogramMutex.lock(); }
 	void unlockHistogram() { HistogramMutex.unlock(); }
 	// handlers
@@ -111,6 +112,7 @@ private:
 	int Zoom;
 	int ZoomPosX;
 	int ZoomPosY;
+	bool WantHistogram;
 	int Histogram[256*4];
 	bool isSDKLoaded;
 	// for statistics
