@@ -46,6 +46,7 @@ private:
 #define CAMERA_EVENT_ZOOM_CHANGED_STOP	(QEvent::Type)(QEvent::User + 10)
 #define CAMERA_EVENT_ZOOMPOS_NEEDCHANGE	(QEvent::Type)(QEvent::User + 11)
 #define CAMERA_EVENT_AF_STOPPED		(QEvent::Type)(QEvent::User + 12)
+#define CAMERA_EVENT_HISTOGRAM		(QEvent::Type)(QEvent::User + 13)
 #define CAMERA_EVENT_SHUTDOWN		(QEvent::Type)(QEvent::User + 100)
 
 #endif	// _events_h

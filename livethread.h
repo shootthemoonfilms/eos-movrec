@@ -69,6 +69,10 @@ public:
 	int zoom() const { return Zoom; }
 	int zoomPosX() const { return ZoomPosX; }
 	int zoomPosY() const { return ZoomPosY; }
+	int* histogram() { return (int*)Histogram; }
+	int histogramSize() { return 256 * 4; }
+	void lockHistogram() { HistogramMutex.lock(); }
+	void unlockHistogram() { HistogramMutex.unlock(); }
 	// handlers
 	// ED-SDK documentation say:
 	// "The callback function is executed on a newly generated thread"
@@ -96,6 +100,7 @@ private:
 	char* FileName;
 	QMutex CommandMutex;
 	QMutex WrtFlagMutex;
+	QMutex HistogramMutex;
 	GCameraCommandsQueue CommandsQueue;
 	int max_frame_size;
 	EdsCameraRef camera;
@@ -106,6 +111,7 @@ private:
 	int Zoom;
 	int ZoomPosX;
 	int ZoomPosY;
+	int Histogram[256*4];
 	bool isSDKLoaded;
 	// for statistics
 	__uint64_t AllFramesCount;

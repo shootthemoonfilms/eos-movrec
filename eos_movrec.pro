@@ -5,17 +5,18 @@ QT = core \
 HEADERS = mainwnd.h \
     about.h \
     blinklabel.h \
-	freqtimer.h \
-	afthread.h \
-	capturewnd.h \
-	types.h \
-	livethread.h \
-	buffer.h \
-	FocuserClass.h \
-	mjpegwrt.h \
-	events.h \
-	command.h \
-	cam_tables.h
+    freqtimer.h \
+    afthread.h \
+    capturewnd.h \
+    types.h \
+    livethread.h \
+    buffer.h \
+    FocuserClass.h \
+    mjpegwrt.h \
+    events.h \
+    command.h \
+    cam_tables.h \
+    histogramwnd.h
 SOURCES = main.cpp \
     mainwnd.cpp \
     livethread.cpp \
@@ -27,7 +28,8 @@ SOURCES = main.cpp \
     cam_tables.c \
     mjpegwrt.c \
     freqtimer.c \
-    afthread.cpp
+    afthread.cpp \
+    histogramwnd.cpp
 TARGET = bin/eos_movrec
 EDSDKPATH = ./EDSDK
 INCLUDEPATH = $$EDSDKPATH/Header
