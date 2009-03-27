@@ -474,6 +474,7 @@ void GEOSRecWnd::customEvent(QEvent* event)
 				focusFar2Btn->setEnabled(false);
 				focusFar3Btn->setEnabled(false);
 				AFBtn->setEnabled(false);
+				slotStopAutoFocus();
 				break;
 			default:
 				break;
