@@ -741,6 +741,7 @@ void GEOSRecWnd::slotZoom5x()
 	{
 		LiveThread->cmdSetZoom(zoom);
 	}
+	HistBtn->setEnabled(zoom == 1);
 }
 
 void GEOSRecWnd::slotAutoFocus()

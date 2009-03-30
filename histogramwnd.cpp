@@ -34,13 +34,25 @@ GHistogramWnd::GHistogramWnd(QWidget* parent, GMyLiveThread* thread)
 	HistogramSize = 0;
 	LiveThread = thread;
 	Owner = parent;
-	setFixedSize(256, 128);
+	setFixedSize(260, 3*256/2);
 }
 
 GHistogramWnd::~GHistogramWnd()
 {
 	if (Histogram)
 		free(Histogram);
+}
+
+static int max_4(int x, int a, int b, int c)
+{
+	register int t = x;
+	if (x < a)
+		t = a;
+	if (t < b)
+		t = b;
+	if (t < c)
+		t = c;
+	return t;
 }
 
 void GHistogramWnd::updateHistogram()
@@ -56,27 +68,59 @@ void GHistogramWnd::updateHistogram()
 	memcpy((void*)Histogram, (void*)LiveThread->histogram(), HistogramSize*sizeof(struct YRGB));
 	LiveThread->unlockHistogram();
 	int i;
-	HistogramMax = Histogram[0].Y;
+	int v;
+	HistogramMax = max_4(Histogram[0].Y, Histogram[0].R, Histogram[0].G, Histogram[0].B);
 	for (i = 0; i < HistogramSize; i++)
-		if (HistogramMax < Histogram[i].Y)
-			HistogramMax = Histogram[i].Y;
-	if (width() != HistogramSize || height()*2 != HistogramSize)
-		setFixedSize(HistogramSize, HistogramSize/2);
+	{
+		v = max_4(Histogram[i].Y, Histogram[i].R, Histogram[i].G, Histogram[i].B);
+		if (HistogramMax < v)
+			HistogramMax = v;
+	}
+	int new_width = HistogramSize + 4;
+	int new_height = 3*HistogramSize/2;
+	if (width() != new_width || height() != new_height)
+		setFixedSize(new_width, new_height);
 	update();
 }
 
 void GHistogramWnd::paintEvent(QPaintEvent * event)
 {
 	QPainter p(this);
-	int h = height();
-	double kx = (double)width()/(double)HistogramSize;
-	double ky = (double)h/((double)HistogramMax*1.1);
+	int h_step = height()/4;
+	int h = h_step;
+	double kx = (double)(width() - 4)/(double)HistogramSize;
+	double ky = (double)h_step/((double)HistogramMax*1.1);
 	int i;
 	int x, y;
+	p.setPen(QColor(0, 0, 0));
 	for (i = 0; i < HistogramSize; i++)
 	{
-		x = kx*(double)i;
+		x = kx*(double)i + 2;
 		y = h - ky*(double)Histogram[i].Y;
+		p.drawLine(x, h - 1, x, y);
+	}
+	h += h_step;
+	p.setPen(QColor(255, 0, 0));
+	for (i = 0; i < HistogramSize; i++)
+	{
+		x = kx*(double)i + 2;
+		y = h - ky*(double)Histogram[i].R;
+		p.drawLine(x, h - 1, x, y);
+	}
+	h += h_step;
+	p.setPen(QColor(0, 255, 0));
+	for (i = 0; i < HistogramSize; i++)
+	{
+		x = kx*(double)i + 2;
+		y = h - ky*(double)Histogram[i].G;
+		p.drawLine(x, h - 1, x, y);
+	}
+	h += h_step;
+	p.setPen(QColor(0, 0, 255));
+	for (i = 0; i < HistogramSize; i++)
+	{
+		x = kx*(double)i + 2;
+		y = h - ky*(double)Histogram[i].B;
 		p.drawLine(x, h - 1, x, y);
 	}
 }
