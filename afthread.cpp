@@ -53,9 +53,16 @@ void GAFThread::run()
 	double** pict;
 	QSize pictSz;
 	int nextfocus;
+	int pos;
+	int old_nf;
+	double noise;
 	int dir;
 	int count1, count2, count3;
 	int i;
+	double disp;
+	QString str_disp;
+	FILE* f = fopen("af.log", "at");
+	fprintf(f, "af start!\n");;
 	while (!Stopped)
 	{
 		CapWnd->lockFocusingArea();
@@ -63,31 +70,47 @@ void GAFThread::run()
 		if (pict)
 		{
 			pictSz = CapWnd->getFocusingAreaSize();
+			old_nf = fc->getNextFocus();
 			fc->NextIter(pict, pictSz.width(), pictSz.height());
 			nextfocus = fc->getNextFocus();
+			noise = fc->noise();
+			pos = fc->lastPosition();
+			//nextfocus = 0;
+			disp = fc->lastDispersion();
+			str_disp.sprintf("%.1f, %d", disp, nextfocus);
+			CapWnd->setText(str_disp);
+			fprintf(f, "%04.1f, pos=%d, %d -> %d, noise=%.1f\n", disp, pos, old_nf, nextfocus, noise);
 			if (!fc->stop)
 			{
-				dir = nextfocus < 0 ? 0 : 1;
-				if (nextfocus < 0)
-					nextfocus = -nextfocus;
-				// adjust nextfocus
-				//nextfocus *= 7;
-				count3 = nextfocus / 30;
-				count2 = (nextfocus - count3*30) / 8;
-				count1 = nextfocus - count3*30 - count2*8;
-				for (i = 0; i < count3; i++)
-					LiveThread->cmdAdjFocus(dir, 3);
-				for (i = 0; i < count2; i++)
-					LiveThread->cmdAdjFocus(dir, 2);
-				for (i = 0; i < count1; i++)
-					LiveThread->cmdAdjFocus(dir, 1);
+				if (nextfocus != 0)
+				{
+					dir = nextfocus < 0 ? 0 : 1;
+					if (nextfocus < 0)
+						nextfocus = -nextfocus;
+					// adjust nextfocus
+					//nextfocus *= 7;
+					count3 = nextfocus / 30;
+					count2 = (nextfocus - count3*30) / 8;
+					count1 = nextfocus - count3*30 - count2*8;
+					for (i = 0; i < count3; i++)
+						LiveThread->cmdAdjFocus(dir, 3);
+					for (i = 0; i < count2; i++)
+						LiveThread->cmdAdjFocus(dir, 2);
+					for (i = 0; i < count1; i++)
+						LiveThread->cmdAdjFocus(dir, 1);
+					//LiveThread->waitCommands();
+				}
 			}
 			else
 			{
 				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AF_STOPPED));
+				//delete fc;
+				//fc = new FocusingClass;
 			}
 		}
 		CapWnd->unlockFocusingArea();
 		WinSleep(200);
 	}
+	fprintf(f, "af end.\n\n");
+	fclose(f);
 }

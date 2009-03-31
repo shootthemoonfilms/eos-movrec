@@ -23,6 +23,7 @@
 
 #include <QThread>
 #include <QMutex>
+#include <QWaitCondition>
 
 #include "command.h"
 
@@ -57,6 +58,7 @@ public:
 	void cmdAdjFocus(int direction, int val);
 	void cmdSetZoom(int zoom);
 	void cmdSetZoomPos(int x, int y);
+	void waitCommands();
 	const int* avList() const { return AvList; }
 	int avListSize() const { return AvListSize; }
 	const int* tvList() const { return TvList; }
@@ -100,6 +102,7 @@ private:
 	bool WriteMovie;
 	char* FileName;
 	QMutex CommandMutex;
+	QWaitCondition CommandCond;
 	QMutex WrtFlagMutex;
 	QMutex HistogramMutex;
 	GCameraCommandsQueue CommandsQueue;

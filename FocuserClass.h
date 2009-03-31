@@ -6,6 +6,9 @@ class FocusingClass
 {
 	private:
 		int NextFocus;
+		double Noise;
+		int focus_step;
+		int change_count;
 	public:
 
 	typedef struct focusingInfo
@@ -22,7 +25,10 @@ class FocusingClass
 	FocusingClass()
 	{
 		NextFocus=1;
+		Noise = 0.0;
 		stop=false;
+		focus_step = 8;
+		change_count = 0;
 	}
 	~FocusingClass()
 	{
@@ -63,41 +69,59 @@ class FocusingClass
 		int last_index = (int)finfos.size() - 1;
 		focusingInfo* finf = new focusingInfo;
 		finf->dispersion = Dispersion(Luminance, x_dim, y_dim);			// this value of dispersion is a result of previous NextFocus
-		if (last_index >= 0)
+		if (last_index >= 20)
+		{
 			finf->focusPosition = finfos[last_index]->focusPosition + NextFocus;
+			finf->focusDir = NextFocus;
+		}
 		else
+		{
 			finf->focusPosition = 0;
-		fint->focusDir = NextFocus;
+			finf->focusDir = 0;
+		}
 		finfos.push_back(finf);
 		last_index++;
 
-		if (last_index > 0)
+		if (last_index == 20)
 		{
-			if (finfos.size() > 50)
-				if (dabs((finf->dispersion - finfos[last_index-8]->dispersion)/finf->dispersion) < 0.001)
+			// калибровка шумов
+			Noise = maxdispersion() - mindispersion();
+		}
+
+		if (last_index > 20)
+		{
+			if (dabs(finf->dispersion - finfos[last_index - 1]->dispersion) < Noise)
+				finf->dispersion = finfos[last_index - 1]->dispersion;
+			if (finfos.size() > 90)
+				if (dabs((finf->dispersion - finfos[last_index-8]->dispersion)) <= 1.1*Noise)
 				// это условие надо заменить на другое
 				// дисперсия от дисперсий в диапазоне от last_index-8 до last_index должна быть в переделах погрешности
 					stop = true;
 
 			double max_disp = maxdispersion();
 			double min_disp = mindispersion();
-			if (finf->dispersion > max_disp*0.997 && finfos.size() > 20)
+			if (finf->dispersion > max_disp - Noise && finfos.size() > 80)
 				stop = true;
 
-			if (finf->dispersion > finfos[last_index - 1]->dispersion || 
-				dabs((finf->dispersion - max_disp)/(max_disp - min_disp)) < 0.1)
+			if (finf->focusDir != finfos[last_index - 1]->focusDir)
+				change_count++;
+			if (change_count > 3)
+				focus_step = 1;
+			if (change_count > 6)
+				stop = true;
+
+			if (finf->dispersion >= finfos[last_index - 1]->dispersion ||
+				dabs(finf->dispersion - max_disp) < 2.0*Noise)
 			{
-				NextFocus = finf->focusDir > 0 ? 8 : -8;
+				NextFocus = finf->focusDir > 0 ? focus_step : -focus_step;
 			}
 			else
 			{
-				NextFocus = finf->focusDir > 0 ? -30 : 30;
+				NextFocus = finf->focusDir > 0 ? -focus_step : focus_step;
 			}
 		}
 		if (stop)
-		{
-			NextFocus=0;
-		}
+			NextFocus = 0;
 	}
 
 	double maxdispersion()
@@ -112,20 +136,27 @@ class FocusingClass
 		return ret;
 	}
 
+	double noise()
+	{
+		return Noise;
+	}
+
 	double mindispersion()
 	{
-	  double ret=finfos[0]->dispersion;
-	  int infs=finfos.size();
-	  for(int i=0;i<infs;i++)
-	  {
-		if(ret>finfos[i]->dispersion)
-		  ret=finfos[i]->dispersion;
-	  }
-	  return ret;
+		double ret=finfos[0]->dispersion;
+		int infs=finfos.size();
+		for(int i=0;i<infs;i++)
+		{
+			if(ret>finfos[i]->dispersion)
+			ret=finfos[i]->dispersion;
+		}
+		return ret;
 	}
 
 	int getNextFocus()
 	{
+		if (finfos.size() <= 20)
+			return 0;
 		return NextFocus;
 	}
 

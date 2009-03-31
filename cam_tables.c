@@ -29,15 +29,15 @@ struct EOSAvTable AvTable[EOS_AV_TABLE_SZ] = {
 	{ 0x10, "1.4" },
 	{ 0x13, "1.6" },
 	{ 0x14, "1.8" },
-	{ 0x15, "1.8" },	// (1/3) 
+	{ 0x15, "1.8" },	// (1/3)
 	{ 0x18, "2" },
 	{ 0x1B, "2.2" },
 	{ 0x1C, "2.5" },
-	{ 0x1D, "2.5" },	// (1/3) 
+	{ 0x1D, "2.5" },	// (1/3)
 	{ 0x20, "2.8" },
 	{ 0x23, "3.2" },
 	{ 0x24, "3.5" },
-	{ 0x25, "3.5" },	// (1/3) 
+	{ 0x25, "3.5" },	// (1/3)
 	{ 0x28, "4" },
 	{ 0x2B, "4.5" },
 	{ 0x2C, "4.5" },	// (1/3)
@@ -75,7 +75,7 @@ struct EOSAvTable AvTable[EOS_AV_TABLE_SZ] = {
 	{ 0x6C, "76" },
 	{ 0x6D, "80" },
 	{ 0x70, "91" },
-	{ 0xffffffff, "Bad" }
+	{ 0xffffffff, "Err" }
 };
 
 struct EOSTvTable TvTable[EOS_TV_TABLE_SZ] = {
@@ -152,5 +152,5 @@ struct EOSTvTable TvTable[EOS_TV_TABLE_SZ] = {
 	{ 0x9C, "1/6000" },
 	{ 0x9D, "1/6400" },
 	{ 0xA0, "1/8000" },
-	{ 0xffffffff, "Bad" }
+	{ 0xffffffff, "Err" }
 };

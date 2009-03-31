@@ -179,7 +179,7 @@ GEOSRecWnd::GEOSRecWnd()
 	focus_layout->addWidget(zoom5xBtn, 0);
 
 	HistBtn = new QToolButton(this);
-	HistBtn->setText(tr("Histogram"));
+	HistBtn->setText(tr("H"));
 	HistBtn->setEnabled(false);
 	HistBtn->setCheckable(true);
 	focus_layout->addWidget(HistBtn, 0);
