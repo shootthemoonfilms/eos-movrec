@@ -269,6 +269,7 @@ double** GEOSCaptureWnd::getFocusingArea()
 			FocusArea[i] = (double*)malloc(sizeof(double)*h);
 		}
 	}
+	//QImage img = LiveImage.copy(FocusAreaRect).scaled(FocusAreaRect.width()/2, FocusAreaRect.height()/2, Qt::IgnoreAspectRatio, Qt::FastTransformation).convertToFormat(QImage::Format_RGB32, Qt::ColorOnly);
 	QImage img = LiveImage.copy(FocusAreaRect).convertToFormat(QImage::Format_RGB32, Qt::ColorOnly);
 	unsigned char* bits = img.bits();
 	int num_bytes = img.numBytes();
@@ -291,8 +292,8 @@ double** GEOSCaptureWnd::getFocusingArea()
 	{
 		for (j = 0; j < FocusAreaRect.width(); j++)
 		{
-			FocusArea[j][i] = bits[ind] + bits[ind + 1] + bits[ind + 2];
-			FocusArea[j][i] /= 3.0;
+			FocusArea[j][i] = 2*bits[ind] + bits[ind + 1] + 2*bits[ind + 2];
+			FocusArea[j][i] /= 5.0;
 			ind += 4;			// RGB32 format
 			if (ind + 2 >= num_bytes)
 				break;

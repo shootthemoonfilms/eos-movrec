@@ -7,12 +7,12 @@ class FocusingClass
 	private:
 		int NextFocus;
 	public:
-	int currentFocusPosition;
 
 	typedef struct focusingInfo
 	{
 		double dispersion;
 		int focusPosition;
+		int focusDir;
 	};
 
 	vector <FocusingClass::focusingInfo*> finfos;
@@ -21,8 +21,7 @@ class FocusingClass
 
 	FocusingClass()
 	{
-		currentFocusPosition=0;
-		NextFocus=12;
+		NextFocus=1;
 		stop=false;
 	}
 	~FocusingClass()
@@ -35,6 +34,22 @@ class FocusingClass
 		finfos.clear();
 	}
 
+	double lastDispersion()
+	{
+		int last_index = (int)finfos.size() - 1;
+		if (last_index < 0)
+			return 0.0;
+		return finfos[last_index]->dispersion;
+	}
+
+	double lastPosition()
+	{
+		int last_index = (int)finfos.size() - 1;
+		if (last_index < 0)
+			return 0.0;
+		return finfos[last_index]->focusPosition;
+	}
+
 	bool stop;
 	double dabs(double i)
 	{
@@ -42,38 +57,44 @@ class FocusingClass
 	}
 	void NextIter(double **Luminance,int x_dim,int y_dim)
 	{
-		focusingInfo*finf=new focusingInfo;
-		double Disp=Dispersion(Luminance,x_dim,y_dim);
-		finf->dispersion=Disp;
-		finf->focusPosition=currentFocusPosition;
+		if (stop)
+			return;
+
+		int last_index = (int)finfos.size() - 1;
+		focusingInfo* finf = new focusingInfo;
+		finf->dispersion = Dispersion(Luminance, x_dim, y_dim);			// this value of dispersion is a result of previous NextFocus
+		if (last_index >= 0)
+			finf->focusPosition = finfos[last_index]->focusPosition + NextFocus;
+		else
+			finf->focusPosition = 0;
+		fint->focusDir = NextFocus;
 		finfos.push_back(finf);
+		last_index++;
 
-		if(finfos.size()>1 && stop==false)
-		{		
-			int last_index=(int)finfos.size()-1;	
-			if(finfos.size()>50)
-			{
-				if(dabs((finfos[last_index]->dispersion - finfos[last_index-8]->dispersion)/finfos[last_index]->dispersion)<0.001)
-					stop=true;
-			}
+		if (last_index > 0)
+		{
+			if (finfos.size() > 50)
+				if (dabs((finf->dispersion - finfos[last_index-8]->dispersion)/finf->dispersion) < 0.001)
+				// это условие надо заменить на другое
+				// дисперсия от дисперсий в диапазоне от last_index-8 до last_index должна быть в переделах погрешности
+					stop = true;
 
-			if(Disp>maxdispersion()*0.997 && finfos.size()>20)
+			double max_disp = maxdispersion();
+			double min_disp = mindispersion();
+			if (finf->dispersion > max_disp*0.997 && finfos.size() > 20)
+				stop = true;
+
+			if (finf->dispersion > finfos[last_index - 1]->dispersion || 
+				dabs((finf->dispersion - max_disp)/(max_disp - min_disp)) < 0.1)
 			{
-				stop=true;
-			}
-			
-			if(finfos[last_index]->dispersion > finfos[last_index-1]->dispersion || dabs((finfos[last_index]->dispersion - finfos[last_index-1]->dispersion)/finfos[last_index]->dispersion)<0.01)
-			{
-				NextFocus=finfos[last_index-1]->focusPosition>0?3:-3;		 
+				NextFocus = finf->focusDir > 0 ? 8 : -8;
 			}
 			else
 			{
-				NextFocus=(finfos[last_index-1]->focusPosition*-1)>0?12:-12;
+				NextFocus = finf->focusDir > 0 ? -30 : 30;
 			}
-
-
 		}
-		if(stop)
+		if (stop)
 		{
 			NextFocus=0;
 		}
@@ -91,9 +112,20 @@ class FocusingClass
 		return ret;
 	}
 
+	double mindispersion()
+	{
+	  double ret=finfos[0]->dispersion;
+	  int infs=finfos.size();
+	  for(int i=0;i<infs;i++)
+	  {
+		if(ret>finfos[i]->dispersion)
+		  ret=finfos[i]->dispersion;
+	  }
+	  return ret;
+	}
+
 	int getNextFocus()
 	{
-		currentFocusPosition=NextFocus;
 		return NextFocus;
 	}
 
