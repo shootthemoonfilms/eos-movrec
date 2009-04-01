@@ -70,7 +70,10 @@ void GEOSCaptureWnd::paintEvent(QPaintEvent * event)
 			}
 		}
 		if (!Text.isEmpty())
+		{
+			painter.setPen(QColor(255, 255, 255));
 			painter.drawText(50, 100, Text);
+		}
 	}
 	else
 	{
@@ -272,12 +275,13 @@ double** GEOSCaptureWnd::getFocusingArea()
 		}
 	}
 	//QImage img = LiveImage.copy(FocusAreaRect).scaled(FocusAreaRect.width()/2, FocusAreaRect.height()/2, Qt::IgnoreAspectRatio, Qt::FastTransformation).convertToFormat(QImage::Format_RGB32, Qt::ColorOnly);
-	QImage img = LiveImage.copy(FocusAreaRect).convertToFormat(QImage::Format_RGB32, Qt::ColorOnly);
+	//QImage img = LiveImage.copy(FocusAreaRect).convertToFormat(QImage::Format_RGB32, Qt::ColorOnly);
+	QImage img = LiveImage.copy(FocusAreaRect);
 	//unsigned char* bits = img.bits();
 	//int num_bytes = img.numBytes();
 
 	// debug code ...
-	img.save("focus.bmp", "bmp");
+	//img.save("focus.bmp", "bmp");
 	/*FILE* f = fopen("focus.bin", "wb");
 	if (f)
 	{

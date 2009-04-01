@@ -40,6 +40,7 @@ Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\QtGui4.dll"; DestDir: "{app
 Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\Ucs32P.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\zlib1.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\plugins\imageformats\qjpeg4.dll"; DestDir: "{app}\plugins\imageformats"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\License.txt"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

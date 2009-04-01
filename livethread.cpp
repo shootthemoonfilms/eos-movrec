@@ -207,12 +207,12 @@ EdsError GMyLiveThread::processCommand()
 	CommandMutex.unlock();
 	int param1 = cmd.param1();
 	int param2 = cmd.param2();
-	FILE* f = fopen("cmds.log", "at");
+	/*FILE* f = fopen("cmds.log", "at");
 	if (f)
 	{
 		fprintf(f, "cmd = %d, p1 = %d, p2 = %d\n", cmd.command(), param1, param2);
 		fclose(f);
-	}
+	}*/
 	EdsError err = EDS_ERR_OK;
 	switch (cmd.command())
 	{
