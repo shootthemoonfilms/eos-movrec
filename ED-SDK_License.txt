@@ -1,0 +1,126 @@
+CANON SOFTWARE DEVELOPMENT KIT DISTRIBUTION AGREEMENT
+ 
+ATTENTION: PLEASE READ THIS DOCUMENT. THIS IS AN AGREEMENT BETWEEN YOU,
+THE DEVELOPER OF SOFTWARE SOLUTIONS ("DEVELOPER"), AND CANON EUROPA N.V.,
+HAVING ITS PLACE OF BUSINESS AT, BOVENKERKERWEG 59-61, 1185 XB, AMSTELVEEN,
+THE NETHERLANDS, THE OWNER OF THE SOFTWARE, AS HEREINAFTER DEFINED ("CANON").
+
+WHEREAS, Canon has developed and/or possesses the rights to license certain
+Software, (as described below), and Developer desires to distribute the
+Software as part of a software package developed or to be developed or enhanced
+by Developer ("Developer Software Package");
+ 
+The license set forth below is given by Canon with respect to the software files
+and associated on-line or electronic documentation which are downloaded from
+Canon’s website (“Software”).
+ 
+NOW, THEREFORE, Developer agrees as follows:
+ 
+1. LICENSE. Canon grants Developer a non-exclusive, non-transferable license
+to use the Software in object code format according to the terms and conditions
+of this Agreement. Title to the Software shall at all times reside in Canon.
+Developer may not use, reproduce, sublicense, distribute to any third party or
+dispose of the Software, in whole or in part, other than as permitted under this
+Agreement. Developer may distribute the Software, in object code format, only as
+part of the Developer Software Package in Europe without payment of royalty to
+Canon, provided that Developer abides by the provisions of this Agreement.
+Developer shall distribute Developer Software Package elsewhere at its sole risk.
+ 
+2. SUPPORT. Developer is responsible for the decision to use the Software as
+part of the Developer Software Package and is responsible for the ongoing
+maintenance and support of the Developer Software Package to its customers.
+Canon shall not be responsible for: (i) providing any support to Developer
+for the use and/or maintenance of the Software; (ii) supporting the end-user
+customers of the Developer Software Package; (iii) correcting any errors or
+anomalies that may be present in the Software or Developer Software Package.
+ 
+3. MARKETING AND PROMOTION. Developer shall market the Developer Software
+Package under its own name and its sole cost and expense. Developer may not use
+any Canon trademarks, service marks, trade names or logos in any advertising,
+brochures or promotional materials, unless Developer obtains prior written
+consent from Canon.
+ 
+4. INTELLECTUAL PROPERTY RIGHTS. All copyrights and other similar rights in
+the Software are and shall remain the exclusive property of Canon or of any
+third party defined by Canon. Developer acknowledges and shall respect the
+exclusive ownership and rights of Canon and/or other owners in respect of
+the Software. Developer shall fully indemnify and hold Canon harmless in
+case it breaches, or allows the breaching of, any intellectual property
+rights of Canon. Except as expressly granted herein, no license or right,
+express or implied, is hereby conveyed or granted to Developer for any
+invention, patent, copyright, know-how, trade secret, or other intellectual
+property right of Canon or any of its parent or subsidiary corporations.
+ 
+5. FUTURE RELATIONS. Canon makes no warranties or representations of any kind
+with respect to (a) the results of Developer's software development work, or (b)
+the prospects for any business relationship between the parties as a result of
+this Agreement. Ownership of the Software shall at all times reside in Canon.
+Nothing in this Agreement shall be deemed to create an agency, franchise,
+partnership or joint venture relationship between the parties.
+ 
+6. REVERSE ENGINEERING/MODIFICATION. Save to the extent and in the circumstances
+expressly permitted by applicable law, Developer shall not disassemble, reverse
+assemble, reverse compile or otherwise reverse engineer any portion of the Software.
+Developer shall in no way modify the Software.
+ 
+7. DISCLAIMER OF WARRANTY AND DAMAGES. THE SOFTWARE IS PROVIDED TO DEVELOPER "AS IS".
+CANON, ITS SUBSIDIARIES AND RELATED COMPANIES, AND CANON'S INDEPENDENT DISTRIBUTORS
+MAKE NO WARRANTIES REGARDING THE SOFTWARE, DOCUMENTATION MATERIALS OR MEDIA, EITHER
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY AND
+FITNESS FOR A PARTICULAR PURPOSE. NEITHER CANON, ITS SUBSIDIARIES AND RELATED
+COMPANIES, NOR CANON'S INDEPENDENT DISTRIBUTORS SHALL BE LIABLE FOR PERSONAL
+INJURY, PROPERTY DAMAGE, LOST PROFIT, DIRECT, INDIRECT OR OTHER INCIDENTAL OR
+CONSEQUENTIAL DAMAGES, WHETHER ON ACCOUNT OF NEGLIGENCE OR OTHERWISE, ARISING
+OUT OF THE USE OR INABILITY TO USE THE SOFTWARE OR DEVELOPER'S MARKETING OF
+THE DEVELOPER SOFTWARE PACKAGE.
+ 
+Developer shall perform the guarantee, which is mandatory in the countries where the Developer Software Package is marketed.
+ 
+8. INDEMNIFICATION BY DEVELOPER. Developer shall indemnify, defend and hold
+Canon harmless from any and all claims, damages, losses, liabilities, costs
+and expenses (including reasonable attorney's fees) arising out of or in
+connection with Developer's distribution of the Software as part of the Developer
+Software Package and Developer shall promptly notify Canon of any such claim.
+Developer in particular agrees that it shall fully indemnify and hold Canon
+harmless for any breach of copyright or other intellectual property rights
+of any third party arising out of the combination between the Software and
+the other software contained in the Developer Software Package.
+ 
+9. TERM. The term of this Agreement shall be perpetual unless: (1) Developer
+breaches any term or condition of this Agreement, or (2) Canon terminates this
+Agreement in writing. This Agreement shall automatically terminate if Developer
+enters into liquidation or bankruptcy or any arrangement with or for the benefit
+ of its creditors, or in case of threat of suspension of payments. In case of
+termination, Developer shall immediately return all copies of the Software
+to Canon at its expense and Canon shall have the right to enter Developer's
+premises and recover the Software. In case of termination, Developer shall
+immediately cease the marketing of the Developer Software Package.
+ 
+10. CONFIDENTIALITY Developer shall at all times keep this Agreement and the
+Software confidential and will avoid disclosure to any third party except where
+required by law.
+ 
+11. GENERAL. All the terms of the agreement between Canon and Developer are set
+out in this Agreement and may only be varied by agreement in writing between
+authorised representatives of Canon and Developer. Developer shall not, without
+the prior written consent of Canon, assign, sub-let or sub-contract this
+Agreement or any part thereof. All notices shall be in writing and bear the
+addresses of the parties to this agreement and shall be dispatched by certified
+or registered mail, return receipt requested, or by facsimile. Any failure by
+Canon to enforce or request strict performance by Developer of any of the
+provisions of this Agreement shall not constitute a waiver thereof and Canon may,
+at any time, avail itself of the remedies open for any breach of the terms
+hereof. In the event that any one or more of the provisions of this Agreement
+is unenforceable, the enforceability of the remaining provisions shall be unimpaired.
+ 
+12. The construction, validity and performance of this Agreement shall be governed
+by the Laws of England. The parties further agree, without prejudice to their right
+to seek interlocutory relief, that any dispute arising out of or in connection with
+this Agreement including any question regarding its existence, validity or termination,
+should be referred to and finally resolved as follows: a) if Developer is established
+in a country belonging to the EEA or Switzerland, the English Courts shall have exclusive
+jurisdiction; b) if Developer is established in any other country, by binding
+arbitration under the rules of the International Chamber of Commerce, which rules are
+deemed to be incorporated by reference into this Agreement. The place of arbitration
+shall be London, the language of the arbitration shall be English and the arbitration
+will be before a sole arbitrator appointed in accordance with ICC rules.
