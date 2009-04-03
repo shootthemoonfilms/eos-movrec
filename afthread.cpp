@@ -28,6 +28,8 @@
 #include <QWidget>
 #include <QApplication>
 
+#define AF_DEBUG_LOG	0
+
 GAFThread::GAFThread(QWidget* owner, GMyLiveThread* liveThread, GEOSCaptureWnd* capwnd)
  : QThread()
 {
@@ -53,32 +55,38 @@ void GAFThread::run()
 	double** pict;
 	QSize pictSz;
 	int nextfocus;
-	int pos;
-	int old_nf;
-	double noise;
 	int dir;
 	int count1, count2, count3;
 	int i;
+#if AF_DEBUG_LOG
+	int old_nf;
+	double noise;
+	int pos;
 	double disp;
 	QString str_disp;
 	FILE* f = fopen("af.log", "at");
 	fprintf(f, "af start!\n");;
+#endif
 	while (!Stopped)
 	{
 		CapWnd->lockFocusingArea();
 		pict = CapWnd->getFocusingArea();
 		if (pict)
 		{
-			pictSz = CapWnd->getFocusingAreaSize();
+#if AF_DEBUG_LOG
 			old_nf = fc->getNextFocus();
+			noise = fc->noise();
+#endif
+			pictSz = CapWnd->getFocusingAreaSize();
 			fc->NextIter(pict, pictSz.width(), pictSz.height());
 			nextfocus = fc->getNextFocus();
-			noise = fc->noise();
+#if AF_DEBUG_LOG
 			pos = fc->lastPosition();
 			disp = fc->lastDispersion();
 			str_disp.sprintf("%.1f, %d", disp, nextfocus);
 			CapWnd->setText(str_disp);
 			fprintf(f, "%04.1f, pos=%d, %d -> %d, noise=%.1f\n", disp, pos, old_nf, nextfocus, noise);
+#endif
 			if (!fc->stop)
 			{
 				if (nextfocus != 0)
@@ -110,6 +118,8 @@ void GAFThread::run()
 		CapWnd->unlockFocusingArea();
 		WinSleep(100);
 	}
+#if AF_DEBUG_LOG
 	fprintf(f, "af end.\n\n");
 	fclose(f);
+#endif
 }
