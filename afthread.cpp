@@ -54,15 +54,15 @@ void GAFThread::run()
 	QSize pictSz;
 	int nextfocus;
 	int pos;
-	//int old_nf;
-	//double noise;
+	int old_nf;
+	double noise;
 	int dir;
 	int count1, count2, count3;
 	int i;
-	//double disp;
-	//QString str_disp;
-	//FILE* f = fopen("af.log", "at");
-	//fprintf(f, "af start!\n");;
+	double disp;
+	QString str_disp;
+	FILE* f = fopen("af.log", "at");
+	fprintf(f, "af start!\n");;
 	while (!Stopped)
 	{
 		CapWnd->lockFocusingArea();
@@ -70,15 +70,15 @@ void GAFThread::run()
 		if (pict)
 		{
 			pictSz = CapWnd->getFocusingAreaSize();
-			//old_nf = fc->getNextFocus();
+			old_nf = fc->getNextFocus();
 			fc->NextIter(pict, pictSz.width(), pictSz.height());
 			nextfocus = fc->getNextFocus();
-			//noise = fc->noise();
+			noise = fc->noise();
 			pos = fc->lastPosition();
-			//disp = fc->lastDispersion();
-			//str_disp.sprintf("%.1f, %d", disp, nextfocus);
-			//CapWnd->setText(str_disp);
-			//fprintf(f, "%04.1f, pos=%d, %d -> %d, noise=%.1f\n", disp, pos, old_nf, nextfocus, noise);
+			disp = fc->lastDispersion();
+			str_disp.sprintf("%.1f, %d", disp, nextfocus);
+			CapWnd->setText(str_disp);
+			fprintf(f, "%04.1f, pos=%d, %d -> %d, noise=%.1f\n", disp, pos, old_nf, nextfocus, noise);
 			if (!fc->stop)
 			{
 				if (nextfocus != 0)
@@ -110,6 +110,6 @@ void GAFThread::run()
 		CapWnd->unlockFocusingArea();
 		WinSleep(100);
 	}
-	//fprintf(f, "af end.\n\n");
-	//fclose(f);
+	fprintf(f, "af end.\n\n");
+	fclose(f);
 }

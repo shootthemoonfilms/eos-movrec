@@ -126,14 +126,14 @@ class FocusingClass
 
 			double max_disp = maxdispersion();
 			double min_disp = mindispersion();
-			if (finf->dispersion > max_disp - Noise && finfos.size() > 50 + NoiseCounts)
+			if (finf->dispersion > max_disp && finfos.size() > 50 + NoiseCounts)
 				stop = true;
 
 			if (finf->focusDir != finfos[last_index - 1]->focusDir && abs(finfos[last_index - 1]->focusDir) > 0)
 				change_count++;
 			if (change_count > 3)
 				focus_step = 1;
-			if (change_count > 12)
+			if (change_count > 8)
 				stop = true;
 
 			if (finf->dispersion >= finfos[last_index - 1]->dispersion ||
