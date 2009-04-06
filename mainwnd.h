@@ -24,7 +24,7 @@
 #include <QWidget>
 #include <QImage>
 
-//class QTimer;
+class QTimer;
 //class QImage;
 class QCheckBox;
 class QPushButton;
@@ -52,6 +52,7 @@ protected slots:
 	void slotStop();
 	void slotStartTimeout();
 	void slotWorkTimeout();
+	void slotAESelected(int ae_ind);
 	void slotDofPressed();
 	void slotAvSelected(int av_ind);
 	void slotTvSelected(int tv_ind);
@@ -75,12 +76,16 @@ protected:
 private:
 	QString giveNextName(const QString& path);
 	void shutdown();
+	void loadSettings();
+	void saveSettings();
 private:
+	QTimer* StartTimer;
 	QBlinkLabel* blinkLabel;
 	QToolButton* reconnBtn;
 	QToolButton* selFileBtn;
 	QPushButton* startBtn;
 	QPushButton* stopBtn;
+	QComboBox* AEModeBox;
 	QToolButton* dofBtn;
 	QComboBox* avBox;
 	QComboBox* tvBox;
@@ -97,11 +102,22 @@ private:
 	QToolButton* zoom5xBtn;
 	QToolButton* AFBtn;
 	QToolButton* HistBtn;
-	QString Path;
 	GMyLiveThread* LiveThread;
 	GAFThread* AFThread;
 	GEOSCaptureWnd* CaptureWnd;
 	GHistogramWnd* HistogramWnd;
+	struct GSavedSettings
+	{
+		QString Path;
+		int Av;
+		int Tv;
+		int ISO;
+		int Wb;
+		int WbTemp;
+		int AEMode;
+	};
+	struct GSavedSettings CurrSettings;
+	struct GSavedSettings BackupSettings;
 };
 
 #endif	// _mainwnd_h

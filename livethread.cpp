@@ -96,6 +96,14 @@ void GMyLiveThread::stopWrite()
 	WrtFlagMutex.unlock();
 }
 
+void GMyLiveThread::cmdSetAEMode(int ae)
+{
+	CommandMutex.lock();
+	GCameraCommand cmd(COMMAND_SET_AEMODE, ae, 0);
+	CommandsQueue.append(cmd);
+	CommandMutex.unlock();
+}
+
 void GMyLiveThread::cmdSetWB(int wb, int temp)
 {
 	CommandMutex.lock();
@@ -244,14 +252,18 @@ EdsError GMyLiveThread::processCommand()
 			err = EdsGetPropertyData(camera, kEdsPropID_Av, 0, sizeof(EdsUInt32), &av);
 			if (err == EDS_ERR_OK)
 				if (Owner)
+				{
 					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AV_CHANGED, QVariant((int)av)));
+				}
 		}
 		break;
 	case COMMAND_REQ_AVLIST:	// request Av list
 		err = fillAvList();
 		if (err == EDS_ERR_OK)
 			if (Owner)
+			{
 				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AVLIST_CHANGED, 0));
+			}
 		break;
 	case COMMAND_SET_TV:		// set Tv
 		if (param1 >= 0x10)
@@ -271,14 +283,18 @@ EdsError GMyLiveThread::processCommand()
 			err = EdsGetPropertyData(camera, kEdsPropID_Tv, 0, sizeof(EdsUInt32), &tv);
 			if (err == EDS_ERR_OK)
 				if (Owner)
+				{
 					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_TV_CHANGED, QVariant((int)tv)));
+				}
 		}
 		break;
 	case COMMAND_REQ_TVLIST:	// request Tv list
 		err = fillTvList();
 		if (err == EDS_ERR_OK)
 			if (Owner)
+			{
 				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_TVLIST_CHANGED, 0));
+			}
 		break;
 	case COMMAND_REQ_EVF_OUT:	// request Evf output device
 		{
@@ -292,13 +308,18 @@ EdsError GMyLiveThread::processCommand()
 			}
 		}
 		break;
+	case COMMAND_SET_AEMODE:	// set AE mode
+		err = EdsSetPropertyData(camera, kEdsPropID_AEMode, 0, sizeof(EdsUInt32), &param1);
+		break;
 	case COMMAND_REQ_AEMODE:	// request AE mode
 		{
 			EdsUInt32 mode;
 			err = EdsGetPropertyData(camera, kEdsPropID_AEMode, 0, sizeof(mode), &mode);
 			if (err == EDS_ERR_OK)
 				if (Owner)
+				{
 					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AEMODE_CHANGED, QVariant((int)mode)));
+				}
 		}
 		break;
 	case COMMAND_ADJ_FOCUS:	// adjust focus
@@ -369,10 +390,10 @@ void GMyLiveThread::run()
 	}
 	// get Av list to main window
 	cmdRequestAvList();
-	// get Av value to main window
-	cmdRequestAv();
 	// get Tv list to main window
 	cmdRequestTvList();
+	// get Av value to main window
+	cmdRequestAv();
 	// get Tv value to main window
 	cmdRequestTv();
 	// get AF mode
@@ -406,7 +427,10 @@ void GMyLiveThread::run()
 	int TempTime2 = TempTime1;
 	int TempFrameCount = 0;
 	double TempFPS;
-	// for internal EDSDK messqge queue
+
+	/*while (!CommandsQueue.isEmpty())
+		processCommand();*/
+	// for internal EDSDK message queue
 	int SDKMsgCheckTime1 = WinGetTickCount();
 	int SDKMsgCheckTime2 = SDKMsgCheckTime1;
 	//WinQueryPerformanceFrequency(&freq);
@@ -420,17 +444,21 @@ void GMyLiveThread::run()
 			WinProcessMsg();
 			SDKMsgCheckTime1 = SDKMsgCheckTime2;
 		}
-		if (!CommandsQueue.isEmpty())
+		while (!CommandsQueue.isEmpty())
 			processCommand();
 		WinSleep(100);
 		RealyStartT2 = WinGetTickCount();
 	}
+	while (!CommandsQueue.isEmpty())
+		processCommand();
 	if (!LiveViewStarted)
 	{
 		deInitializeEds();
 		return;
 	}
 	Inited = true;
+	if (Owner)
+		QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_LV_STARTED));
 	while (!Stoped)
 	{
 /*static int c = 0;

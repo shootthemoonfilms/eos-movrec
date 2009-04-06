@@ -45,6 +45,7 @@ public:
 	void stopWrite();
 	bool writeEnabled() { return WriteMovie; }
 	void setFileName(const char* fname);
+	void cmdSetAEMode(int ae);
 	void cmdSetWB(int wb, int temp);
 	void cmdSetAv(int av, int dof);
 	void cmdRequestAv();

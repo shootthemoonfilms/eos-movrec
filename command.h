@@ -56,5 +56,6 @@ typedef QQueue<GCameraCommand> GCameraCommandsQueue;
 #define COMMAND_REQ_AFMODE	10
 #define COMMAND_SET_ZOOM	11
 #define COMMAND_SET_ZOOMPOS	12
+#define COMMAND_SET_AEMODE	13
 
 #endif	// _command_h

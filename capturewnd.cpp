@@ -236,6 +236,7 @@ void GEOSCaptureWnd::customEvent(QEvent* event)
 		}
 		clearFocusArea();
 	}
+	event->accept();
 }
 
 void GEOSCaptureWnd::lockFocusingArea()
