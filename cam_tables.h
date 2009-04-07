@@ -33,10 +33,18 @@ struct EOSTvTable
 	char tv[8];
 };
 
+struct EOSISOTable
+{
+	unsigned int val;
+	char ISO[6];
+};
+
 #define EOS_AV_TABLE_SZ		55
 #define EOS_TV_TABLE_SZ		73
+#define EOS_ISO_TABLE_SZ	22
 
 extern struct EOSAvTable AvTable[];
 extern struct EOSTvTable TvTable[];
+extern struct EOSISOTable ISOTable[];
 
 #endif	// _cam_tables_h

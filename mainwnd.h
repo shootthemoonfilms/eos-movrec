@@ -87,6 +87,7 @@ private:
 	QPushButton* stopBtn;
 	QComboBox* AEModeBox;
 	QToolButton* dofBtn;
+	QComboBox* isoBox;
 	QComboBox* avBox;
 	QComboBox* tvBox;
 	QComboBox* wbBox;

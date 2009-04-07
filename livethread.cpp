@@ -112,6 +112,30 @@ void GMyLiveThread::cmdSetWB(int wb, int temp)
 	CommandMutex.unlock();
 }
 
+void GMyLiveThread::cmdSetISO(int iso)
+{
+	CommandMutex.lock();
+	GCameraCommand cmd(COMMAND_SET_ISO, iso, 0);
+	CommandsQueue.append(cmd);
+	CommandMutex.unlock();
+}
+
+void GMyLiveThread::cmdRequestISO()
+{
+	CommandMutex.lock();
+	GCameraCommand cmd(COMMAND_REQ_ISO, 0, 0);
+	CommandsQueue.append(cmd);
+	CommandMutex.unlock();
+}
+
+void GMyLiveThread::cmdRequestISOList()
+{
+	CommandMutex.lock();
+	GCameraCommand cmd(COMMAND_REQ_ISOLIST, 0, 0);
+	CommandsQueue.append(cmd);
+	CommandMutex.unlock();
+}
+
 void GMyLiveThread::cmdSetAv(int av, int dof)
 {
 	CommandMutex.lock();
@@ -232,6 +256,28 @@ EdsError GMyLiveThread::processCommand()
 				err = EdsSetPropertyData(camera, kEdsPropID_Evf_ColorTemperature, 0, sizeof(EdsInt32), &param2);
 		}
 		break;
+	case COMMAND_SET_ISO:		// set ISO
+		err = EdsSetPropertyData(camera, kEdsPropID_ISOSpeed, 0, sizeof(EdsUInt32), &param1);
+		break;
+	case COMMAND_REQ_ISO:
+	{
+		int iso = 0;
+		err = EdsGetPropertyData(camera, kEdsPropID_ISOSpeed, 0, sizeof(EdsUInt32), &av);
+		if (err == EDS_ERR_OK)
+			if (Owner)
+			{
+				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_ISO_CHANGED, QVariant((int)iso)));
+			}
+	}
+	break;
+	case COMMAND_REQ_ISOLIST:	// request ISO list
+		err = fillISOList();
+		if (err == EDS_ERR_OK)
+			if (Owner)
+			{
+				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_ISOLIST_CHANGED, 0));
+			}
+			break;
 	case COMMAND_SET_AV:		// set Av & DOF
 		if (param1 > 0x1)
 		{

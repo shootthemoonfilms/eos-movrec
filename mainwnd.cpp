@@ -85,6 +85,9 @@ GEOSRecWnd::GEOSRecWnd()
 	AEModeBox->addItem(tr("A-DEP"), QVariant((int)5));
 	btn_layout->addWidget(AEModeBox, 0);
 
+	!isoBox = new QComboBox(this);
+	!isoBox->setEditable(false);
+	
 	dofBtn = new QToolButton(this);
 	dofBtn->setText("DOF");
 	dofBtn->setCheckable(true);
@@ -172,8 +175,7 @@ GEOSRecWnd::GEOSRecWnd()
 	HistBtn->setCheckable(true);
 	focus_layout->addWidget(HistBtn, 0);
 
-	focus_layout->addSpacing(10);
-
+	focus_layout->addSpacing(20);
 	QLabel* wbLabel = new QLabel(tr("WB"), this);
 	focus_layout->addWidget(wbLabel, 0);
 
@@ -449,8 +451,8 @@ void GEOSRecWnd::saveSettings()
 	settings.setValue(QString("Av"), QVariant(CurrSettings.Av));
 	settings.setValue(QString("Tv"), QVariant(CurrSettings.Tv));
 	settings.setValue(QString("ISO"), QVariant(CurrSettings.ISO));
-	settings.setValue(QString("WB"), QVariant(CurrSettings.Wb));
-	settings.setValue(QString("WBTemp"), QVariant(CurrSettings.WbTemp));
+	//settings.setValue(QString("WB"), QVariant(CurrSettings.Wb));
+	//settings.setValue(QString("WBTemp"), QVariant(CurrSettings.WbTemp));
 }
 
 void GEOSRecWnd::customEvent(QEvent* event)

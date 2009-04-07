@@ -47,6 +47,9 @@ public:
 	void setFileName(const char* fname);
 	void cmdSetAEMode(int ae);
 	void cmdSetWB(int wb, int temp);
+	void cmdSetISO(int iso);
+	void cmdRequestISO();
+	void cmdRequestISOList();
 	void cmdSetAv(int av, int dof);
 	void cmdRequestAv();
 	void cmdRequestAvList();
