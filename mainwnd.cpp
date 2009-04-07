@@ -85,9 +85,11 @@ GEOSRecWnd::GEOSRecWnd()
 	AEModeBox->addItem(tr("A-DEP"), QVariant((int)5));
 	btn_layout->addWidget(AEModeBox, 0);
 
-	!isoBox = new QComboBox(this);
-	!isoBox->setEditable(false);
-	
+	isoBox = new QComboBox(this);
+	isoBox->setEditable(false);
+	isoBox->setEnabled(false);
+	btn_layout->addWidget(isoBox, 0);
+
 	dofBtn = new QToolButton(this);
 	dofBtn->setText("DOF");
 	dofBtn->setCheckable(true);
@@ -222,6 +224,7 @@ GEOSRecWnd::GEOSRecWnd()
 	connect(stopBtn, SIGNAL(clicked()), this, SLOT(slotStop()));
 	connect(AEModeBox, SIGNAL(activated(int)), this, SLOT(slotAESelected(int)));
 	connect(dofBtn, SIGNAL(clicked()), this, SLOT(slotDofPressed()));
+	connect(isoBox, SIGNAL(activated(int)), this, SLOT(slotISOSelected(int)));
 	connect(avBox, SIGNAL(activated(int)), this, SLOT(slotAvSelected(int)));
 	connect(tvBox, SIGNAL(activated(int)), this, SLOT(slotTvSelected(int)));
 	connect(wbBox, SIGNAL(activated(int)), this, SLOT(slotWbSelected(int)));
@@ -428,19 +431,26 @@ void GEOSRecWnd::loadSettings()
 			slotWbSelected(i);
 			break;
 		}
-	// to-do: ISO
+	int iso = settings.value(QString("ISO"), QVariant((int)-1)).toInt();
+	for (i = 0; i < isoBox->count(); i++)
+		if (iso == isoBox->itemData(i, Qt::UserRole).toInt())
+		{
+			isoBox->setCurrentIndex(i);
+			slotISOSelected(i);
+			break;
+		}
 }
 
 void GEOSRecWnd::saveSettings()
 {
 	if (LiveThread)
 	{
+		LiveThread->cmdSetAEMode(BackupSettings.AEMode);
 		LiveThread->cmdSetAv(BackupSettings.Av, 0);
 		LiveThread->cmdSetTv(BackupSettings.Tv);
-		// to-do: ISO
-		LiveThread->cmdSetWB(9, BackupSettings.WbTemp);
-		LiveThread->cmdSetWB(BackupSettings.Wb, 0);
-		LiveThread->cmdSetAEMode(BackupSettings.AEMode);
+		LiveThread->cmdSetISO(BackupSettings.ISO);
+		//LiveThread->cmdSetWB(9, BackupSettings.WbTemp);
+		//LiveThread->cmdSetWB(BackupSettings.Wb, 0);
 		// bad code!!!
 		// give some time to thread to perform commands
 		WinSleep(100);
@@ -451,8 +461,8 @@ void GEOSRecWnd::saveSettings()
 	settings.setValue(QString("Av"), QVariant(CurrSettings.Av));
 	settings.setValue(QString("Tv"), QVariant(CurrSettings.Tv));
 	settings.setValue(QString("ISO"), QVariant(CurrSettings.ISO));
-	//settings.setValue(QString("WB"), QVariant(CurrSettings.Wb));
-	//settings.setValue(QString("WBTemp"), QVariant(CurrSettings.WbTemp));
+	settings.setValue(QString("WB"), QVariant(CurrSettings.Wb));
+	settings.setValue(QString("WBTemp"), QVariant(CurrSettings.WbTemp));
 }
 
 void GEOSRecWnd::customEvent(QEvent* event)
@@ -464,6 +474,45 @@ void GEOSRecWnd::customEvent(QEvent* event)
 	{
 	case CAMERA_EVENT_LV_STARTED:
 		slotStartTimeout();
+		break;
+	case CAMERA_EVENT_ISO_CHANGED:
+		{
+			// ISO changed
+			int iso = e->value().toInt();
+			CurrSettings.ISO = iso;
+			int val;
+			for (int i = 0; i < isoBox->count(); i++)
+			{
+				val = isoBox->itemData(i, Qt::UserRole).toInt();
+				if (val == iso)
+				{
+					isoBox->setCurrentIndex(i);
+					break;
+				}
+			}
+		}
+		break;
+	case CAMERA_EVENT_ISOLIST_CHANGED:
+		{
+			// ISO list changed
+			int curr_iso = isoBox->itemData(isoBox->currentIndex(), Qt::UserRole).toInt();
+			const int* isoList = LiveThread->isoList();
+			int isoListSize = LiveThread->isoListSize();
+			// fill combo
+			isoBox->clear();
+			int i, j, ind = 0;
+			for (i = 0; i < isoListSize; i++)
+			{
+				for (j = 0; j < EOS_ISO_TABLE_SZ; j++)
+					if (ISOTable[j].val == isoList[i])
+					{
+						isoBox->addItem(QString(ISOTable[j].ISO), QVariant((int)ISOTable[j].val));
+						if (isoList[i] == curr_iso)
+							isoBox->setCurrentIndex(ind);
+						ind++;
+					}
+			}
+		}
 		break;
 	case CAMERA_EVENT_AV_CHANGED:
 		{
@@ -587,10 +636,13 @@ void GEOSRecWnd::customEvent(QEvent* event)
 			case 1:
 			case 3:
 				tvBox->setEnabled(true);
+				isoBox->setEnabled(true);
 				break;
 			default:
 				tvBox->setEnabled(false);
 				//tvBox->clear();
+				isoBox->setEnabled(false);
+				//isoBox->clear();
 				break;
 			}
 			if (mode > 6)
@@ -618,8 +670,10 @@ void GEOSRecWnd::customEvent(QEvent* event)
 			{
 				LiveThread->cmdRequestAvList();
 				LiveThread->cmdRequestTvList();
+				LiveThread->cmdRequestISOList();
 				LiveThread->cmdRequestAv();
 				LiveThread->cmdRequestTv();
+				LiveThread->cmdRequestISO();
 			}
 		}
 		break;
@@ -767,6 +821,17 @@ void GEOSRecWnd::slotDofPressed()
 	if (LiveThread && LiveThread->isInit())
 	{
 		LiveThread->cmdSetAv(av, dof);
+	}
+}
+
+void GEOSRecWnd::slotISOSelected(int iso_ind)
+{
+	bool ok = false;
+	int iso = isoBox->itemData(iso_ind, Qt::UserRole).toInt(&ok);
+	if (LiveThread && LiveThread->isInit() && ok)
+	{
+		LiveThread->cmdSetISO(iso);
+		CurrSettings.ISO = iso;
 	}
 }
 
@@ -980,6 +1045,7 @@ void GEOSRecWnd::shutdown()
 	selFileBtn->setEnabled(false);
 	reconnBtn->setEnabled(true);
 	AEModeBox->setEnabled(false);
+	isoBox->setEnabled(false);
 	dofBtn->setEnabled(false);
 	avBox->setEnabled(false);
 	tvBox->setEnabled(false);

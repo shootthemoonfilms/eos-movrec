@@ -54,6 +54,7 @@ protected slots:
 	void slotWorkTimeout();
 	void slotAESelected(int ae_ind);
 	void slotDofPressed();
+	void slotISOSelected(int iso_ind);
 	void slotAvSelected(int av_ind);
 	void slotTvSelected(int tv_ind);
 	void slotWbSelected(int wb_ind);

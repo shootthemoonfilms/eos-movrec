@@ -262,7 +262,7 @@ EdsError GMyLiveThread::processCommand()
 	case COMMAND_REQ_ISO:
 	{
 		int iso = 0;
-		err = EdsGetPropertyData(camera, kEdsPropID_ISOSpeed, 0, sizeof(EdsUInt32), &av);
+		err = EdsGetPropertyData(camera, kEdsPropID_ISOSpeed, 0, sizeof(EdsUInt32), &iso);
 		if (err == EDS_ERR_OK)
 			if (Owner)
 			{
@@ -438,10 +438,14 @@ void GMyLiveThread::run()
 	cmdRequestAvList();
 	// get Tv list to main window
 	cmdRequestTvList();
+	// get ISO list to main window
+	cmdRequestISOList();
 	// get Av value to main window
 	cmdRequestAv();
 	// get Tv value to main window
 	cmdRequestTv();
+	// get ISO value to main window
+	cmdRequestISO();
 	// get AF mode
 	cmdRequestAFMode();
 	// get AE mode
@@ -666,6 +670,19 @@ EdsError GMyLiveThread::fillTvList()
 		TvListSize = desc.numElements;
 		for (int i = 0; i < TvListSize; i++)
 			TvList[i] = desc.propDesc[i];
+	}
+	return err;
+}
+
+EdsError GMyLiveThread::fillISOList()
+{
+	EdsPropertyDesc desc;
+	EdsError err = EdsGetPropertyDesc(camera, kEdsPropID_ISOSpeed, &desc);
+	if (err == EDS_ERR_OK)
+	{
+		ISOListSize = desc.numElements;
+		for (int i = 0; i < ISOListSize; i++)
+			ISOList[i] = desc.propDesc[i];
 	}
 	return err;
 }
@@ -905,6 +922,10 @@ void GMyLiveThread::propertyEvent(EdsPropertyEvent event, EdsPropertyID property
 		{
 			cmdRequestEvfOut();
 		}
+		else if (property == kEdsPropID_ISOSpeed)
+		{
+			cmdRequestISO();
+		}
 		else if (property == kEdsPropID_Av)
 		{
 			cmdRequestAv();
@@ -931,6 +952,10 @@ void GMyLiveThread::propertyEvent(EdsPropertyEvent event, EdsPropertyID property
 		else if (property == kEdsPropID_Tv)
 		{
 			cmdRequestTvList();
+		}
+		else if (property == kEdsPropID_ISOSpeed)
+		{
+			cmdRequestISOList();
 		}
 	}
 }

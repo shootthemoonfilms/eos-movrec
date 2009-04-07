@@ -67,6 +67,8 @@ public:
 	int avListSize() const { return AvListSize; }
 	const int* tvList() const { return TvList; }
 	int tvListSize() const { return TvListSize; }
+	const int* isoList() const { return ISOList; }
+	int isoListSize() const { return ISOListSize; }
 	// stat function
 	__uint64_t allFramesCount() { return AllFramesCount; }
 	__uint64_t writenCount() { return WritenCount; }
@@ -97,6 +99,7 @@ private:
 	EdsError processCommand();
 	EdsError fillAvList();
 	EdsError fillTvList();
+	EdsError fillISOList();
 private:
 	bool Stoped;
 	bool Inited;
@@ -116,6 +119,8 @@ private:
 	int AvListSize;
 	int TvList[128];
 	int TvListSize;
+	int ISOList[32];
+	int ISOListSize;
 	int Zoom;
 	int ZoomPosX;
 	int ZoomPosY;
