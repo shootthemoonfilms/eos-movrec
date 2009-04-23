@@ -31,6 +31,7 @@
 #include <QTextCodec>
 #include <QMessageBox>
 #include <QSettings>
+#include <QShortcut>
 
 //#include <QMessageBox>
 
@@ -127,33 +128,33 @@ GEOSRecWnd::GEOSRecWnd()
 	reconnBtn->setEnabled(false);
 	focus_layout->addWidget(reconnBtn, 0);
 	focus_layout->addSpacing(10);
-	QLabel* focusLabel = new QLabel(tr("Focus adjust"), this);
-	focus_layout->addWidget(focusLabel, 0);
-	focusFar3Btn = new QToolButton(this);
-	focusFar3Btn->setText(tr("<<<"));
-	focusFar3Btn->setEnabled(false);
-	focus_layout->addWidget(focusFar3Btn, 0);
-	focusFar2Btn = new QToolButton(this);
-	focusFar2Btn->setText(tr("<<"));
-	focusFar2Btn->setEnabled(false);
-	focus_layout->addWidget(focusFar2Btn, 0);
-	focusFar1Btn = new QToolButton(this);
-	focusFar1Btn->setText(tr("<"));
-	focusFar1Btn->setEnabled(false);
-	focus_layout->addWidget(focusFar1Btn, 0);
+	focus_layout->addWidget(new QLabel(tr("Focus adjust"), this), 0);
 
-	focusNear1Btn = new QToolButton(this);
-	focusNear1Btn->setText(tr(">"));
-	focusNear1Btn->setEnabled(false);
-	focus_layout->addWidget(focusNear1Btn, 0);
-	focusNear2Btn = new QToolButton(this);
-	focusNear2Btn->setText(tr(">>"));
-	focusNear2Btn->setEnabled(false);
-	focus_layout->addWidget(focusNear2Btn, 0);
 	focusNear3Btn = new QToolButton(this);
-	focusNear3Btn->setText(tr(">>>"));
+	focusNear3Btn->setText(tr("<<<"));
 	focusNear3Btn->setEnabled(false);
 	focus_layout->addWidget(focusNear3Btn, 0);
+	focusNear2Btn = new QToolButton(this);
+	focusNear2Btn->setText(tr("<<"));
+	focusNear2Btn->setEnabled(false);
+	focus_layout->addWidget(focusNear2Btn, 0);
+	focusNear1Btn = new QToolButton(this);
+	focusNear1Btn->setText(tr("<"));
+	focusNear1Btn->setEnabled(false);
+	focus_layout->addWidget(focusNear1Btn, 0);
+
+	focusFar1Btn = new QToolButton(this);
+	focusFar1Btn->setText(tr(">"));
+	focusFar1Btn->setEnabled(false);
+	focus_layout->addWidget(focusFar1Btn, 0);
+	focusFar2Btn = new QToolButton(this);
+	focusFar2Btn->setText(tr(">>"));
+	focusFar2Btn->setEnabled(false);
+	focus_layout->addWidget(focusFar2Btn, 0);
+	focusFar3Btn = new QToolButton(this);
+	focusFar3Btn->setText(tr(">>>"));
+	focusFar3Btn->setEnabled(false);
+	focus_layout->addWidget(focusFar3Btn, 0);
 
 	focus_layout->addSpacing(10);
 	AFBtn = new QToolButton(this);
@@ -218,6 +219,13 @@ GEOSRecWnd::GEOSRecWnd()
 	//setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 	setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
+	QShortcut* focusNear3Shortcut = new QShortcut(QKeySequence(tr("1")), this);
+	QShortcut* focusNear2Shortcut = new QShortcut(QKeySequence(tr("2")), this);
+	QShortcut* focusNear1Shortcut = new QShortcut(QKeySequence(tr("3")), this);
+	QShortcut* focusFar1Shortcut = new QShortcut(QKeySequence(tr("4")), this);
+	QShortcut* focusFar2Shortcut = new QShortcut(QKeySequence(tr("5")), this);
+	QShortcut* focusFar3Shortcut = new QShortcut(QKeySequence(tr("6")), this);
+
 	connect(selFileBtn, SIGNAL(clicked()), this, SLOT(slotSelFile()));
 	connect(reconnBtn, SIGNAL(clicked()), this, SLOT(slotReconnect()));
 	connect(startBtn, SIGNAL(clicked()), this, SLOT(slotStart()));
@@ -240,6 +248,13 @@ GEOSRecWnd::GEOSRecWnd()
 	connect(zoom5xBtn, SIGNAL(clicked()), this, SLOT(slotZoom5x()));
 	connect(AFBtn, SIGNAL(clicked()), this, SLOT(slotAutoFocus()));
 	connect(HistBtn, SIGNAL(clicked()), this, SLOT(slotHistogram()));
+
+	connect(focusNear3Shortcut, SIGNAL(activated()), this, SLOT(slotFocusNear3()));
+	connect(focusNear2Shortcut, SIGNAL(activated()), this, SLOT(slotFocusNear2()));
+	connect(focusNear1Shortcut, SIGNAL(activated()), this, SLOT(slotFocusNear1()));
+	connect(focusFar1Shortcut, SIGNAL(activated()), this, SLOT(slotFocusFar1()));
+	connect(focusFar2Shortcut, SIGNAL(activated()), this, SLOT(slotFocusFar2()));
+	connect(focusFar3Shortcut, SIGNAL(activated()), this, SLOT(slotFocusFar3()));
 
 	CurrSettings.Path = tr("out.avi");
 	CurrSettings.Av = -1;
