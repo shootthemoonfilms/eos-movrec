@@ -64,16 +64,19 @@ GEOSRecWnd::GEOSRecWnd()
 	selFileBtn = new QToolButton(this);
 	selFileBtn->setText(tr("..."));
 	selFileBtn->setEnabled(false);
+	selFileBtn->setToolTip(tr("Select folder"));
 	btn_layout->addWidget(selFileBtn, 0);
 
 	startBtn = new QPushButton(tr("Write!"), this);
 	startBtn->setIcon(QPixmap(record_xpm));
 	startBtn->setEnabled(false);
+	startBtn->setToolTip(tr("Start recording"));
 	btn_layout->addWidget(startBtn, 0);
 
 	stopBtn = new QPushButton(tr("Stop"), this);
 	stopBtn->setIcon(QPixmap(stop_xpm));
 	stopBtn->setEnabled(false);
+	stopBtn->setToolTip(tr("Stop recording"));
 	btn_layout->addWidget(stopBtn, 0);
 
 	btn_layout->addSpacing(10);
@@ -84,27 +87,32 @@ GEOSRecWnd::GEOSRecWnd()
 	AEModeBox->addItem(tr("Av"), QVariant((int)2));
 	AEModeBox->addItem(tr("M"), QVariant((int)3));
 	AEModeBox->addItem(tr("A-DEP"), QVariant((int)5));
+	AEModeBox->setToolTip(tr("Select AE Mode"));
 	btn_layout->addWidget(AEModeBox, 0);
 
 	isoBox = new QComboBox(this);
 	isoBox->setEditable(false);
 	isoBox->setEnabled(false);
+	isoBox->setToolTip(tr("Select ISO"));
 	btn_layout->addWidget(isoBox, 0);
 
 	dofBtn = new QToolButton(this);
 	dofBtn->setText("DOF");
 	dofBtn->setCheckable(true);
 	dofBtn->setEnabled(false);
+	dofBtn->setToolTip(tr("Enable/disable depth of field"));
 	btn_layout->addWidget(dofBtn, 0);
 
 	avBox = new QComboBox(this);
 	//avBox->setEnabled(false);
 	avBox->setEditable(false);
+	avBox->setToolTip(tr("Select AV"));
 	btn_layout->addWidget(avBox, 0);
 
 	tvBox = new QComboBox(this);
 	//tvBox->setEnabled(false);
 	tvBox->setEditable(false);
+	tvBox->setToolTip(tr("Select TV"));
 	btn_layout->addWidget(tvBox, 0);
 
 	fpsLabel = new QLabel(tr("0 fps"), this);
@@ -119,6 +127,7 @@ GEOSRecWnd::GEOSRecWnd()
 
 	QToolButton* aboutBtn = new QToolButton(this);
 	aboutBtn->setText(tr("A"));
+	aboutBtn->setToolTip(tr("Show about box"));
 	btn_layout->addWidget(aboutBtn, 0);
 
 	QHBoxLayout* focus_layout = new QHBoxLayout();
@@ -126,6 +135,7 @@ GEOSRecWnd::GEOSRecWnd()
 	//reconnBtn->setText(tr("R"));
 	reconnBtn->setIcon(QPixmap(usb_sign_black_xpm));
 	reconnBtn->setEnabled(false);
+	reconnBtn->setToolTip(tr("Reconnect to camera"));
 	focus_layout->addWidget(reconnBtn, 0);
 	focus_layout->addSpacing(10);
 	focus_layout->addWidget(new QLabel(tr("Focus adjust"), this), 0);
@@ -133,27 +143,33 @@ GEOSRecWnd::GEOSRecWnd()
 	focusNear3Btn = new QToolButton(this);
 	focusNear3Btn->setText(tr("<<<"));
 	focusNear3Btn->setEnabled(false);
+	focusNear3Btn->setToolTip(tr("Move focus point to near (1)"));
 	focus_layout->addWidget(focusNear3Btn, 0);
 	focusNear2Btn = new QToolButton(this);
 	focusNear2Btn->setText(tr("<<"));
 	focusNear2Btn->setEnabled(false);
+	focusNear2Btn->setToolTip(tr("Move focus point to near (2)"));
 	focus_layout->addWidget(focusNear2Btn, 0);
 	focusNear1Btn = new QToolButton(this);
 	focusNear1Btn->setText(tr("<"));
 	focusNear1Btn->setEnabled(false);
+	focusNear1Btn->setToolTip(tr("Move focus point to near (3)"));
 	focus_layout->addWidget(focusNear1Btn, 0);
 
 	focusFar1Btn = new QToolButton(this);
 	focusFar1Btn->setText(tr(">"));
 	focusFar1Btn->setEnabled(false);
+	focusFar1Btn->setToolTip(tr("Move focus point to far (4)"));
 	focus_layout->addWidget(focusFar1Btn, 0);
 	focusFar2Btn = new QToolButton(this);
 	focusFar2Btn->setText(tr(">>"));
 	focusFar2Btn->setEnabled(false);
+	focusFar2Btn->setToolTip(tr("Move focus point to far (5)"));
 	focus_layout->addWidget(focusFar2Btn, 0);
 	focusFar3Btn = new QToolButton(this);
 	focusFar3Btn->setText(tr(">>>"));
 	focusFar3Btn->setEnabled(false);
+	focusFar3Btn->setToolTip(tr("Move focus point to far (6)"));
 	focus_layout->addWidget(focusFar3Btn, 0);
 
 	focus_layout->addSpacing(10);
@@ -161,6 +177,7 @@ GEOSRecWnd::GEOSRecWnd()
 	AFBtn->setText(tr("AF"));
 	AFBtn->setCheckable(true);
 	AFBtn->setEnabled(false);
+	AFBtn->setToolTip(tr("Try experimental autofocus"));
 	focus_layout->addWidget(AFBtn, 0);
 
 	focus_layout->addSpacing(10);
@@ -170,12 +187,14 @@ GEOSRecWnd::GEOSRecWnd()
 	zoom5xBtn->setText(tr("5x"));
 	zoom5xBtn->setEnabled(false);
 	zoom5xBtn->setCheckable(true);
+	zoom5xBtn->setToolTip(tr("5x Zoom (crop)"));
 	focus_layout->addWidget(zoom5xBtn, 0);
 
 	HistBtn = new QToolButton(this);
 	HistBtn->setText(tr("H"));
 	HistBtn->setEnabled(false);
 	HistBtn->setCheckable(true);
+	HistBtn->setToolTip(tr("Show histogram"));
 	focus_layout->addWidget(HistBtn, 0);
 
 	focus_layout->addSpacing(20);
@@ -192,6 +211,7 @@ GEOSRecWnd::GEOSRecWnd()
 	wbBox->addItem(tr("Flash"), QVariant((int)5));
 	wbBox->addItem(tr("Shade"), QVariant((int)8));
 	wbBox->addItem(tr("Color Temperature"), QVariant((int)9));
+	wbBox->setToolTip(tr("Select white balance"));
 	focus_layout->addWidget(wbBox, 0);
 
 	wbTempBox = new QSpinBox(this);
@@ -201,6 +221,7 @@ GEOSRecWnd::GEOSRecWnd()
 	wbTempBox->setSingleStep(100);
 	wbTempBox->setEnabled(false);
 	wbTempBox->setSuffix(tr("K"));
+	wbTempBox->setToolTip(tr("Select white balance temperature"));
 	focus_layout->addWidget(wbTempBox, 0);
 
 	focus_layout->addStretch(1);
@@ -623,7 +644,7 @@ void GEOSRecWnd::customEvent(QEvent* event)
 		{
 			double fps = e->value().toDouble();
 			char str[10];
-			sprintf(str, "%.1f fps", e->value().toDouble());
+			sprintf(str, "%.1f fps", fps);
 			fpsLabel->setText(QString(str));
 		}
 		break;
