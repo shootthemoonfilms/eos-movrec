@@ -57,7 +57,7 @@ int WinGetTickCount()
 	return GetTickCount();
 #else
 #ifdef __MACOS__
-	return TickCount();
+	return 100*TickCount()/6;
 #endif
 #endif
 }
