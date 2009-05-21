@@ -1,6 +1,8 @@
 /***************************************************************************
  *   Copyright (C) 2008-2009 by Чернов А.А.                                *
  *   valexlin@gmail.com                                                    *
+ *   Golubinsky Yury - Mac OS X port                                       *
+ *   urix@me.com                                                           *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -18,25 +20,59 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _freqtimer_h
-#define _freqtimer_h
+#include "os_api.h"
 
-#include "types.h"
+#include <limits.h>
 
-#ifdef __cplusplus
-extern "C" {
+#if defined(_WIN32) || defined(_WIN64)
+#define _WINDOWS
 #endif
 
-int WinQueryPerformanceFrequency(__int64_t* freq);
-int WinQueryPerformanceCounter(__int64_t* count);
-void WinSleep(int ms);
-void WorkSleep(int us);
-int WinGetTickCount();
+#ifdef _WINDOWS
+#include <windows.h>
+#endif
 
-int WinProcessMsg();
+#if defined(__MACOS__) || defined(__APPLE__) || defined(__GLIBC__) || defined(__FreeBSD__)
+#define _UNIX
+#endif
 
-#ifdef __cplusplus
+#ifdef _UNIX
+#include <unistd.h>
+#endif
+
+void WinSleep(int ms)
+{
+#ifdef _WINDOWS
+	Sleep(ms);
+#else
+#ifdef _UNIX
+	usleep(ms*1000);
+#endif
+#endif
 }
-#endif
 
-#endif	// _freqtimer_h
+int WinGetTickCount()
+{
+#ifdef _WINDOWS
+	return GetTickCount();
+#else
+#ifdef __MACOS__
+	return TickCount();
+#endif
+#endif
+}
+
+int WinProcessMsg()
+{
+#ifdef _WIN32
+	MSG msg;
+	if (GetMessage(&msg, NULL, 0,0))
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+	return 0;
+#else
+	;
+#endif
+}

@@ -5,7 +5,7 @@ QT = core \
 HEADERS = mainwnd.h \
     about.h \
     blinklabel.h \
-    freqtimer.h \
+    os_api.h \
     afthread.h \
     capturewnd.h \
     types.h \
@@ -27,7 +27,7 @@ SOURCES = main.cpp \
     buffer.cpp \
     cam_tables.c \
     mjpegwrt.c \
-    freqtimer.c \
+    os_api.c \
     afthread.cpp \
     histogramwnd.cpp
 TARGET = bin/eos_movrec

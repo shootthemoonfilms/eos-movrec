@@ -18,56 +18,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "freqtimer.h"
+#ifndef _freqtimer_h
+#define _freqtimer_h
 
-#include <windows.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-int WinQueryPerformanceFrequency(__int64_t* freq)
-{
-	LARGE_INTEGER i;
-	BOOL res = QueryPerformanceFrequency(&i);
-	*freq = i.QuadPart;
-	return res != 0;
+void WinSleep(int ms);
+int WinGetTickCount();
+
+int WinProcessMsg();
+
+#ifdef __cplusplus
 }
+#endif
 
-int WinQueryPerformanceCounter(__int64_t* count)
-{
-	LARGE_INTEGER i;
-	BOOL res = QueryPerformanceCounter(&i);
-	*count = i.QuadPart;
-	return res != 0;
-}
-
-void WinSleep(int ms)
-{
-	Sleep(ms);
-}
-
-void WorkSleep(int us)
-{
-	if (us <= 0)
-		return;
-	LARGE_INTEGER count1, count2, freq;
-	QueryPerformanceCounter(&count1);
-	QueryPerformanceFrequency(&freq);
-	__int64_t time_cmp = freq.QuadPart * (__int64_t)us / 1000000L;
-	QueryPerformanceCounter(&count2);
-
-	while (count2.QuadPart - count1.QuadPart < time_cmp - 1)
-		QueryPerformanceCounter(&count2);
-}
-
-int WinGetTickCount()
-{
-	return GetTickCount();
-}
-
-int WinProcessMsg()
-{
-	MSG msg;
-	if (GetMessage(&msg, NULL, 0,0))
-	{
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
-	}
-}
+#endif	// _freqtimer_h

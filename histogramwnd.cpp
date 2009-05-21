@@ -27,7 +27,10 @@
 
 GHistogramWnd::GHistogramWnd(QWidget* parent, GMyLiveThread* thread)
  : QWidget(0, Qt::Tool | Qt::WindowStaysOnTopHint | Qt::WindowTitleHint |
-		   Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint |
+ 		   Qt::WindowSystemMenuHint |
+ #ifndef __MACOS__
+ 		   Qt::WindowCloseButtonHint |
+ #endif
 		   Qt::MSWindowsFixedSizeDialogHint)
 {
 	Histogram = 0;

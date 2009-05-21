@@ -28,10 +28,11 @@ GAboutDlg::GAboutDlg(QWidget* parent)
  : QDialog(parent)
 {
 	QString text = tr("<body bgcolor=\"%1\"><p>EOS Camera Movie Record<br/>"
-										  "Version 0.1.8 Beta 2"
+										  "Version 0.1.8 Beta 3"
 					  "<center>Authors:</center>"
-					  "Chernov Aleksey - programmer (<a href=\"mailto:valexvir@yandex.ru\">valexvir@yandex.ru</a>)<br/>"
+					  "Chernov Aleksey - lead programmer (<a href=\"mailto:valexvir@yandex.ru\">valexvir@yandex.ru</a>)<br/>"
 					  "Uterr - autofocus programmer <br/>"
+					  "Golubinsky Yury - Mac OS X port (<a href=\"mailto:urix@me.com\">urix@me.com</a>)<br/>"
 					  "Lukyanenko Vlad - homepage design (<a href=\"mailto:xkimx@rambler.ru\">xkimx@rambler.ru</a>)<br/>"
 					  "Emel'yanov Denis - icon maker (<a href=\"mailto:suzuntu@yandex.ru\">suzuntu@yandex.ru</a>)<br/>"
 					  "<br/>"
@@ -57,7 +58,7 @@ GAboutDlg::GAboutDlg(QWidget* parent)
 	QTextBrowser *browser = new QTextBrowser(this);
 	browser->setOpenExternalLinks(true);
 	browser->setFrameStyle(QFrame::NoFrame);
-		browser->setMinimumSize(300, 330);
+	browser->setMinimumSize(300, 330);
 	QString color_name = palette().color(QPalette::Window).name();
 	text.replace("%1", color_name);
 	browser->setText(text);

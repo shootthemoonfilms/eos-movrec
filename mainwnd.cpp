@@ -53,6 +53,10 @@
 
 #include <stdlib.h>
 
+#ifdef __MACOS__
+	#include <CarbonCore/Folders.h>
+#endif
+
 GEOSRecWnd::GEOSRecWnd()
  : QWidget(0)
 {
@@ -334,7 +338,17 @@ void GEOSRecWnd::closeEvent(QCloseEvent* event)
 		LiveThread = 0;
 		p->stop();
 		p->wait();
-		FILE* f = fopen("debug_info.txt", "wt");
+		FILE* f = 0;
+#ifdef __MACOS__
+		FSRef desktopFolderRef;
+		OSErr err = FSFindFolder(kUserDomain, kDocumentsFolderType, kDontCreateFolder, &desktopFolderRef);
+		char path[PATH_MAX]	= "";
+		err = FSRefMakePath(&desktopFolderRef, (UInt8*)path, PATH_MAX);
+		sprintf(path, "%s/eos_movrec.debug_info.txt", path);
+		f = fopen(path, "wt");
+#else
+		f = fopen("debug_info.txt", "wt");
+#endif
 		if (f)
 		{
 			fprintf(f, "all frames: %I64d\n", p->allFramesCount());
@@ -1055,7 +1069,17 @@ void GEOSRecWnd::shutdown()
 	p->setCaptureWnd(0);
 	p->stop();
 	p->wait();
-	FILE* f = fopen("debug_info.txt", "wt");
+	FILE* f = 0;
+#ifdef __MACOS__
+	FSRef desktopFolderRef;
+	OSErr err = FSFindFolder(kUserDomain, kDocumentsFolderType, kDontCreateFolder, &desktopFolderRef);
+	char path[PATH_MAX]	= "";
+	err = FSRefMakePath(&desktopFolderRef, (UInt8*)path, PATH_MAX);
+	sprintf(path, "%s/eos_movrec.debug_info.txt", path);
+	f = fopen(path, "wt");
+#else
+	f = fopen("debug_info.txt", "wt");
+#endif
 	if (f)
 	{
 		fprintf(f, "all frames: %I64d\n", p->allFramesCount());
