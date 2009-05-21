@@ -21,7 +21,7 @@
 #include "afthread.h"
 #include "livethread.h"
 #include "capturewnd.h"
-#include "freqtimer.h"
+#include "os_api.h"
 #include "events.h"
 #include "FocuserClass.h"
 

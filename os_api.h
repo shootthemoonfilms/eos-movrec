@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _freqtimer_h
-#define _freqtimer_h
+#ifndef _os_api_h
+#define _os_api_h
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,4 +34,4 @@ int WinProcessMsg();
 }
 #endif
 
-#endif	// _freqtimer_h
+#endif	// _os_api_h

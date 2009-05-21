@@ -24,7 +24,7 @@
 #include <QApplication>
 
 #include "mjpegwrt.h"
-#include "freqtimer.h"
+#include "os_api.h"
 #include "buffer.h"
 #include "events.h"
 #include "command.h"

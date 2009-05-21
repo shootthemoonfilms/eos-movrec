@@ -44,7 +44,7 @@
 #include "histogramwnd.h"
 #include "events.h"
 #include "cam_tables.h"
-#include "freqtimer.h"
+#include "os_api.h"
 
 // icons
 #include "pixmaps/usb-sign-black.xpm"
