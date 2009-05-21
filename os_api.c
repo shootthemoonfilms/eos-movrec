@@ -64,7 +64,7 @@ int WinGetTickCount()
 
 int WinProcessMsg()
 {
-#ifdef _WIN32
+#ifdef _WINDOWS
 	MSG msg;
 	if (GetMessage(&msg, NULL, 0,0))
 	{
