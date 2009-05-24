@@ -116,20 +116,6 @@ void GEOSCaptureWnd::mouseMoveEvent(QMouseEvent* event)
 				setCursor(Qt::OpenHandCursor);
 				cursor_type = 1;
 			}
-			if (ZoomRectMoving)
-			{
-				QRect bak_rect = ZoomRect;
-				QPoint bak_point = MousePressPoint;
-				QPoint off = pos - MousePressPoint;
-				ZoomRect.translate(off);
-				MousePressPoint = pos;
-				if (ZoomRect.left() < 0 || ZoomRect.top() < 0 ||
-					ZoomRect.right() >= LiveImage.width() || ZoomRect.bottom() >= LiveImage.height())
-				{
-					ZoomRect = bak_rect;
-					MousePressPoint = bak_point;
-				}
-			}
 		}
 		else
 		{
@@ -138,7 +124,31 @@ void GEOSCaptureWnd::mouseMoveEvent(QMouseEvent* event)
 				setCursor(Qt::ArrowCursor);
 				cursor_type = 0;
 			}
-		}
+		};
+		if (ZoomRectMoving)
+		{
+			QRect bak_rect = ZoomRect;
+			QPoint bak_point = MousePressPoint;
+			QPoint off = pos - MousePressPoint;
+			ZoomRect.translate(off);
+			MousePressPoint = pos;
+			if (ZoomRect.left() < 0 || ZoomRect.right() >= LiveImage.width())
+			{
+				if (ZoomRect.left() < 0)
+					ZoomRect.moveLeft(0);
+				if (ZoomRect.right() >= LiveImage.width())
+					ZoomRect.moveRight(LiveImage.width() - 1);
+				MousePressPoint.setX(bak_point.x());
+			};
+			if (ZoomRect.top() < 0 || ZoomRect.bottom() >= LiveImage.height())
+			{
+				if (ZoomRect.top() < 0)
+					ZoomRect.moveTop(0);
+				if (ZoomRect.bottom() >= LiveImage.height())
+					ZoomRect.moveBottom(LiveImage.height() - 1);
+				MousePressPoint.setY(bak_point.y());
+			};
+		};
 	}
 	else if (Zoom == 5)
 	{
@@ -232,7 +242,11 @@ void GEOSCaptureWnd::customEvent(QEvent* event)
 			GCameraEvent* e = (GCameraEvent*)event;
 			QRect r = e->value().toRect();
 			Zoom = r.x();
-			ZoomRect = QRect(r.width()/5, r.height()/5, LiveImage.width()/5, LiveImage.height()/5);
+			#ifdef __MACOS__
+				ZoomRect = QRect(r.width()/4, r.height()/4, LiveImage.width()/5, LiveImage.height()/5);
+			#else
+				ZoomRect = QRect(r.width()/5, r.height()/5, LiveImage.width()/5, LiveImage.height()/5);
+			#endif
 		}
 		clearFocusArea();
 	}
