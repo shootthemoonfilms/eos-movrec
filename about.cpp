@@ -40,10 +40,6 @@ GAboutDlg::GAboutDlg(QWidget* parent)
 					  "sf.net page: <a href=\"http://sf.net/projects/eos-movrec\">http://sf.net/projects/eos-movrec</a><br/>"
 					  "forum: <a href=\"http://forum.ixbt.com/topic.cgi?id=20:26019\">http://forum.ixbt.com/topic.cgi?id=20:26019</a>"
 					  "</p>"
-					  "<p>Donate:<br/>"
-					  "Yandex.money: 41001298085832<br/>"
-					  "WebMoney WMZ: Z700580637416<br/>"
-					  "WebMoney WMR: R511799539746</p>"
 					  "This program is free software; you can redistribute it and/or modify "
 					  "it under the terms of the GNU General Public License as published by "
 					  "the Free Software Foundation; either version 2 of the License, or "
@@ -58,7 +54,7 @@ GAboutDlg::GAboutDlg(QWidget* parent)
 	QTextBrowser *browser = new QTextBrowser(this);
 	browser->setOpenExternalLinks(true);
 	browser->setFrameStyle(QFrame::NoFrame);
-	browser->setMinimumSize(300, 350);
+	browser->setMinimumSize(300, 270);
 	QString color_name = palette().color(QPalette::Window).name();
 	text.replace("%1", color_name);
 	browser->setText(text);
