@@ -1,0 +1,567 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 45;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		069D05B0128AE5DC7EE31738 /* QtCore.framework in Frameworks & Libraries */ = {isa = PBXBuildFile; fileRef = 7BC2E65A5E699A5E5D834CA2 /* QtCore.framework */; };
+		2B093CA6F071B023A473CED0 /* main.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = 118FCBAABA162BA17933C789 /* main.cpp */; settings = {ATTRIBUTES = (); }; };
+		2BCD3648417AA3C1DF78247B /* moc_blinklabel.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = 4E960C5F9615CEC8246D1E50 /* moc_blinklabel.cpp */; settings = {ATTRIBUTES = (); }; };
+		501667F26B3C1FF6767A7C12 /* QtGui.framework in Frameworks & Libraries */ = {isa = PBXBuildFile; fileRef = 9B36DA7E32F0304E780E7972 /* QtGui.framework */; };
+		51D4DBF7CB8537BE86EBD055 /* AppKit.framework in Frameworks & Libraries */ = {isa = PBXBuildFile; fileRef = 821416211D63F190AAAD016A /* AppKit.framework */; };
+		56BCDC6C13A3A299D68306FF /* buffer.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = A98FF028B2815A929F512655 /* buffer.cpp */; settings = {ATTRIBUTES = (); }; };
+		7DC980D848ADDB6080EB58D3 /* mjpegwrt.c in Build Sources */ = {isa = PBXBuildFile; fileRef = CCBF143ED423A7EF5B800FD7 /* mjpegwrt.c */; settings = {ATTRIBUTES = (); }; };
+		8FFD8B5CD017F8464ED17F1C /* moc_mainwnd.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = 4F118251635592DBBA8496ED /* moc_mainwnd.cpp */; settings = {ATTRIBUTES = (); }; };
+		92F1D7A71C47635EDAA47E02 /* livethread.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = 730F1E47A565179DC08AC507 /* livethread.cpp */; settings = {ATTRIBUTES = (); }; };
+		974EB1980E42D9D513D1F6C4 /* histogramwnd.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = A2638B22BD2CEEDF21C0B42B /* histogramwnd.cpp */; settings = {ATTRIBUTES = (); }; };
+		A30835B46CACDA34FAFC3356 /* mainwnd.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = 13B6F22B90F35D4DE411FE18 /* mainwnd.cpp */; settings = {ATTRIBUTES = (); }; };
+		ABF6907EF9D162D6B3AC28DA /* capturewnd.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = C3E0CE4362EF52CDA4D18B72 /* capturewnd.cpp */; settings = {ATTRIBUTES = (); }; };
+		B07F799B73B1A00DD9C36194 /* cam_tables.c in Build Sources */ = {isa = PBXBuildFile; fileRef = 9622BAA7F9F6A8E01D115FEA /* cam_tables.c */; settings = {ATTRIBUTES = (); }; };
+		C4F403DCEB54B143027F6ECA /* about.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = 0BA95E1E2D6CDCF24FCCAD32 /* about.cpp */; settings = {ATTRIBUTES = (); }; };
+		C8FD4A1AAA37CF2CA2824CCF /* Carbon.framework in Frameworks & Libraries */ = {isa = PBXBuildFile; fileRef = DA138F75C9F545CDAE7FB264 /* Carbon.framework */; };
+		DC6EF07D5E0AB421C3705FA4 /* blinklabel.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = 0B9F3C983CC019278BFF593A /* blinklabel.cpp */; settings = {ATTRIBUTES = (); }; };
+		DE43CE3A0FC0BA3500266209 /* EDSDK.framework in Frameworks & Libraries */ = {isa = PBXBuildFile; fileRef = DE43CAF90FC0B16C00266209 /* EDSDK.framework */; settings = {ATTRIBUTES = (Required, ); }; };
+		DEA3B6AD0FC22AA4006C903D /* eos-movrec.mac.icns in Bundle Resources */ = {isa = PBXBuildFile; fileRef = DEA3B6AC0FC22AA4006C903D /* eos-movrec.mac.icns */; };
+		DECC8BE40FC8462200B1E4AC /* os_api.c in Build Sources */ = {isa = PBXBuildFile; fileRef = DECC8BE20FC8462200B1E4AC /* os_api.c */; };
+		DED1B1188C80D03F3A86CB76 /* command.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = 88E8AAAA319F310FCDE88E10 /* command.cpp */; settings = {ATTRIBUTES = (); }; };
+		DEDEBC3A0FC07EF100544F9A /* Info.plist in Bundle Resources */ = {isa = PBXBuildFile; fileRef = DEDEBC390FC07EF100544F9A /* Info.plist */; };
+		DEECBB7F0FC1AEEE001C896A /* EDSDK.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = DE43CAF90FC0B16C00266209 /* EDSDK.framework */; };
+		DEECBBA60FC1D0FE001C896A /* Cocoa.framework in Frameworks & Libraries */ = {isa = PBXBuildFile; fileRef = DEECBBA50FC1D0FE001C896A /* Cocoa.framework */; };
+		E753BFB44480236625467AE0 /* afthread.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = 40E2765B0D7C39184C105A26 /* afthread.cpp */; settings = {ATTRIBUTES = (); }; };
+		F9E76E570E10AF14870553A7 /* ApplicationServices.framework in Frameworks & Libraries */ = {isa = PBXBuildFile; fileRef = 27AE7A480FD6C52FCA80FECD /* ApplicationServices.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		DEECBB680FC1A457001C896A /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				DEECBB7F0FC1AEEE001C896A /* EDSDK.framework in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		0B9F3C983CC019278BFF593A /* blinklabel.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = blinklabel.cpp; sourceTree = "<group>"; };
+		0BA95E1E2D6CDCF24FCCAD32 /* about.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = about.cpp; sourceTree = "<group>"; };
+		118FCBAABA162BA17933C789 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		13B6F22B90F35D4DE411FE18 /* mainwnd.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = mainwnd.cpp; sourceTree = "<group>"; };
+		258A3CB73C0A88B3D849F20C /* FocuserClass.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FocuserClass.h; sourceTree = "<group>"; };
+		278553614135D17214FDE469 /* buffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = buffer.h; sourceTree = "<group>"; };
+		27AE7A480FD6C52FCA80FECD /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
+		2E719073165374C5490E1B2A /* mainwnd.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mainwnd.h; sourceTree = "<group>"; };
+		38BA87598E3D0F6BFCB6E1B2 /* blinklabel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = blinklabel.h; sourceTree = "<group>"; };
+		40E2765B0D7C39184C105A26 /* afthread.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = afthread.cpp; sourceTree = "<group>"; };
+		44074F910404EAA539EE4985 /* mjpegwrt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mjpegwrt.h; sourceTree = "<group>"; };
+		47872E66C155B98FDB0E8947 /* histogramwnd.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = histogramwnd.h; sourceTree = "<group>"; };
+		4E960C5F9615CEC8246D1E50 /* moc_blinklabel.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = moc_blinklabel.cpp; sourceTree = "<group>"; };
+		4F118251635592DBBA8496ED /* moc_mainwnd.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = moc_mainwnd.cpp; sourceTree = "<group>"; };
+		617A2106F4FB8E5020E8BB38 /* livethread.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = livethread.h; sourceTree = "<group>"; };
+		730F1E47A565179DC08AC507 /* livethread.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = livethread.cpp; sourceTree = "<group>"; };
+		7BC2E65A5E699A5E5D834CA2 /* QtCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtCore.framework; path = /Library/Frameworks/QtCore.framework; sourceTree = "<absolute>"; };
+		7E0D28C0D7E7DACAD55E50FD /* types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = types.h; sourceTree = "<group>"; };
+		821416211D63F190AAAD016A /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
+		88E8AAAA319F310FCDE88E10 /* command.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = command.cpp; sourceTree = "<group>"; };
+		89924B4BC14B43144AE4246D /* afthread.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = afthread.h; sourceTree = "<group>"; };
+		904B9299489559F50FFED213 /* command.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = command.h; sourceTree = "<group>"; };
+		9622BAA7F9F6A8E01D115FEA /* cam_tables.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cam_tables.c; sourceTree = "<group>"; };
+		9AB762A024500CAC47FA7238 /* cam_tables.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cam_tables.h; sourceTree = "<group>"; };
+		9B36DA7E32F0304E780E7972 /* QtGui.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtGui.framework; path = /Library/Frameworks/QtGui.framework; sourceTree = "<absolute>"; };
+		A2638B22BD2CEEDF21C0B42B /* histogramwnd.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = histogramwnd.cpp; sourceTree = "<group>"; };
+		A98FF028B2815A929F512655 /* buffer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = buffer.cpp; sourceTree = "<group>"; };
+		B6EA83B474E893E1F4D93064 /* about.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = about.h; sourceTree = "<group>"; };
+		BD444CC0EE167E5777E4C90C /* events.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = events.h; sourceTree = "<group>"; };
+		C3E0CE4362EF52CDA4D18B72 /* capturewnd.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = capturewnd.cpp; sourceTree = "<group>"; };
+		C45D8EFB61106B049A13172D /* capturewnd.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = capturewnd.h; sourceTree = "<group>"; };
+		CCBF143ED423A7EF5B800FD7 /* mjpegwrt.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mjpegwrt.c; sourceTree = "<group>"; };
+		CD7647592C59CE9EC10496CB /* eos_movrec.pro */ = {isa = PBXFileReference; lastKnownFileType = text; path = eos_movrec.pro; sourceTree = "<group>"; };
+		DA138F75C9F545CDAE7FB264 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
+		DE43CAF90FC0B16C00266209 /* EDSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; name = EDSDK.framework; path = /Library/Frameworks/EDSDK.framework; sourceTree = "<absolute>"; };
+		DEA3B6AC0FC22AA4006C903D /* eos-movrec.mac.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "eos-movrec.mac.icns"; path = "mac.icons/eos-movrec.mac.icns"; sourceTree = "<group>"; };
+		DEBB14B80FBC819B009CE0DB /* eos_movrec.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = eos_movrec.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DEBB14D40FBC81C3009CE0DB /* EDSDK.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDSDK.h; path = SDKs/EDSDK/Header/EDSDK.h; sourceTree = DEVELOPER_DIR; };
+		DEBB14D50FBC81C3009CE0DB /* EDSDKErrors.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDSDKErrors.h; path = SDKs/EDSDK/Header/EDSDKErrors.h; sourceTree = DEVELOPER_DIR; };
+		DEBB14D60FBC81C3009CE0DB /* EDSDKTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDSDKTypes.h; path = SDKs/EDSDK/Header/EDSDKTypes.h; sourceTree = DEVELOPER_DIR; };
+		DECC8BE20FC8462200B1E4AC /* os_api.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = os_api.c; sourceTree = "<group>"; };
+		DECC8BE30FC8462200B1E4AC /* os_api.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = os_api.h; sourceTree = "<group>"; };
+		DEDEBC390FC07EF100544F9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		DEECBBA50FC1D0FE001C896A /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
+		DEECBD4B0FC20451001C896A /* Folders.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Folders.h; path = /System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Headers/Folders.h; sourceTree = "<absolute>"; };
+		DEECBD520FC20512001C896A /* CarbonCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CarbonCore.framework; path = /System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework; sourceTree = "<absolute>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		2A1043669E6E5A7426EA502A /* Frameworks & Libraries */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				501667F26B3C1FF6767A7C12 /* QtGui.framework in Frameworks & Libraries */,
+				C8FD4A1AAA37CF2CA2824CCF /* Carbon.framework in Frameworks & Libraries */,
+				51D4DBF7CB8537BE86EBD055 /* AppKit.framework in Frameworks & Libraries */,
+				069D05B0128AE5DC7EE31738 /* QtCore.framework in Frameworks & Libraries */,
+				F9E76E570E10AF14870553A7 /* ApplicationServices.framework in Frameworks & Libraries */,
+				DE43CE3A0FC0BA3500266209 /* EDSDK.framework in Frameworks & Libraries */,
+				DEECBBA60FC1D0FE001C896A /* Cocoa.framework in Frameworks & Libraries */,
+			);
+			name = "Frameworks & Libraries";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		05596AB53D8D521C69802C27 /* eos_movrec */ = {
+			isa = PBXGroup;
+			children = (
+				DEA3B6AC0FC22AA4006C903D /* eos-movrec.mac.icns */,
+				DEDEBC390FC07EF100544F9A /* Info.plist */,
+				FB61758D0F0FDA4BA867C3D5 /* Sources */,
+				46E892BBB6BB6952967E0561 /* Temporary Sources */,
+				883D7615C4D2DE3FA1218F12 /* Headers */,
+				7CABE3C80E79AD2B307756D2 /* Sources [qmake] */,
+				ED1E82605DD74B483AF3C982 /* External Frameworks and Libraries */,
+				DEBB14B90FBC819B009CE0DB /* Products */,
+			);
+			name = eos_movrec;
+			sourceTree = "<group>";
+		};
+		46E892BBB6BB6952967E0561 /* Temporary Sources */ = {
+			isa = PBXGroup;
+			children = (
+				4F118251635592DBBA8496ED /* moc_mainwnd.cpp */,
+				4E960C5F9615CEC8246D1E50 /* moc_blinklabel.cpp */,
+			);
+			name = "Temporary Sources";
+			sourceTree = "<group>";
+		};
+		7CABE3C80E79AD2B307756D2 /* Sources [qmake] */ = {
+			isa = PBXGroup;
+			children = (
+				CD7647592C59CE9EC10496CB /* eos_movrec.pro */,
+			);
+			name = "Sources [qmake]";
+			sourceTree = "<group>";
+		};
+		883D7615C4D2DE3FA1218F12 /* Headers */ = {
+			isa = PBXGroup;
+			children = (
+				DECC8BE30FC8462200B1E4AC /* os_api.h */,
+				DEECBD4B0FC20451001C896A /* Folders.h */,
+				DEBB14D40FBC81C3009CE0DB /* EDSDK.h */,
+				DEBB14D50FBC81C3009CE0DB /* EDSDKErrors.h */,
+				DEBB14D60FBC81C3009CE0DB /* EDSDKTypes.h */,
+				2E719073165374C5490E1B2A /* mainwnd.h */,
+				B6EA83B474E893E1F4D93064 /* about.h */,
+				38BA87598E3D0F6BFCB6E1B2 /* blinklabel.h */,
+				89924B4BC14B43144AE4246D /* afthread.h */,
+				C45D8EFB61106B049A13172D /* capturewnd.h */,
+				7E0D28C0D7E7DACAD55E50FD /* types.h */,
+				617A2106F4FB8E5020E8BB38 /* livethread.h */,
+				278553614135D17214FDE469 /* buffer.h */,
+				258A3CB73C0A88B3D849F20C /* FocuserClass.h */,
+				44074F910404EAA539EE4985 /* mjpegwrt.h */,
+				BD444CC0EE167E5777E4C90C /* events.h */,
+				904B9299489559F50FFED213 /* command.h */,
+				9AB762A024500CAC47FA7238 /* cam_tables.h */,
+				47872E66C155B98FDB0E8947 /* histogramwnd.h */,
+			);
+			name = Headers;
+			sourceTree = "<group>";
+		};
+		DEBB14B90FBC819B009CE0DB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DEBB14B80FBC819B009CE0DB /* eos_movrec.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		ED1E82605DD74B483AF3C982 /* External Frameworks and Libraries */ = {
+			isa = PBXGroup;
+			children = (
+				DEECBD520FC20512001C896A /* CarbonCore.framework */,
+				DEECBBA50FC1D0FE001C896A /* Cocoa.framework */,
+				DE43CAF90FC0B16C00266209 /* EDSDK.framework */,
+				9B36DA7E32F0304E780E7972 /* QtGui.framework */,
+				DA138F75C9F545CDAE7FB264 /* Carbon.framework */,
+				821416211D63F190AAAD016A /* AppKit.framework */,
+				7BC2E65A5E699A5E5D834CA2 /* QtCore.framework */,
+				27AE7A480FD6C52FCA80FECD /* ApplicationServices.framework */,
+			);
+			name = "External Frameworks and Libraries";
+			sourceTree = "<group>";
+		};
+		FB61758D0F0FDA4BA867C3D5 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				DECC8BE20FC8462200B1E4AC /* os_api.c */,
+				118FCBAABA162BA17933C789 /* main.cpp */,
+				13B6F22B90F35D4DE411FE18 /* mainwnd.cpp */,
+				730F1E47A565179DC08AC507 /* livethread.cpp */,
+				C3E0CE4362EF52CDA4D18B72 /* capturewnd.cpp */,
+				0B9F3C983CC019278BFF593A /* blinklabel.cpp */,
+				0BA95E1E2D6CDCF24FCCAD32 /* about.cpp */,
+				88E8AAAA319F310FCDE88E10 /* command.cpp */,
+				A98FF028B2815A929F512655 /* buffer.cpp */,
+				9622BAA7F9F6A8E01D115FEA /* cam_tables.c */,
+				CCBF143ED423A7EF5B800FD7 /* mjpegwrt.c */,
+				40E2765B0D7C39184C105A26 /* afthread.cpp */,
+				A2638B22BD2CEEDF21C0B42B /* histogramwnd.cpp */,
+			);
+			name = Sources;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		9F841857BB6D63D244613D98 /* eos_movrec */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DEBB14D10FBC81AC009CE0DB /* Build configuration list for PBXNativeTarget "eos_movrec" */;
+			buildPhases = (
+				D7BA7D76DAB5DD13389D6332 /* Qt Qmake */,
+				A0A52A2ADF7A1E2A99738674 /* Qt Preprocessors */,
+				C29B8785722055ED95EF7B57 /* Build Sources */,
+				2A1043669E6E5A7426EA502A /* Frameworks & Libraries */,
+				3787F99312C85FF0073FD7BA /* Bundle Resources */,
+				DEECBB680FC1A457001C896A /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = eos_movrec;
+			productInstallPath = bin/;
+			productName = eos_movrec;
+			productReference = DEBB14B80FBC819B009CE0DB /* eos_movrec.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		91B15E841AA80083484172DE /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = 2A951308CDB28F104D0A4BD2 /* Build configuration list for PBXProject "eos_movrec" */;
+			compatibilityVersion = "Xcode 3.1";
+			hasScannedForEncodings = 1;
+			mainGroup = 05596AB53D8D521C69802C27 /* eos_movrec */;
+			productRefGroup = DEBB14B90FBC819B009CE0DB /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				9F841857BB6D63D244613D98 /* eos_movrec */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		3787F99312C85FF0073FD7BA /* Bundle Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DEDEBC3A0FC07EF100544F9A /* Info.plist in Bundle Resources */,
+				DEA3B6AD0FC22AA4006C903D /* eos-movrec.mac.icns in Bundle Resources */,
+			);
+			name = "Bundle Resources";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		A0A52A2ADF7A1E2A99738674 /* Qt Preprocessors */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "Qt Preprocessors";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -f eos_movrec.xcodeproj/qt_preprocess.mak";
+		};
+		D7BA7D76DAB5DD13389D6332 /* Qt Qmake */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "Qt Qmake";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -f eos_movrec.xcodeproj/qt_makeqmake.mak";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		C29B8785722055ED95EF7B57 /* Build Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2B093CA6F071B023A473CED0 /* main.cpp in Build Sources */,
+				A30835B46CACDA34FAFC3356 /* mainwnd.cpp in Build Sources */,
+				92F1D7A71C47635EDAA47E02 /* livethread.cpp in Build Sources */,
+				ABF6907EF9D162D6B3AC28DA /* capturewnd.cpp in Build Sources */,
+				DC6EF07D5E0AB421C3705FA4 /* blinklabel.cpp in Build Sources */,
+				C4F403DCEB54B143027F6ECA /* about.cpp in Build Sources */,
+				DED1B1188C80D03F3A86CB76 /* command.cpp in Build Sources */,
+				56BCDC6C13A3A299D68306FF /* buffer.cpp in Build Sources */,
+				B07F799B73B1A00DD9C36194 /* cam_tables.c in Build Sources */,
+				7DC980D848ADDB6080EB58D3 /* mjpegwrt.c in Build Sources */,
+				E753BFB44480236625467AE0 /* afthread.cpp in Build Sources */,
+				974EB1980E42D9D513D1F6C4 /* histogramwnd.cpp in Build Sources */,
+				8FFD8B5CD017F8464ED17F1C /* moc_mainwnd.cpp in Build Sources */,
+				2BCD3648417AA3C1DF78247B /* moc_blinklabel.cpp in Build Sources */,
+				DECC8BE40FC8462200B1E4AC /* os_api.c in Build Sources */,
+			);
+			name = "Build Sources";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		8DB1DD96F65B1BF1FFC506E0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = __MACOS__;
+				OTHER_LDFLAGS = "";
+			};
+			name = Debug;
+		};
+		95E1EB2E5DDD587BE5B3E548 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_PREPROCESSOR_DEFINITIONS = __MACOS__;
+				OTHER_LDFLAGS = "";
+			};
+			name = Release;
+		};
+		DEBB14CA0FBC819C009CE0DB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_ROOT = "";
+				COPY_PHASE_STRIP = NO;
+				DYLIB_COMPATIBILITY_VERSION = 1.0;
+				DYLIB_CURRENT_VERSION = 1.0.0;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SYSTEM_LIBRARY_DIR)/Frameworks/CoreServices.framework/Frameworks\"",
+				);
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				HEADER_SEARCH_PATHS = (
+					/Library/Frameworks/QtCore.framework/Versions/4/Headers,
+					/usr/include/QtCore,
+					/Library/Frameworks/QtGui.framework/Versions/4/Headers,
+					/usr/include/QtGui,
+					/usr/include,
+					.,
+					.,
+					/usr/local/include,
+					/System/Library/Frameworks/CarbonCore.framework/Headers,
+					"/usr/local/Qt4.5/mkspecs/macx-xcode",
+				);
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_DIR = bin/;
+				LEXFLAGS = "";
+				LIBRARY_SEARCH_PATHS = (
+					/Library/Frameworks,
+					/System/Library/Frameworks/,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.3;
+				OTHER_CFLAGS = (
+					"-pipe",
+					"-g",
+					"-Wall",
+					"-W",
+					"-DQT_GUI_LIB",
+					"-DQT_CORE_LIB",
+					"-DQT_SHARED",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"-pipe",
+					"-g",
+					"-Wall",
+					"-W",
+					"-DQT_GUI_LIB",
+					"-DQT_CORE_LIB",
+					"-DQT_SHARED",
+				);
+				OTHER_LDFLAGS = (
+					"-headerpad_max_install_names",
+					"-L/Library/Frameworks",
+					"-F/Library/Frameworks",
+					"-lz",
+					"-lm",
+				);
+				OTHER_REZFLAGS = "";
+				PREBINDING = NO;
+				PRODUCT_NAME = eos_movrec;
+				SECTORDER_FLAGS = "";
+				WARNING_CFLAGS = "";
+				YACCFLAGS = "-d";
+			};
+			name = Debug;
+		};
+		DEBB14CB0FBC819C009CE0DB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_ROOT = "";
+				COPY_PHASE_STRIP = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1.0;
+				DYLIB_CURRENT_VERSION = 1.0.0;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SYSTEM_LIBRARY_DIR)/Frameworks/CoreServices.framework/Frameworks\"",
+				);
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				HEADER_SEARCH_PATHS = (
+					/Library/Frameworks/QtCore.framework/Versions/4/Headers,
+					/usr/include/QtCore,
+					/Library/Frameworks/QtGui.framework/Versions/4/Headers,
+					/usr/include/QtGui,
+					/usr/include,
+					.,
+					.,
+					/usr/local/include,
+					/System/Library/Frameworks/CarbonCore.framework/Headers,
+					"/usr/local/Qt4.5/mkspecs/macx-xcode",
+				);
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_DIR = bin/;
+				LEXFLAGS = "";
+				LIBRARY_SEARCH_PATHS = (
+					/Library/Frameworks,
+					/System/Library/Frameworks/,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.3;
+				OTHER_CFLAGS = (
+					"-pipe",
+					"-g",
+					"-Wall",
+					"-W",
+					"-DQT_GUI_LIB",
+					"-DQT_CORE_LIB",
+					"-DQT_SHARED",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"-pipe",
+					"-g",
+					"-Wall",
+					"-W",
+					"-DQT_GUI_LIB",
+					"-DQT_CORE_LIB",
+					"-DQT_SHARED",
+				);
+				OTHER_LDFLAGS = (
+					"-headerpad_max_install_names",
+					"-L/Library/Frameworks",
+					"-F/Library/Frameworks",
+					"-lz",
+					"-lm",
+				);
+				OTHER_REZFLAGS = "";
+				PREBINDING = NO;
+				PRODUCT_NAME = eos_movrec;
+				SECTORDER_FLAGS = "";
+				WARNING_CFLAGS = "";
+				YACCFLAGS = "-d";
+			};
+			name = Release;
+		};
+		DEBB14CC0FBC819C009CE0DB /* Default */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_ROOT = "";
+				DYLIB_COMPATIBILITY_VERSION = 1.0;
+				DYLIB_CURRENT_VERSION = 1.0.0;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SYSTEM_LIBRARY_DIR)/Frameworks/CoreServices.framework/Frameworks\"",
+				);
+				HEADER_SEARCH_PATHS = (
+					/Library/Frameworks/QtCore.framework/Versions/4/Headers,
+					/usr/include/QtCore,
+					/Library/Frameworks/QtGui.framework/Versions/4/Headers,
+					/usr/include/QtGui,
+					/usr/include,
+					.,
+					.,
+					/usr/local/include,
+					/System/Library/Frameworks/CarbonCore.framework/Headers,
+					"/usr/local/Qt4.5/mkspecs/macx-xcode",
+				);
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_DIR = bin/;
+				LEXFLAGS = "";
+				LIBRARY_SEARCH_PATHS = (
+					/Library/Frameworks,
+					/System/Library/Frameworks/,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.3;
+				OTHER_CFLAGS = (
+					"-pipe",
+					"-g",
+					"-Wall",
+					"-W",
+					"-DQT_GUI_LIB",
+					"-DQT_CORE_LIB",
+					"-DQT_SHARED",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"-pipe",
+					"-g",
+					"-Wall",
+					"-W",
+					"-DQT_GUI_LIB",
+					"-DQT_CORE_LIB",
+					"-DQT_SHARED",
+				);
+				OTHER_LDFLAGS = (
+					"-headerpad_max_install_names",
+					"-L/Library/Frameworks",
+					"-F/Library/Frameworks",
+					"-lz",
+					"-lm",
+				);
+				OTHER_REZFLAGS = "";
+				PREBINDING = NO;
+				PRODUCT_NAME = eos_movrec;
+				SECTORDER_FLAGS = "";
+				WARNING_CFLAGS = "";
+				YACCFLAGS = "-d";
+			};
+			name = Default;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		2A951308CDB28F104D0A4BD2 /* Build configuration list for PBXProject "eos_movrec" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8DB1DD96F65B1BF1FFC506E0 /* Debug */,
+				95E1EB2E5DDD587BE5B3E548 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DEBB14D10FBC81AC009CE0DB /* Build configuration list for PBXNativeTarget "eos_movrec" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DEBB14CA0FBC819C009CE0DB /* Debug */,
+				DEBB14CB0FBC819C009CE0DB /* Release */,
+				DEBB14CC0FBC819C009CE0DB /* Default */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Default;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 91B15E841AA80083484172DE /* Project object */;
+}
