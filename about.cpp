@@ -28,7 +28,7 @@ GAboutDlg::GAboutDlg(QWidget* parent)
  : QDialog(parent)
 {
 	QString text = tr("<body bgcolor=\"%1\"><p>EOS Camera Movie Record<br/>"
-										  "Version 0.1.8 Beta 3"
+										  "Version 0.1.9 Beta"
 					  "<center>Authors:</center>"
 					  "Chernov Aleksey - lead programmer (<a href=\"mailto:valexvir@yandex.ru\">valexvir@yandex.ru</a>)<br/>"
 					  "Uterr - autofocus programmer <br/>"
@@ -40,10 +40,10 @@ GAboutDlg::GAboutDlg(QWidget* parent)
 					  "sf.net page: <a href=\"http://sf.net/projects/eos-movrec\">http://sf.net/projects/eos-movrec</a><br/>"
 					  "forum: <a href=\"http://forum.ixbt.com/topic.cgi?id=20:26019\">http://forum.ixbt.com/topic.cgi?id=20:26019</a>"
 					  "</p>"
-					  "This program is free software; you can redistribute it and/or modify "
+					  "<p>This program is free software; you can redistribute it and/or modify "
 					  "it under the terms of the GNU General Public License as published by "
 					  "the Free Software Foundation; either version 2 of the License, or "
-					  "(at your option) any later version."
+					  "(at your option) any later version.</p>"
 					  "</body>"
 					);
 

@@ -285,7 +285,7 @@ EdsError GMyLiveThread::processCommand()
 			err = EdsGetPropertyData(camera, kEdsPropID_Av, 0, sizeof(EdsUInt32), &av);
 			if (err == EDS_ERR_OK)
 			{
-				if (av != (int)param1)
+				if (av != (EdsUInt32)param1)
 					err = EdsSetPropertyData(camera, kEdsPropID_Av, 0, sizeof(EdsUInt32), &param1);
 			}
 		}
@@ -318,7 +318,7 @@ EdsError GMyLiveThread::processCommand()
 			err = EdsGetPropertyData(camera, kEdsPropID_Tv, 0, sizeof(EdsUInt32), &tv);
 			if (err == EDS_ERR_OK)
 			{
-				if (tv != (int)param1)
+				if (tv != (EdsUInt32)param1)
 					err = EdsSetPropertyData(camera, kEdsPropID_Tv, 0, sizeof(EdsUInt32), &param1);
 			}
 		}
@@ -759,6 +759,7 @@ EdsError GMyLiveThread::deInitializeEds()
 	// Terminate SDK
 	if (isSDKLoaded)
 		EdsTerminateSDK();
+	return err;
 }
 
 EdsError GMyLiveThread::startLiveView()
