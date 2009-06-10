@@ -38,6 +38,7 @@ public:
 	QSize getFocusingAreaSize();
 	void setText(const QString& text);
 	void clearText();
+	void setZoomPositionDivisor(double zpd_x, double zpd_y) { ZPD_x = zpd_x; ZPD_y = zpd_y; }
 protected:
 	//virtual void showEvent(QShowEvent* event);
 	virtual void paintEvent(QPaintEvent * event);
@@ -56,6 +57,7 @@ private:
 	int Zoom;
 	QRect ZoomRect;
 	QPoint MousePressPoint;
+	double ZPD_x, ZPD_y;
 	bool ZoomRectMoving;
 	double** FocusArea;
 	QRect FocusAreaRect;

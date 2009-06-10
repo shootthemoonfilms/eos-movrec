@@ -450,6 +450,8 @@ void GMyLiveThread::run()
 	cmdRequestAFMode();
 	// get AE mode
 	cmdRequestAEMode();
+	// get camera name & its resolution
+	fillCameraName();
 	//
 	SkippedCount = 0;
 	AllFramesCount = 0;
@@ -684,6 +686,64 @@ EdsError GMyLiveThread::fillISOList()
 		for (int i = 0; i < ISOListSize; i++)
 			ISOList[i] = desc.propDesc[i];
 	}
+	return err;
+}
+
+EdsError GMyLiveThread::fillCameraName()
+{
+	CameraName.clear();
+	CameraFotoLargeSize = QSize(0, 0);
+	CameraLVSize = QSize(0, 0);
+	EdsChar str[EDS_MAX_NAME];
+	EdsError err = EdsGetPropertyData(camera, kEdsPropID_ProductName, 0, sizeof(EdsChar)*EDS_MAX_NAME, str);
+	if (err == EDS_ERR_OK)
+	{
+		CameraName = QString((const char*)str);
+		if (CameraName == "Canon EOS-1D Mark III")
+		{
+			CameraFotoLargeSize = QSize(3888, 2592);
+#warning "Resolution on 1D Mark III is unknow!"
+			CameraLVSize = QSize(1024, 680);
+		}
+		else if (CameraName == "Canon EOS-1Ds Mark III")
+		{
+			CameraFotoLargeSize = QSize(5616, 3744);
+			CameraLVSize = QSize(1024, 680);
+		}
+		else if (CameraName == "Canon EOS 5D Mark II")
+		{
+			CameraFotoLargeSize = QSize(5616, 3744);
+			CameraLVSize = QSize(1024, 680);
+		}
+		else if (CameraName == "Canon EOS 40D")
+		{
+			CameraFotoLargeSize = QSize(3888, 2592);
+			CameraLVSize = QSize(1024, 680);
+		}
+		else if (CameraName == "Canon EOS 50D")
+		{
+			CameraFotoLargeSize = QSize(4752, 3168);
+			CameraLVSize = QSize(1024, 680);
+		}
+		else if (CameraName == "Canon EOS 450D" || CameraName == "Canon EOS DIGITAL REBEL XSi" || CameraName == "Canon EOS Kiss X2")
+		{
+			CameraFotoLargeSize = QSize(4272, 2848);
+			CameraLVSize = QSize(848, 560);
+		}
+		else if (CameraName == "Canon EOS 1000D" || CameraName == "Canon EOS DIGITAL REBEL XS" || CameraName == "Canon EOS Kiss F")
+		{
+			CameraFotoLargeSize = QSize(3888, 2592);
+			CameraLVSize = QSize(768, 512);
+		}
+		else if (CameraName == "Canon EOS 500D" || CameraName == "Canon EOS DIGITAL REBEL T1i" || CameraName == "Canon EOS Kiss X3")
+		{
+			CameraFotoLargeSize = QSize(4752, 3168);
+#warning "Resolution on 500D is unknow!"
+			CameraLVSize = QSize(1024, 680);
+		}
+	}
+	if (CameraName.isEmpty())
+		CameraName = tr("Unknown camera");
 	return err;
 }
 

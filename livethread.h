@@ -69,6 +69,9 @@ public:
 	int tvListSize() const { return TvListSize; }
 	const int* isoList() const { return ISOList; }
 	int isoListSize() const { return ISOListSize; }
+	QString cameraName() { return CameraName; }
+	QSize cameraFotoLargeSize() { return CameraFotoLargeSize; }
+	QSize cameraLVSize() { return CameraLVSize; }
 	// stat function
 	__uint64_t allFramesCount() { return AllFramesCount; }
 	__uint64_t writenCount() { return WritenCount; }
@@ -100,6 +103,7 @@ private:
 	EdsError fillAvList();
 	EdsError fillTvList();
 	EdsError fillISOList();
+	EdsError fillCameraName();
 private:
 	bool Stoped;
 	bool Inited;
@@ -127,6 +131,9 @@ private:
 	bool WantHistogram;
 	int Histogram[256*4];
 	bool isSDKLoaded;
+	QString CameraName;
+	QSize CameraFotoLargeSize;
+	QSize CameraLVSize;
 	// for statistics
 	__uint64_t AllFramesCount;
 	__uint64_t WritenCount;

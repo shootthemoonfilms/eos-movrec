@@ -392,6 +392,21 @@ void GEOSRecWnd::slotStartTimeout()
 			}
 			else
 			{
+				QSizeF largeSize = QSizeF(LiveThread->cameraFotoLargeSize());
+				QSizeF lvSize = QSizeF(LiveThread->cameraLVSize());
+
+#warning "GEOSRecWnd::slotStartTimeout(): file debug_info_xxx.txt only for checking cameraName() function and must be deleted later!"
+f = fopen("debug_info_xxx.txt", "wt");
+if (f)
+{
+	fprintf(f, "camera name: %s\n", LiveThread->cameraName().toLocal8Bit().data());
+	fprintf(f, "large size: %dx%d\n", (int)largeSize.width(), (int)largeSize.height());
+	fprintf(f, "LV size: %dx%d\n", (int)lvSize.width(), (int)lv.height());
+	fclose(f);
+}
+
+				if (!largeSize.isEmpty() && !lzSize.isEmpty())
+					CaputeWnd->setZoomPositionDivisor(largeSize.width()/lvSize.width(), largeSize.height()/lvSize.height());
 				selFileBtn->setEnabled(true);
 				startBtn->setEnabled(true);
 				AEModeBox->setEnabled(true);
@@ -399,7 +414,8 @@ void GEOSRecWnd::slotStartTimeout()
 				zoom5xBtn->setEnabled(true);
 				HistBtn->setEnabled(true);
 				blinkLabel->stop();
-				blinkLabel->setText(tr("Ready"));
+				QString str = LiveThread->cameraName() + QString(": ");
+				blinkLabel->setText(str + tr("Ready"));
 				// at this time we already received all settings from camera
 				loadSettings();
 			}

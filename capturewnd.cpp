@@ -41,6 +41,7 @@ GEOSCaptureWnd::GEOSCaptureWnd(QWidget* parent)
 	setMouseTracking(true);
 	ZoomRectMoving = false;
 	FocusArea = 0;
+	ZPD_x = ZPD_y = 5.0;
 }
 
 GEOSCaptureWnd::~GEOSCaptureWnd()
@@ -242,11 +243,7 @@ void GEOSCaptureWnd::customEvent(QEvent* event)
 			GCameraEvent* e = (GCameraEvent*)event;
 			QRect r = e->value().toRect();
 			Zoom = r.x();
-			#ifdef __MACOS__
-				ZoomRect = QRect(r.width()/4, r.height()/4, LiveImage.width()/5, LiveImage.height()/5);
-			#else
-				ZoomRect = QRect(r.width()/5, r.height()/5, LiveImage.width()/5, LiveImage.height()/5);
-			#endif
+			ZoomRect = QRect(r.width()/ZPD_x, r.height()/ZPD_y, LiveImage.width()/5, LiveImage.height()/5);
 		}
 		clearFocusArea();
 	}
