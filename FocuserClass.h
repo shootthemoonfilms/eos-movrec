@@ -32,7 +32,7 @@ class FocusingClass
 		int NoiseCounts;
 	public:
 
-	typedef struct focusingInfo
+	struct focusingInfo
 	{
 		double dispersion;
 		int focusPosition;

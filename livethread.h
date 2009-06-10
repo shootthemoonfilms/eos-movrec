@@ -24,6 +24,7 @@
 #include <QThread>
 #include <QMutex>
 #include <QWaitCondition>
+#include <QSize>
 
 #include "command.h"
 
@@ -63,11 +64,11 @@ public:
 	void cmdSetZoom(int zoom);
 	void cmdSetZoomPos(int x, int y);
 	void waitCommands();
-	const int* avList() const { return AvList; }
+	const unsigned int* avList() const { return AvList; }
 	int avListSize() const { return AvListSize; }
-	const int* tvList() const { return TvList; }
+	const unsigned int* tvList() const { return TvList; }
 	int tvListSize() const { return TvListSize; }
-	const int* isoList() const { return ISOList; }
+	const unsigned int* isoList() const { return ISOList; }
 	int isoListSize() const { return ISOListSize; }
 	QString cameraName() { return CameraName; }
 	QSize cameraFotoLargeSize() { return CameraFotoLargeSize; }
@@ -119,11 +120,11 @@ private:
 	GCameraCommandsQueue CommandsQueue;
 	int max_frame_size;
 	EdsCameraRef camera;
-	int AvList[128];
+	unsigned int AvList[128];
 	int AvListSize;
-	int TvList[128];
+	unsigned int TvList[128];
 	int TvListSize;
-	int ISOList[32];
+	unsigned int ISOList[32];
 	int ISOListSize;
 	int Zoom;
 	int ZoomPosX;

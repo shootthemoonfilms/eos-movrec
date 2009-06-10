@@ -472,8 +472,8 @@ void GMyLiveThread::run()
 	//int code_time;
 	//int sleep_time;
 	StartTime = WinGetTickCount();
-	int StartWriteTime;		// ms
-	int StopWriteTime;		// ms
+	int StartWriteTime = -1;		// ms
+	int StopWriteTime = -1;			// ms
 	// for temp fps
 	int TempTime1 = WinGetTickCount();
 	int TempTime2 = TempTime1;

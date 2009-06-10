@@ -394,19 +394,8 @@ void GEOSRecWnd::slotStartTimeout()
 			{
 				QSizeF largeSize = QSizeF(LiveThread->cameraFotoLargeSize());
 				QSizeF lvSize = QSizeF(LiveThread->cameraLVSize());
-
-#warning "GEOSRecWnd::slotStartTimeout(): file debug_info_xxx.txt only for checking cameraName() function and must be deleted later!"
-f = fopen("debug_info_xxx.txt", "wt");
-if (f)
-{
-	fprintf(f, "camera name: %s\n", LiveThread->cameraName().toLocal8Bit().data());
-	fprintf(f, "large size: %dx%d\n", (int)largeSize.width(), (int)largeSize.height());
-	fprintf(f, "LV size: %dx%d\n", (int)lvSize.width(), (int)lv.height());
-	fclose(f);
-}
-
-				if (!largeSize.isEmpty() && !lzSize.isEmpty())
-					CaputeWnd->setZoomPositionDivisor(largeSize.width()/lvSize.width(), largeSize.height()/lvSize.height());
+				if (!largeSize.isEmpty() && !lvSize.isEmpty())
+					CaptureWnd->setZoomPositionDivisor(largeSize.width()/lvSize.width(), largeSize.height()/lvSize.height());
 				selFileBtn->setEnabled(true);
 				startBtn->setEnabled(true);
 				AEModeBox->setEnabled(true);
@@ -561,8 +550,8 @@ void GEOSRecWnd::customEvent(QEvent* event)
 	case CAMERA_EVENT_ISOLIST_CHANGED:
 		{
 			// ISO list changed
-			int curr_iso = isoBox->itemData(isoBox->currentIndex(), Qt::UserRole).toInt();
-			const int* isoList = LiveThread->isoList();
+			unsigned int curr_iso = isoBox->itemData(isoBox->currentIndex(), Qt::UserRole).toInt();
+			const unsigned int* isoList = LiveThread->isoList();
 			int isoListSize = LiveThread->isoListSize();
 			// fill combo
 			isoBox->clear();
@@ -606,8 +595,8 @@ void GEOSRecWnd::customEvent(QEvent* event)
 			// Av list changed
 			//QMessageBox::information(this, tr("Info"), tr("Av list changed."));
 			//blinkLabel->setText(tr("Av list changed."));
-			int curr_av = avBox->itemData(avBox->currentIndex(), Qt::UserRole).toInt();
-			const int* avList = LiveThread->avList();
+			unsigned int curr_av = avBox->itemData(avBox->currentIndex(), Qt::UserRole).toInt();
+			const unsigned int* avList = LiveThread->avList();
 			int avListSize = LiveThread->avListSize();
 			// fill combo
 			avBox->clear();
@@ -651,8 +640,8 @@ void GEOSRecWnd::customEvent(QEvent* event)
 			// Tv list changed
 			//QMessageBox::information(this, tr("Info"), tr("Tv list changed."));
 			//blinkLabel->setText(tr("Tv list changed."));
-			int curr_tv = tvBox->itemData(tvBox->currentIndex(), Qt::UserRole).toInt();
-			const int* tvList = LiveThread->tvList();
+			unsigned int curr_tv = tvBox->itemData(tvBox->currentIndex(), Qt::UserRole).toInt();
+			const unsigned int* tvList = LiveThread->tvList();
 			int tvListSize = LiveThread->tvListSize();
 			// fill combo
 			tvBox->clear();
