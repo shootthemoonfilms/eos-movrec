@@ -54,7 +54,7 @@ GEOSCaptureWnd::~GEOSCaptureWnd()
 	clearFocusArea();
 }
 
-void GEOSCaptureWnd::paintEvent(QPaintEvent * event)
+void GEOSCaptureWnd::paintEvent(QPaintEvent* /*event*/)
 {
 	QPainter painter(this);
 	if (ShowLiveImage)
@@ -83,7 +83,7 @@ void GEOSCaptureWnd::paintEvent(QPaintEvent * event)
 	}
 }
 
-void GEOSCaptureWnd::closeEvent(QCloseEvent* event)
+void GEOSCaptureWnd::closeEvent(QCloseEvent* /*event*/)
 {
 }
 
@@ -94,13 +94,13 @@ void GEOSCaptureWnd::mousePressEvent(QMouseEvent* event)
 		MousePressPoint = event->pos();
 }
 
-void GEOSCaptureWnd::mouseReleaseEvent(QMouseEvent* event)
+void GEOSCaptureWnd::mouseReleaseEvent(QMouseEvent* /*event*/)
 {
 	if (ZoomRectMoving)
 	{
 		QPoint p = ZoomRect.topLeft();
-		p.x = (int)(p.x*ZPD_x);
-		p.y = (int)(p.y*ZPD_y);
+		p.setX(p.x()*ZPD_x);
+		p.setY(p.y()*ZPD_y);
 		QApplication::postEvent(parentWidget(), new GCameraEvent(CAMERA_EVENT_ZOOMPOS_NEEDCHANGE, QVariant(p)));
 		ZoomRectMoving = false;
 	}
