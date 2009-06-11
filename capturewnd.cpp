@@ -98,7 +98,9 @@ void GEOSCaptureWnd::mouseReleaseEvent(QMouseEvent* event)
 {
 	if (ZoomRectMoving)
 	{
-		QPoint p = ZoomRect.topLeft()*5;
+		QPoint p = ZoomRect.topLeft();
+		p.x = (int)(p.x*ZPD_x);
+		p.y = (int)(p.y*ZPD_y);
 		QApplication::postEvent(parentWidget(), new GCameraEvent(CAMERA_EVENT_ZOOMPOS_NEEDCHANGE, QVariant(p)));
 		ZoomRectMoving = false;
 	}
