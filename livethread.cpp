@@ -739,7 +739,7 @@ EdsError GMyLiveThread::fillCameraName()
 		{
 			CameraFotoLargeSize = QSize(4752, 3168);
 #warning "Resolution on 500D is unknow!"
-			CameraLVSize = QSize(1024, 680);
+			CameraLVSize = QSize(928, 616);
 		}
 	}
 	if (CameraName.isEmpty())
