@@ -33,6 +33,15 @@
 
 class QWidget;
 
+struct EOSCamFeatures
+{
+	unsigned int JpegLargeSize_x;
+	unsigned int JpegLargeSize_y;
+	unsigned int LiveViewSize_x;
+	unsigned int LiveViewSize_y;
+	bool HasAF;
+};
+
 class GMyLiveThread: public QThread
 {
 public:
@@ -46,6 +55,7 @@ public:
 	void stopWrite();
 	bool writeEnabled() { return WriteMovie; }
 	void setFileName(const char* fname);
+	void setBufferSize(int);
 	void cmdSetAEMode(int ae);
 	void cmdSetWB(int wb, int temp);
 	void cmdSetISO(int iso);
@@ -63,6 +73,7 @@ public:
 	void cmdAdjFocus(int direction, int val);
 	void cmdSetZoom(int zoom);
 	void cmdSetZoomPos(int x, int y);
+	void cmdDoLVAF(int mode);
 	void waitCommands();
 	const unsigned int* avList() const { return AvList; }
 	int avListSize() const { return AvListSize; }
@@ -70,9 +81,8 @@ public:
 	int tvListSize() const { return TvListSize; }
 	const unsigned int* isoList() const { return ISOList; }
 	int isoListSize() const { return ISOListSize; }
-	QString cameraName() { return CameraName; }
-	QSize cameraFotoLargeSize() { return CameraFotoLargeSize; }
-	QSize cameraLVSize() { return CameraLVSize; }
+	QString cameraName() const { return CameraName; }
+	struct EOSCamFeatures cameraFeatures() const { return CamFeatures; }
 	// stat function
 	__uint64_t allFramesCount() { return AllFramesCount; }
 	__uint64_t writenCount() { return WritenCount; }
@@ -113,6 +123,7 @@ private:
 	QWidget* CaptureWnd;
 	bool WriteMovie;
 	char* FileName;
+	int BufferSize;
 	QMutex CommandMutex;
 	QWaitCondition CommandCond;
 	QMutex WrtFlagMutex;
@@ -133,8 +144,7 @@ private:
 	int Histogram[256*4];
 	bool isSDKLoaded;
 	QString CameraName;
-	QSize CameraFotoLargeSize;
-	QSize CameraLVSize;
+	struct EOSCamFeatures CamFeatures;
 	// for statistics
 	__uint64_t AllFramesCount;
 	__uint64_t WritenCount;

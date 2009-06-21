@@ -18,7 +18,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <QMessageBox>
 #include <QPushButton>
 #include <QToolButton>
 #include <QCheckBox>
@@ -33,10 +32,9 @@
 #include <QSettings>
 #include <QShortcut>
 
-//#include <QMessageBox>
-
 #include "mainwnd.h"
 #include "about.h"
+#include "optionsdlg.h"
 #include "blinklabel.h"
 #include "capturewnd.h"
 #include "livethread.h"
@@ -129,6 +127,12 @@ GEOSRecWnd::GEOSRecWnd()
 	btn_layout->addWidget(showBox, 0);
 	showBox->setCheckState(Qt::Checked);
 
+	optionsBtn = new QToolButton(this);
+	optionsBtn->setEnabled(false);
+	optionsBtn->setText(tr("O"));
+	optionsBtn->setToolTip(tr("Open options dialog"));
+	btn_layout->addWidget(optionsBtn, 0);
+
 	QToolButton* aboutBtn = new QToolButton(this);
 	aboutBtn->setText(tr("A"));
 	aboutBtn->setToolTip(tr("Show about box"));
@@ -183,6 +187,13 @@ GEOSRecWnd::GEOSRecWnd()
 	AFBtn->setEnabled(false);
 	AFBtn->setToolTip(tr("Try experimental autofocus"));
 	focus_layout->addWidget(AFBtn, 0);
+
+	AFCamBtn = new QToolButton(this);
+	AFCamBtn->setText(tr("CAF"));
+	AFCamBtn->setCheckable(false);
+	AFCamBtn->setEnabled(false);
+	AFCamBtn->setToolTip(tr("Camera Auto focus (only on 50D and later!)"));
+	focus_layout->addWidget(AFCamBtn, 0);
 
 	focus_layout->addSpacing(10);
 
@@ -263,6 +274,7 @@ GEOSRecWnd::GEOSRecWnd()
 	connect(wbBox, SIGNAL(activated(int)), this, SLOT(slotWbSelected(int)));
 	connect(wbTempBox, SIGNAL(valueChanged(int)), this, SLOT(slotWbTempSelected(int)));
 	connect(showBox, SIGNAL(stateChanged(int)), this, SLOT(slotShowImageChanged(int)));
+	connect(optionsBtn, SIGNAL(clicked()), this, SLOT(slotOptions()));
 	connect(aboutBtn, SIGNAL(clicked()), this, SLOT(slotAbout()));
 	connect(focusNear3Btn, SIGNAL(clicked()), this, SLOT(slotFocusNear3()));
 	connect(focusNear2Btn, SIGNAL(clicked()), this, SLOT(slotFocusNear2()));
@@ -272,6 +284,7 @@ GEOSRecWnd::GEOSRecWnd()
 	connect(focusFar3Btn, SIGNAL(clicked()), this, SLOT(slotFocusFar3()));
 	connect(zoom5xBtn, SIGNAL(clicked()), this, SLOT(slotZoom5x()));
 	connect(AFBtn, SIGNAL(clicked()), this, SLOT(slotAutoFocus()));
+	connect(AFCamBtn, SIGNAL(clicked()), this, SLOT(slotCameraAF()));
 	connect(HistBtn, SIGNAL(clicked()), this, SLOT(slotHistogram()));
 
 	connect(focusNear3Shortcut, SIGNAL(activated()), this, SLOT(slotFocusNear3()));
@@ -288,6 +301,8 @@ GEOSRecWnd::GEOSRecWnd()
 	CurrSettings.Wb = -1;
 	CurrSettings.WbTemp = -1;
 	CurrSettings.AEMode = -1;
+	CurrSettings.AFMode = 1;
+	CurrSettings.BufferSize = 1024*1024;
 
 	BackupSettings.Path = CurrSettings.Path;
 	BackupSettings.Av = CurrSettings.Av;
@@ -296,6 +311,8 @@ GEOSRecWnd::GEOSRecWnd()
 	BackupSettings.Wb = CurrSettings.Wb;
 	BackupSettings.WbTemp = CurrSettings.WbTemp;
 	BackupSettings.AEMode = CurrSettings.AEMode;
+	BackupSettings.AFMode = CurrSettings.AFMode;
+	BackupSettings.BufferSize = CurrSettings.BufferSize;
 
 	LiveThread = new GMyLiveThread(this);
 	LiveThread->setCaptureWnd(CaptureWnd);
@@ -392,8 +409,9 @@ void GEOSRecWnd::slotStartTimeout()
 			}
 			else
 			{
-				QSizeF largeSize = QSizeF(LiveThread->cameraFotoLargeSize());
-				QSizeF lvSize = QSizeF(LiveThread->cameraLVSize());
+				struct EOSCamFeatures features = LiveThread->cameraFeatures();
+				QSizeF largeSize = QSizeF(features.JpegLargeSize_x, features.JpegLargeSize_y);
+				QSizeF lvSize = QSizeF(features.LiveViewSize_x, features.LiveViewSize_y);
 				if (!largeSize.isEmpty() && !lvSize.isEmpty())
 					CaptureWnd->setZoomPositionDivisor(largeSize.width()/lvSize.width(), largeSize.height()/lvSize.height());
 				selFileBtn->setEnabled(true);
@@ -402,9 +420,12 @@ void GEOSRecWnd::slotStartTimeout()
 				dofBtn->setEnabled(true);
 				zoom5xBtn->setEnabled(true);
 				HistBtn->setEnabled(true);
+				// next line realy work in customEvents()
+				//AFCamBtn->setEnabled(features.HasAF);
 				blinkLabel->stop();
 				QString str = LiveThread->cameraName() + QString(": ");
 				blinkLabel->setText(str + tr("Ready"));
+				optionsBtn->setEnabled(true);
 				// at this time we already received all settings from camera
 				loadSettings();
 			}
@@ -444,6 +465,8 @@ void GEOSRecWnd::loadSettings()
 	BackupSettings.ISO = CurrSettings.ISO;
 	BackupSettings.Wb = CurrSettings.Wb;
 	BackupSettings.WbTemp = CurrSettings.WbTemp;
+	BackupSettings.AFMode = CurrSettings.AFMode;
+	BackupSettings.BufferSize = CurrSettings.BufferSize;
 
 	QSettings settings(QSettings::UserScope, QString("eos_movrec"));
 	CurrSettings.Path = settings.value(QString("Path"), QVariant(QString("out.avi"))).toString();
@@ -494,6 +517,8 @@ void GEOSRecWnd::loadSettings()
 			slotISOSelected(i);
 			break;
 		}
+	CurrSettings.AFMode = settings.value(QString("AFMode"), (int)1).toInt();
+	CurrSettings.BufferSize = settings.value(QString("BufferSize"), (int)1024*1024).toInt();
 }
 
 void GEOSRecWnd::saveSettings()
@@ -518,12 +543,15 @@ void GEOSRecWnd::saveSettings()
 	settings.setValue(QString("ISO"), QVariant(CurrSettings.ISO));
 	settings.setValue(QString("WB"), QVariant(CurrSettings.Wb));
 	settings.setValue(QString("WBTemp"), QVariant(CurrSettings.WbTemp));
+	settings.setValue(QString("AFMode"), QVariant(CurrSettings.AFMode));
+	settings.setValue(QString("BufferSize"), QVariant(CurrSettings.BufferSize));
 }
 
 void GEOSRecWnd::customEvent(QEvent* event)
 {
 	if (!LiveThread /*|| !LiveThread->isInit()*/)
 		return;
+	struct EOSCamFeatures features = LiveThread->cameraFeatures();
 	GCameraEvent* e = (GCameraEvent*)event;
 	switch (e->type())
 	{
@@ -748,6 +776,8 @@ void GEOSRecWnd::customEvent(QEvent* event)
 				focusFar2Btn->setEnabled(true);
 				focusFar3Btn->setEnabled(true);
 				AFBtn->setEnabled(true);
+				if (features.HasAF)
+					AFCamBtn->setEnabled(true);
 				break;
 			case 3:
 				focusNear3Btn->setEnabled(false);
@@ -758,6 +788,7 @@ void GEOSRecWnd::customEvent(QEvent* event)
 				focusFar3Btn->setEnabled(false);
 				AFBtn->setEnabled(false);
 				slotStopAutoFocus();
+				AFCamBtn->setEnabled(false);
 				break;
 			default:
 				break;
@@ -791,6 +822,12 @@ void GEOSRecWnd::customEvent(QEvent* event)
 			HistogramWnd = 0;
 		}
 		HistBtn->setChecked(false);
+		break;
+	case CAMERA_EVENT_SHOWMSG:
+		{
+			QString msg = e->value().toString();
+			QMessageBox::warning(this, tr("Info from Thread"), msg);
+		}
 		break;
 	case CAMERA_EVENT_SHUTDOWN:
 		// thread say about camera shutdow
@@ -828,11 +865,13 @@ void GEOSRecWnd::slotStart()
 		//QMessageBox::information(this, tr("path"), Path);
 		static QTextCodec* tcodec = QTextCodec::codecForLocale();
 		LiveThread->setFileName(tcodec->fromUnicode(CurrSettings.Path).data());
+		LiveThread->setBufferSize(CurrSettings.BufferSize);
 		selFileBtn->setEnabled(false);
 		showBox->setEnabled(false);
 		startBtn->setEnabled(false);
 		stopBtn->setEnabled(true);
 		zoom5xBtn->setEnabled(false);
+		optionsBtn->setEnabled(false);
 		LiveThread->startWrite();
 		blinkLabel->setText(tr("WRITING"));
 		blinkLabel->start();
@@ -845,12 +884,14 @@ void GEOSRecWnd::slotStop()
 	{
 		LiveThread->stopWrite();
 		blinkLabel->stop();
-		blinkLabel->setText(tr("Ready"));
+		QString str = LiveThread->cameraName() + QString(": ");
+		blinkLabel->setText(str + tr("Ready"));
 		showBox->setEnabled(true);
 		startBtn->setEnabled(true);
 		stopBtn->setEnabled(false);
 		selFileBtn->setEnabled(true);
 		zoom5xBtn->setEnabled(true);
+		optionsBtn->setEnabled(true);
 	}
 }
 
@@ -1035,6 +1076,14 @@ void GEOSRecWnd::slotStopAutoFocus()
 	}
 }
 
+void GEOSRecWnd::slotCameraAF()
+{
+	if (LiveThread && LiveThread->isInit())
+	{
+		LiveThread->cmdDoLVAF(CurrSettings.AFMode);
+	}
+}
+
 void GEOSRecWnd::slotHistogram()
 {
 	bool hist = HistBtn->isChecked();
@@ -1123,6 +1172,7 @@ void GEOSRecWnd::shutdown()
 	focusFar2Btn->setEnabled(false);
 	focusFar3Btn->setEnabled(false);
 	zoom5xBtn->setEnabled(false);
+	optionsBtn->setEnabled(false);
 	AFBtn->setEnabled(false);
 	HistBtn->setEnabled(false);
 	fpsLabel->setText(tr("0 fps"));
@@ -1132,6 +1182,19 @@ void GEOSRecWnd::slotShowImageChanged(int state)
 {
 	CaptureWnd->setShowLiveImage(state == Qt::Checked);
 	CaptureWnd->update();
+}
+
+void GEOSRecWnd::slotOptions()
+{
+	GOptionsDlg dlg(this);
+	dlg.setOptions(CurrSettings.BufferSize, CurrSettings.AFMode);
+	if (dlg.exec() == QDialog::Accepted)
+	{
+		CurrSettings.BufferSize = dlg.bufferSize();
+		CurrSettings.AFMode = dlg.afMode();
+		if (LiveThread && LiveThread->isInit())
+			LiveThread->setBufferSize(CurrSettings.BufferSize);
+	}
 }
 
 void GEOSRecWnd::slotAbout()

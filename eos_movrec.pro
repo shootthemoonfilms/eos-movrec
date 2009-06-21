@@ -16,7 +16,8 @@ HEADERS = mainwnd.h \
     events.h \
     command.h \
     cam_tables.h \
-    histogramwnd.h
+    histogramwnd.h \
+    optionsdlg.h
 SOURCES = main.cpp \
     mainwnd.cpp \
     livethread.cpp \
@@ -29,7 +30,8 @@ SOURCES = main.cpp \
     mjpegwrt.c \
     os_api.c \
     afthread.cpp \
-    histogramwnd.cpp
+    histogramwnd.cpp \
+    optionsdlg.cpp
 TARGET = bin/eos_movrec
 EDSDKPATH = ./EDSDK
 INCLUDEPATH = $$EDSDKPATH/Header

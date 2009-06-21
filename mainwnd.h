@@ -60,6 +60,7 @@ protected slots:
 	void slotWbSelected(int wb_ind);
 	void slotWbTempSelected(int wb_temp);
 	void slotShowImageChanged(int);
+	void slotOptions();
 	void slotAbout();
 	void slotFocusNear3();
 	void slotFocusNear2();
@@ -70,6 +71,7 @@ protected slots:
 	void slotZoom5x();
 	void slotAutoFocus();
 	void slotStopAutoFocus();
+	void slotCameraAF();
 	void slotHistogram();
 protected:
 	virtual void customEvent(QEvent* event);
@@ -103,7 +105,9 @@ private:
 	QToolButton* focusFar3Btn;
 	QToolButton* zoom5xBtn;
 	QToolButton* AFBtn;
+	QToolButton* AFCamBtn;
 	QToolButton* HistBtn;
+	QToolButton* optionsBtn;
 	GMyLiveThread* LiveThread;
 	GAFThread* AFThread;
 	GEOSCaptureWnd* CaptureWnd;
@@ -117,6 +121,8 @@ private:
 		int Wb;
 		int WbTemp;
 		int AEMode;
+		int AFMode;
+		int BufferSize;
 	};
 	struct GSavedSettings CurrSettings;
 	struct GSavedSettings BackupSettings;

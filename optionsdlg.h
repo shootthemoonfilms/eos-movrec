@@ -18,37 +18,24 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "command.h"
+#ifndef _optionsdlg_h
+#define _optionsdlg_h
 
-GCameraCommand::GCameraCommand()
-{
-	Command = -1;
-	Param1 = 0;
-	Param2 = 0;
-	Internal = false;
-}
+#include <QDialog>
 
-GCameraCommand::GCameraCommand(int cmd, int p1, int p2, bool internal)
-{
-	Command = cmd;
-	Param1 = p1;
-	Param2 = p2;
-	Internal = internal;
-}
+class QSpinBox;
+class QComboBox;
 
-GCameraCommand::GCameraCommand(const GCameraCommand& cmdobj)
+class GOptionsDlg: public QDialog
 {
-	Command = cmdobj.command();
-	Param1 = cmdobj.param1();
-	Param2 = cmdobj.param2();
-	//Internal = cmdobj.isInternal();
-}
+public:
+	GOptionsDlg(QWidget* parent);
+	void setOptions(int buff_sz, int afmode);
+	int bufferSize();
+	int afMode();
+private:
+	QSpinBox* BufferBox;
+	QComboBox* AFModeBox;
+};
 
-GCameraCommand& GCameraCommand::operator=(const GCameraCommand& cmdobj)
-{
-	Command = cmdobj.command();
-	Param1 = cmdobj.param1();
-	Param2 = cmdobj.param2();
-	//Internal = cmdobj.isInternal();
-	return *this;
-}
+#endif // _optionsdlg_h

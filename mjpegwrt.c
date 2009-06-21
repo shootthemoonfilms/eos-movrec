@@ -56,7 +56,7 @@ struct RiffChunk
 struct AVIHeader
 {
 	__uint32_t dwMicroSecPerFrame;
-	__uint32_t dwMaxBytesPerSec;	// 
+	__uint32_t dwMaxBytesPerSec;	//
 	__uint32_t dwReserved1;			// must be 0
 	__uint32_t dwFlags;				// 0 ?
 	__uint32_t dwTotalFrames;
@@ -78,7 +78,7 @@ struct AVIStreamHeader
 	__uint16_t wLanguage;			// here 0
 	__uint32_t dwInitialFrames;		// here 0
 	__uint32_t dwScale;				// dwMicroSecPerFrame
-	__uint32_t dwRate;				// 1000000 
+	__uint32_t dwRate;				// 1000000
 	__uint32_t dwStart;				// here 0
 	__uint32_t dwLength;			// dwTotalFrames
 	__uint32_t dwSuggestedBufferSize;	//  size largest chunk in the stream
@@ -237,7 +237,7 @@ void* mjpegCreateFile(const char* fname)
 	*riff->pDataSize = 4;
 	ptr += 8;
 	strncpy(ptr, "movi", 4);
-	
+
 	// for index chunk
 	riff->pindex_real_size = (__uint32_t*)(riff->index + 4);
 	ptr = (char*)riff->index;
@@ -354,9 +354,10 @@ int mjpegSetCache(void* p, int sz)
 	RIFFFILE* rf = (RIFFFILE*)p;
 	if (!rf)
 		return 0;
-	unsigned char* tmp = (unsigned char*)realloc(rf->cache, sz);
+	unsigned char* tmp = (unsigned char*)malloc(sz);
 	if (!tmp)
 		return 0;
+	free(rf->cache);
 	rf->cache = tmp;
 	rf->cache_sz = sz;
 	return 1;

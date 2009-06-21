@@ -33,7 +33,7 @@ public:
 	int command() const { return Command; }
 	int param1() const { return Param1; }
 	int param2() const { return Param2; }
-	bool isInternal() const { return Internal; }
+	//bool isInternal() const { return Internal; }
 private:
 	int Command;
 	int Param1;
@@ -60,5 +60,6 @@ typedef QQueue<GCameraCommand> GCameraCommandsQueue;
 #define COMMAND_SET_ISO		14
 #define COMMAND_REQ_ISO		15
 #define COMMAND_REQ_ISOLIST	16
+#define COMMAND_DO_LVAF		17
 
 #endif	// _command_h

@@ -51,6 +51,7 @@ private:
 #define CAMERA_EVENT_HISTOGRAM_CLOSED	(QEvent::Type)(QEvent::User + 15)
 #define CAMERA_EVENT_ISO_CHANGED 	(QEvent::Type)(QEvent::User + 16)
 #define CAMERA_EVENT_ISOLIST_CHANGED	(QEvent::Type)(QEvent::User + 17)
+#define CAMERA_EVENT_SHOWMSG		(QEvent::Type)(QEvent::User + 99)
 #define CAMERA_EVENT_SHUTDOWN		(QEvent::Type)(QEvent::User + 100)
 
 #endif	// _events_h
