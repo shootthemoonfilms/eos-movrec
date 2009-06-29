@@ -25,6 +25,7 @@
 		DC6EF07D5E0AB421C3705FA4 /* blinklabel.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = 0B9F3C983CC019278BFF593A /* blinklabel.cpp */; settings = {ATTRIBUTES = (); }; };
 		DE43CE3A0FC0BA3500266209 /* EDSDK.framework in Frameworks & Libraries */ = {isa = PBXBuildFile; fileRef = DE43CAF90FC0B16C00266209 /* EDSDK.framework */; settings = {ATTRIBUTES = (Required, ); }; };
 		DEA3B6AD0FC22AA4006C903D /* eos-movrec.mac.icns in Bundle Resources */ = {isa = PBXBuildFile; fileRef = DEA3B6AC0FC22AA4006C903D /* eos-movrec.mac.icns */; };
+		DEAB8ADD0FF95BFA000EBD52 /* optionsdlg.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = DEAB8ADC0FF95BFA000EBD52 /* optionsdlg.cpp */; };
 		DECC8BE40FC8462200B1E4AC /* os_api.c in Build Sources */ = {isa = PBXBuildFile; fileRef = DECC8BE20FC8462200B1E4AC /* os_api.c */; };
 		DED1B1188C80D03F3A86CB76 /* command.cpp in Build Sources */ = {isa = PBXBuildFile; fileRef = 88E8AAAA319F310FCDE88E10 /* command.cpp */; settings = {ATTRIBUTES = (); }; };
 		DEDEBC3A0FC07EF100544F9A /* Info.plist in Bundle Resources */ = {isa = PBXBuildFile; fileRef = DEDEBC390FC07EF100544F9A /* Info.plist */; };
@@ -84,6 +85,8 @@
 		DA138F75C9F545CDAE7FB264 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		DE43CAF90FC0B16C00266209 /* EDSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; name = EDSDK.framework; path = /Library/Frameworks/EDSDK.framework; sourceTree = "<absolute>"; };
 		DEA3B6AC0FC22AA4006C903D /* eos-movrec.mac.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "eos-movrec.mac.icns"; path = "mac.icons/eos-movrec.mac.icns"; sourceTree = "<group>"; };
+		DEAB8ADC0FF95BFA000EBD52 /* optionsdlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = optionsdlg.cpp; sourceTree = "<group>"; };
+		DEAB8ADE0FF95C02000EBD52 /* optionsdlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = optionsdlg.h; sourceTree = "<group>"; };
 		DEBB14B80FBC819B009CE0DB /* eos_movrec.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = eos_movrec.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DEBB14D40FBC81C3009CE0DB /* EDSDK.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDSDK.h; path = SDKs/EDSDK/Header/EDSDK.h; sourceTree = DEVELOPER_DIR; };
 		DEBB14D50FBC81C3009CE0DB /* EDSDKErrors.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDSDKErrors.h; path = SDKs/EDSDK/Header/EDSDKErrors.h; sourceTree = DEVELOPER_DIR; };
@@ -150,6 +153,7 @@
 		883D7615C4D2DE3FA1218F12 /* Headers */ = {
 			isa = PBXGroup;
 			children = (
+				DEAB8ADE0FF95C02000EBD52 /* optionsdlg.h */,
 				DECC8BE30FC8462200B1E4AC /* os_api.h */,
 				DEECBD4B0FC20451001C896A /* Folders.h */,
 				DEBB14D40FBC81C3009CE0DB /* EDSDK.h */,
@@ -199,6 +203,7 @@
 		FB61758D0F0FDA4BA867C3D5 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				DEAB8ADC0FF95BFA000EBD52 /* optionsdlg.cpp */,
 				DECC8BE20FC8462200B1E4AC /* os_api.c */,
 				118FCBAABA162BA17933C789 /* main.cpp */,
 				13B6F22B90F35D4DE411FE18 /* mainwnd.cpp */,
@@ -314,6 +319,7 @@
 				8FFD8B5CD017F8464ED17F1C /* moc_mainwnd.cpp in Build Sources */,
 				2BCD3648417AA3C1DF78247B /* moc_blinklabel.cpp in Build Sources */,
 				DECC8BE40FC8462200B1E4AC /* os_api.c in Build Sources */,
+				DEAB8ADD0FF95BFA000EBD52 /* optionsdlg.cpp in Build Sources */,
 			);
 			name = "Build Sources";
 			runOnlyForDeploymentPostprocessing = 0;
