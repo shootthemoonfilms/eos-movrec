@@ -51,7 +51,7 @@ protected slots:
 	void slotStart();
 	void slotStop();
 	void slotStartTimeout();
-	void slotWorkTimeout();
+	//void slotWorkTimeout();
 	void slotAESelected(int ae_ind);
 	void slotDofPressed();
 	void slotISOSelected(int iso_ind);

@@ -7,16 +7,16 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{5B0D20D7-AA12-4FC8-9A4A-AF722F430738}
 AppName=EOS Camera Movie Record
-AppVerName=EOS Camera Movie Record 0.1.9 Beta 2
+AppVerName=EOS Camera Movie Record 0.1.9 Beta 3
 AppPublisher=Chernov A.A.
-AppPublisherURL=http://valexvir.narod.ru/
-AppSupportURL=http://valexvir.narod.ru/
-AppUpdatesURL=http://valexvir.narod.ru/
+AppPublisherURL=http://sourceforge.net/projects/eos-movrec/
+AppSupportURL=http://sourceforge.net/projects/eos-movrec/support/
+AppUpdatesURL=http://sourceforge.net/projects/eos-movrec/files/
 DefaultDirName={pf}\eos_movrec
 DefaultGroupName=EOS Camera Movie Record
 AllowNoIcons=yes
 OutputDir=dist
-OutputBaseFilename=eos_movrec-0.1.9_beta2-setup
+OutputBaseFilename=eos_movrec-0.1.9_beta3-setup
 Compression=lzma
 SolidCompression=yes
 
@@ -39,7 +39,7 @@ Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\QtCore4.dll"; DestDir: "{ap
 Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\QtGui4.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\Ucs32P.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\libz-1.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\libgcc_s_sjlj-1.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\libgcc_s_dw2-1.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\plugins\imageformats\qjpeg4.dll"; DestDir: "{app}\plugins\imageformats"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\License.txt"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files

@@ -326,7 +326,8 @@ GEOSRecWnd::GEOSRecWnd()
 	StartTimer->setSingleShot(true);
 	connect(StartTimer, SIGNAL(timeout()), this, SLOT(slotStartTimeout()));
 	StartTimer->start(4000);
-	QTimer::singleShot(1200000, this, SLOT(slotWorkTimeout()));		// max work time is 20 min
+	// отключено по просьбе форумчан (forum.ixbt.com)
+	//QTimer::singleShot(1200000, this, SLOT(slotWorkTimeout()));		// max work time is 20 min
 
 	/*QList<QByteArray> formats = QImageReader::supportedImageFormats();
 	QList<QByteArray>::iterator it = formats.begin();
@@ -454,7 +455,8 @@ void GEOSRecWnd::slotReconnect()
 
 	//QTimer::singleShot(4000, this, SLOT(slotStartTimeout()));
 	StartTimer->start(4000);
-	QTimer::singleShot(1200000, this, SLOT(slotWorkTimeout()));		// max work time is 20 min
+	// отключено по просьбе форумчан (forum.ixbt.com)
+	//QTimer::singleShot(1200000, this, SLOT(slotWorkTimeout()));		// max work time is 20 min
 }
 
 void GEOSRecWnd::loadSettings()
@@ -1108,13 +1110,14 @@ void GEOSRecWnd::slotHistogram()
 	}
 }
 
-void GEOSRecWnd::slotWorkTimeout()
+// отключено по просьбе форумчан (forum.ixbt.com)
+/*void GEOSRecWnd::slotWorkTimeout()
 {
 	shutdown();
 	blinkLabel->stop();
 	blinkLabel->setText(tr("Make some tea"));
 	QMessageBox::information(this, tr("Timeout"), tr("To save you device program will be stopped."));
-}
+}*/
 
 void GEOSRecWnd::shutdown()
 {
