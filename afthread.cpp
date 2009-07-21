@@ -23,12 +23,16 @@
 #include "capturewnd.h"
 #include "os_api.h"
 #include "events.h"
-#include "FocuserClass.h"
+#include "autofocus.h"
 
 #include <QWidget>
 #include <QApplication>
 
-#define AF_DEBUG_LOG	0
+#define AF_DEBUG_LOG	1
+
+#if AF_DEBUG_LOG
+#include <stdio.h>
+#endif
 
 GAFThread::GAFThread(QWidget* owner, GMyLiveThread* liveThread, GEOSCaptureWnd* capwnd)
  : QThread()
@@ -37,7 +41,7 @@ GAFThread::GAFThread(QWidget* owner, GMyLiveThread* liveThread, GEOSCaptureWnd* 
 	LiveThread = liveThread;
 	CapWnd = capwnd;
 	Stopped = false;
-	fc = new FocusingClass;
+	fc = new GAutoFocus;
 }
 
 GAFThread::~GAFThread()
@@ -83,9 +87,9 @@ void GAFThread::run()
 #if AF_DEBUG_LOG
 			pos = fc->lastPosition();
 			disp = fc->lastDispersion();
-			str_disp.sprintf("%.1f, %d", disp, nextfocus);
+			str_disp.sprintf("%d, %d", disp, nextfocus);
 			CapWnd->setText(str_disp);
-			fprintf(f, "%04.1f, pos=%d, %d -> %d, noise=%.1f\n", disp, pos, old_nf, nextfocus, noise);
+			fprintf(f, "%d, pos=%d, %d -> %d, noise=%d\n", disp, pos, old_nf, nextfocus, noise);
 #endif
 			if (!fc->stop)
 			{

@@ -3,7 +3,7 @@
  *   valexlin@gmail.com                                                    *
  *   --                                                                    *
  *   Copyright (C) 2009 by Uterr                                           *
- *     Old method & skeleton of this file                                  *
+ *     Old AF method                                                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -23,12 +23,14 @@
 
 #include "autofocus.h"
 
+#include <stdlib.h>
+
 GAutoFocus::GAutoFocus()
 {
-	NextFocus = 1;
 	Noise = 0.0;
 	stop = false;
 	focus_step = 8;
+	NextFocus = focus_step;
 	change_count = 0;
 	NoiseCounts = 10;		// must calibrate
 }
@@ -64,9 +66,9 @@ void GAutoFocus::NextIter(int **image_arr, int w, int h)
 	if (stop)
 		return;
 
-	int** sobel_image = sobel_trans(image_arr, w, h);
 	int last_index = (int)finfos.size() - 1;
 	focusingInfo* finf = new focusingInfo;
+	int** sobel_image = sobel_trans(image_arr, w, h);
 	finf->dispersion = dispersion(sobel_image, w, h);	// this value of dispersion is a result of previous NextFocus
 	delete_image(sobel_image, w, h);
 	if (last_index >= NoiseCounts)
@@ -85,33 +87,31 @@ void GAutoFocus::NextIter(int **image_arr, int w, int h)
 	if (last_index == NoiseCounts)
 	{
 		// калибровка шумов - прогрев автофокуса )))
-		Noise = maxdispersion() - mindispersion();
+		Noise = (maxdispersion() - mindispersion())/2;
 	}
 
 	if (last_index > NoiseCounts)
 	{
 		if (abs(finf->dispersion - finfos[last_index - 1]->dispersion) < Noise)
 			finf->dispersion = finfos[last_index - 1]->dispersion;
-		if (finfos.size() > 70 + NoiseCounts)
-			if (abs((finf->dispersion - finfos[last_index-8]->dispersion)) <= 1.1*Noise)
-			// это условие надо заменить на другое
-			// дисперсия от дисперсий в диапазоне от last_index-8 до last_index должна быть в пределах погрешности (шумов)
+		if (finfos.size() > 5 + NoiseCounts)
+			if (abs((finf->dispersion - finfos[last_index - 4]->dispersion)) <= Noise)
 				stop = true;
 
 		int max_disp = maxdispersion();
-		int min_disp = mindispersion();
+		//int min_disp = mindispersion();
 		if (finf->dispersion > max_disp && finfos.size() > 50 + NoiseCounts)
 			stop = true;
 
 		if (finf->focusDir != finfos[last_index - 1]->focusDir && abs(finfos[last_index - 1]->focusDir) > 0)
 			change_count++;
-		if (change_count > 2)
+		if (change_count > 1)
 			focus_step = 1;
-		if (change_count > 5)
+		if (change_count > 3)
 			stop = true;
 
 		if (finf->dispersion >= finfos[last_index - 1]->dispersion ||
-			abs(finf->dispersion - max_disp) < 2*Noise)
+			abs(finf->dispersion - max_disp) < 3*Noise)
 		{
 			NextFocus = finf->focusDir > 0 ? focus_step : -focus_step;
 		}

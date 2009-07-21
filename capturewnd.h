@@ -59,7 +59,7 @@ private:
 	QPoint MousePressPoint;
 	double ZPD_x, ZPD_y;
 	bool ZoomRectMoving;
-	double** FocusArea;
+	int** FocusArea;
 	QRect FocusAreaRect;
 	QMutex FocusMutex;
 	QString Text;

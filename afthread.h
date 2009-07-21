@@ -26,7 +26,7 @@
 class QWidget;
 class GMyLiveThread;
 class GEOSCaptureWnd;
-class FocusingClass;
+class GAutoFocus;
 
 class GAFThread: public QThread
 {
@@ -41,7 +41,7 @@ private:
 	QWidget* Owner;
 	GMyLiveThread* LiveThread;
 	GEOSCaptureWnd* CapWnd;
-	FocusingClass* fc;
+	GAutoFocus* fc;
 };
 
 #endif // _afthread_h
