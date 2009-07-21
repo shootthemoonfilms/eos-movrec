@@ -262,7 +262,7 @@ void GEOSCaptureWnd::unlockFocusingArea()
 	FocusMutex.unlock();
 }
 
-double** GEOSCaptureWnd::getFocusingArea()
+int** GEOSCaptureWnd::getFocusingArea()
 {
 	if (ZoomRect.width() == 0 || LiveImage.isNull())
 		return 0;
@@ -282,10 +282,10 @@ double** GEOSCaptureWnd::getFocusingArea()
 			FocusAreaRect = QRect(0, 0, w, h);
 		}
 		int i;
-		FocusArea = (double**)malloc(sizeof(double*)*w);
-		for (i = 0; i < w; i++)
+		FocusArea = (int**)malloc(sizeof(int*)*h);
+		for (i = 0; i < h; i++)
 		{
-			FocusArea[i] = (double*)malloc(sizeof(double)*h);
+			FocusArea[i] = (int*)malloc(sizeof(int)*w);
 		}
 	}
 	//QImage img = LiveImage.copy(FocusAreaRect).scaled(FocusAreaRect.width()/2, FocusAreaRect.height()/2, Qt::IgnoreAspectRatio, Qt::FastTransformation).convertToFormat(QImage::Format_RGB32, Qt::ColorOnly);
@@ -317,7 +317,7 @@ double** GEOSCaptureWnd::getFocusingArea()
 			ind += 4;			// RGB32 format
 			if (ind + 2 >= num_bytes)
 				break;*/
-			FocusArea[j][i] = qGray(img.pixel(j, i));
+			FocusArea[i][j] = qGray(img.pixel(j, i));
 		}
 	}
 	// ???????????????????

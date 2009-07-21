@@ -1,6 +1,9 @@
 /***************************************************************************
  *   Copyright (C) 2008-2009 by Чернов А.А.                                *
  *   valexlin@gmail.com                                                    *
+ *   --                                                                    *
+ *   Copyright (C) 2009 by Uterr                                           *
+ *     Old method & skeleton of this file                                  *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -18,51 +21,50 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _capturewnd_h
-#define _capturewnd_h
+#include <vector>
 
-#include <QWidget>
-#include <QImage>
-#include <QMutex>
-
-class GEOSCaptureWnd: public QWidget
+class GAutoFocus
 {
+private:
+	int NextFocus;
+	int Noise;
+	int focus_step;
+	int change_count;
+	int NoiseCounts;
+	struct focusingInfo
+	{
+		int dispersion;
+		int focusPosition;
+		int focusDir;
+	};
+	std::vector <GAutoFocus::focusingInfo*> finfos;
 public:
-	GEOSCaptureWnd(QWidget* parent);
-	~GEOSCaptureWnd();
-	void setShowLiveImage(bool s) { ShowLiveImage = s; }
-	// called from other thread
-	void lockFocusingArea();
-	void unlockFocusingArea();
-	int** getFocusingArea();
-	QSize getFocusingAreaSize();
-	void setText(const QString& text);
-	void clearText();
-	void setZoomPositionDivisor(double zpd_x, double zpd_y) { ZPD_x = zpd_x; ZPD_y = zpd_y; }
-protected:
-	//virtual void showEvent(QShowEvent* event);
-	virtual void paintEvent(QPaintEvent * event);
-	virtual void closeEvent(QCloseEvent* event);
-	virtual void mousePressEvent(QMouseEvent* event);
-	virtual void mouseMoveEvent(QMouseEvent* event);
-	virtual void mouseReleaseEvent(QMouseEvent* event);
-	virtual void customEvent(QEvent* event);
+	bool stop;
+	GAutoFocus();
+	~GAutoFocus();
+	int lastDispersion();
+	int lastPosition();
+	int noise()
+	{
+		return Noise;
+	}
+	void NextIter(int **image_arr, int w, int h);
+	int getNextFocus()
+	{
+		if (finfos.size() <= NoiseCounts)
+			return 0;
+		return NextFocus;
+	}
 private:
-	void clearFocusArea();
-private:
-	QImage LiveImage;
-	int max_frame_size;
-	unsigned char* frame;
-	bool ShowLiveImage;
-	int Zoom;
-	QRect ZoomRect;
-	QPoint MousePressPoint;
-	double ZPD_x, ZPD_y;
-	bool ZoomRectMoving;
-	double** FocusArea;
-	QRect FocusAreaRect;
-	QMutex FocusMutex;
-	QString Text;
-};
+	int abs(int i)
+	{
+		return i > 0 ? i : -i;
+	}
+	int maxdispersion();
+	int mindispersion();
 
-#endif	// _capturewnd_h
+	int delete_image(int** array, int w, int h);
+	int** sobel_trans(int** src_image, int w, int h);
+	int dispersion(int** array, int w, int h);
+	int average(int** array, int w, int h);
+};

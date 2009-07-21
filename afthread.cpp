@@ -52,7 +52,7 @@ void GAFThread::stop()
 
 void GAFThread::run()
 {
-	double** pict;
+	int** pict;
 	QSize pictSz;
 	int nextfocus;
 	int dir;
@@ -60,9 +60,9 @@ void GAFThread::run()
 	int i;
 #if AF_DEBUG_LOG
 	int old_nf;
-	double noise;
+	int noise;
 	int pos;
-	double disp;
+	int disp;
 	QString str_disp;
 	FILE* f = fopen("af.log", "at");
 	fprintf(f, "af start!\n");;

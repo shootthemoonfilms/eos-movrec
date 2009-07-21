@@ -11,7 +11,7 @@ HEADERS = mainwnd.h \
     types.h \
     livethread.h \
     buffer.h \
-    FocuserClass.h \
+    autofocus.h \
     mjpegwrt.h \
     events.h \
     command.h \
@@ -26,6 +26,7 @@ SOURCES = main.cpp \
     about.cpp \
     command.cpp \
     buffer.cpp \
+    autofocus.cpp \
     cam_tables.c \
     mjpegwrt.c \
     os_api.c \
