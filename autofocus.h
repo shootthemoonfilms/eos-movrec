@@ -66,4 +66,5 @@ private:
 	int** sobel_trans(int** src_image, int w, int h);
 	int dispersion(int** array, int w, int h);
 	int average(int** array, int w, int h);
+	//QImage array_to_image(int** array, int w, int h);
 };

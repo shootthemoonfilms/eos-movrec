@@ -259,3 +259,15 @@ int GAutoFocus::average(int** array, int w, int h)
 	res = res/((w - 2)*(h - 2));
 	return res;
 }
+
+#if 0
+QImage array_to_image(int** array, int w, int h)
+{
+	QImage img(w, h, QImage::Format_RGB32);
+	int i, j;
+	for (i = 0; i < h; i++)
+		for (j = 0; j < w; j++)
+			img.setPixel(j, i, qRgb(array[i][j], array[i][j], array[i][j]));
+	return img;
+}
+#endif
