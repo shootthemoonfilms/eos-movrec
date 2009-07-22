@@ -51,7 +51,7 @@ public:
 	void NextIter(int **image_arr, int w, int h);
 	int getNextFocus()
 	{
-		if (finfos.size() <= NoiseCounts)
+		if ((int)finfos.size() <= NoiseCounts)
 			return 0;
 		return NextFocus;
 	}
@@ -63,7 +63,6 @@ private:
 	int maxdispersion();
 	int mindispersion();
 
-	int delete_image(int** array, int w, int h);
 	int** sobel_trans(int** src_image, int w, int h);
 	int dispersion(int** array, int w, int h);
 	int average(int** array, int w, int h);

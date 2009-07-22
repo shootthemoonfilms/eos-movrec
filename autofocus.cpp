@@ -24,6 +24,7 @@
 #include "autofocus.h"
 
 #include <stdlib.h>
+#include <math.h>
 
 GAutoFocus::GAutoFocus()
 {
@@ -66,11 +67,15 @@ void GAutoFocus::NextIter(int **image_arr, int w, int h)
 	if (stop)
 		return;
 
+	int i;
 	int last_index = (int)finfos.size() - 1;
 	focusingInfo* finf = new focusingInfo;
 	int** sobel_image = sobel_trans(image_arr, w, h);
 	finf->dispersion = dispersion(sobel_image, w, h);	// this value of dispersion is a result of previous NextFocus
-	delete_image(sobel_image, w, h);
+	// delete sobel image
+	for (i = 0; i < h; i++)
+		free(sobel_image[i]);
+	free(sobel_image);
 	if (last_index >= NoiseCounts)
 	{
 		finf->focusPosition = finfos[last_index]->focusPosition + NextFocus;
@@ -84,34 +89,56 @@ void GAutoFocus::NextIter(int **image_arr, int w, int h)
 	finfos.push_back(finf);
 	last_index++;
 
-	if (last_index == NoiseCounts)
+	if (last_index == NoiseCounts - 1)
 	{
 		// калибровка шумов - прогрев автофокуса )))
-		Noise = (maxdispersion() - mindispersion())/2;
+		//Noise = (maxdispersion() - mindispersion())/2;
+		int avg = 0;
+		int s = 0;
+		for (i = 0; i < NoiseCounts; i++)
+			avg += finfos[i]->dispersion;
+		avg /= NoiseCounts;
+		for (i = 0; i < NoiseCounts; i++)
+			s += (finfos[i]->dispersion - avg)*
+				 (finfos[i]->dispersion - avg);
+		Noise = (int)sqrt((double)s/(double)NoiseCounts);
 	}
 
-	if (last_index > NoiseCounts)
+	if (last_index >= NoiseCounts)
 	{
-		if (abs(finf->dispersion - finfos[last_index - 1]->dispersion) < Noise)
-			finf->dispersion = finfos[last_index - 1]->dispersion;
-		if (finfos.size() > 5 + NoiseCounts)
-			if (abs((finf->dispersion - finfos[last_index - 4]->dispersion)) <= Noise)
+		//if (abs(finf->dispersion - finfos[last_index - 1]->dispersion) < Noise)
+		//	finf->dispersion = finfos[last_index - 1]->dispersion;
+		// если дисперсия дисперсий почти не меняется -> остановиться
+		if ((int)finfos.size() > 10 + NoiseCounts)
+		{
+			int avg = 0;
+			int e = 0;
+			const int n = 6;
+			for (i = 0; i < n; i++)
+				avg += finfos[last_index - i]->dispersion;
+			avg /= n;
+			for (i = 0; i < n; i++)
+				e += (finfos[last_index - i]->dispersion - avg)*
+					 (finfos[last_index - i]->dispersion - avg);
+			e = (int)sqrt((double)e/(double)n);
+			if (e <= Noise)
 				stop = true;
+		}
 
 		int max_disp = maxdispersion();
 		//int min_disp = mindispersion();
-		if (finf->dispersion > max_disp && finfos.size() > 50 + NoiseCounts)
+		if (finf->dispersion > max_disp && (int)finfos.size() > 50 + NoiseCounts)
 			stop = true;
 
 		if (finf->focusDir != finfos[last_index - 1]->focusDir && abs(finfos[last_index - 1]->focusDir) > 0)
 			change_count++;
-		if (change_count > 1)
+		if (change_count > 2)
 			focus_step = 1;
-		if (change_count > 3)
+		if (change_count > 4)
 			stop = true;
 
 		if (finf->dispersion >= finfos[last_index - 1]->dispersion ||
-			abs(finf->dispersion - max_disp) < 3*Noise)
+			abs(finf->dispersion - max_disp) < 3*Noise/2)
 		{
 			NextFocus = finf->focusDir > 0 ? focus_step : -focus_step;
 		}
@@ -146,15 +173,6 @@ int GAutoFocus::mindispersion()
 			ret = finfos[i]->dispersion;
 	}
 	return ret;
-}
-
-int GAutoFocus::delete_image(int** array, int /*w*/, int h)
-{
-	int i;
-	for (i = 0; i < h; i++)
-		free(array[i]);
-	free(array);
-	return 0;
 }
 
 int** GAutoFocus::sobel_trans(int** src_image, int w, int h)
