@@ -79,10 +79,10 @@ void GAutoFocus::NextIter(int **image_arr, int w, int h, int* cookie)
 	focusingInfo finf;
 	int** sobel_image = sobel_trans(image_arr, w, h);
 #if AF_DEBUG_LOG
-	QString name1 = QString("afimg_%1.bmp").arg(*cookie, 3, 10);
-	QString name2 = QString("afimg_%1_sobel.bmp").arg(*cookie, 3, 10);
+	QString name1 = QString("afimg_%1.bmp").arg(*cookie, 3, 10, QLatin1Char('0'));
+	QString name2 = QString("afimg_%1_sobel.bmp").arg(*cookie, 3, 10, QLatin1Char('0'));
 	char name3[128];
-	sprintf(name3, "afimg_%3d.txt", *cookie);
+	sprintf(name3, "afimg_%03d.txt", *cookie);
 	array_to_image(image_arr, w, h).save(name1);
 	array_to_image(sobel_image, w, h).save(name2);
 	FILE* info = fopen(name3, "wt");
@@ -118,6 +118,9 @@ void GAutoFocus::NextIter(int **image_arr, int w, int h, int* cookie)
 			s += (finfos[i].dispersion - avg)*
 				 (finfos[i].dispersion - avg);
 		Noise = (int)sqrt((double)s/(double)NoiseCounts);
+		Noise *= 6;		// правило трех сигм
+		if (Noise == 0)
+			Noise = 3;
 	}
 
 	if (last_index >= NoiseCounts)
@@ -137,7 +140,7 @@ void GAutoFocus::NextIter(int **image_arr, int w, int h, int* cookie)
 				e += (finfos[last_index - i].dispersion - avg)*
 					 (finfos[last_index - i].dispersion - avg);
 			e = (int)sqrt((double)e/(double)n);
-			if (e <= Noise)
+			if (8*e < Noise)
 			{
 #if AF_DEBUG_LOG
 				fprintf(info, "AF stoped: e <= Noise\n");
@@ -172,7 +175,7 @@ void GAutoFocus::NextIter(int **image_arr, int w, int h, int* cookie)
 		}
 
 		if (finf.dispersion >= finfos[last_index - 1].dispersion ||
-			abs(finf.dispersion - max_disp) < 3*Noise/2)
+			abs(finf.dispersion >= finfos[last_index - 1].dispersion) <= Noise/2)
 		{
 			NextFocus = finf.focusDir > 0 ? focus_step : -focus_step;
 		}
