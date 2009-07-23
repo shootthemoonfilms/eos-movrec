@@ -26,6 +26,13 @@
 #include <stdlib.h>
 #include <math.h>
 
+#if AF_DEBUG_LOG
+#include <QImage>
+#include <stdio.h>
+
+static QImage array_to_image(int** array, int w, int h);
+#endif
+
 GAutoFocus::GAutoFocus()
 {
 	Noise = 0.0;
@@ -38,55 +45,64 @@ GAutoFocus::GAutoFocus()
 
 GAutoFocus::~GAutoFocus()
 {
-	int infs = finfos.size();
+	/*int infs = finfos.count();
 	for (int i = 0; i < infs; i++)
 	{
 		delete finfos[i];
 	}
-	finfos.clear();
+	finfos.clear();*/
 }
 
 int GAutoFocus::lastDispersion()
 {
-	int last_index = (int)finfos.size() - 1;
+	int last_index = finfos.count() - 1;
 	if (last_index < 0)
 		return 0.0;
-	return finfos[last_index]->dispersion;
+	return finfos[last_index].dispersion;
 }
 
 int GAutoFocus::lastPosition()
 {
-	int last_index = (int)finfos.size() - 1;
+	int last_index = finfos.count() - 1;
 	if (last_index < 0)
 		return 0.0;
-	return finfos[last_index]->focusPosition;
+	return finfos[last_index].focusPosition;
 }
 
-void GAutoFocus::NextIter(int **image_arr, int w, int h)
+void GAutoFocus::NextIter(int **image_arr, int w, int h, int* cookie)
 {
 	if (stop)
 		return;
 
 	int i;
-	int last_index = (int)finfos.size() - 1;
-	focusingInfo* finf = new focusingInfo;
+	int last_index = finfos.count() - 1;
+	focusingInfo finf;
 	int** sobel_image = sobel_trans(image_arr, w, h);
-	finf->dispersion = dispersion(sobel_image, w, h);	// this value of dispersion is a result of previous NextFocus
+#if AF_DEBUG_LOG
+	QString name1 = QString("afimg_%1.bmp").arg(*cookie, 3, 10);
+	QString name2 = QString("afimg_%1_sobel.bmp").arg(*cookie, 3, 10);
+	char name3[128];
+	sprintf(name3, "afimg_%3d.txt", *cookie);
+	array_to_image(image_arr, w, h).save(name1);
+	array_to_image(sobel_image, w, h).save(name2);
+	FILE* info = fopen(name3, "wt");
+#endif
+	finf.dispersion = dispersion(sobel_image, w, h);	// this value of dispersion is a result of previous NextFocus
 	// delete sobel image
 	for (i = 0; i < h; i++)
 		free(sobel_image[i]);
 	free(sobel_image);
 	if (last_index >= NoiseCounts)
 	{
-		finf->focusPosition = finfos[last_index]->focusPosition + NextFocus;
-		finf->focusDir = NextFocus;
+		finf.focusPosition = finfos[last_index].focusPosition + NextFocus;
+		finf.focusDir = NextFocus;
 	}
 	else
 	{
-		finf->focusPosition = 0;
-		finf->focusDir = 0;
+		finf.focusPosition = 0;
+		finf.focusDir = 0;
 	}
-	finfos.push_back(finf);
+	finfos.append(finf);
 	last_index++;
 
 	if (last_index == NoiseCounts - 1)
@@ -96,81 +112,108 @@ void GAutoFocus::NextIter(int **image_arr, int w, int h)
 		int avg = 0;
 		int s = 0;
 		for (i = 0; i < NoiseCounts; i++)
-			avg += finfos[i]->dispersion;
+			avg += finfos[i].dispersion;
 		avg /= NoiseCounts;
 		for (i = 0; i < NoiseCounts; i++)
-			s += (finfos[i]->dispersion - avg)*
-				 (finfos[i]->dispersion - avg);
+			s += (finfos[i].dispersion - avg)*
+				 (finfos[i].dispersion - avg);
 		Noise = (int)sqrt((double)s/(double)NoiseCounts);
 	}
 
 	if (last_index >= NoiseCounts)
 	{
-		//if (abs(finf->dispersion - finfos[last_index - 1]->dispersion) < Noise)
-		//	finf->dispersion = finfos[last_index - 1]->dispersion;
+		//if (abs(finf->dispersion - finfos[last_index - 1].dispersion) < Noise)
+		//	finf->dispersion = finfos[last_index - 1].dispersion;
 		// если дисперсия дисперсий почти не меняется -> остановиться
-		if ((int)finfos.size() > 10 + NoiseCounts)
+		if (finfos.count() > 10 + NoiseCounts)
 		{
 			int avg = 0;
 			int e = 0;
 			const int n = 6;
 			for (i = 0; i < n; i++)
-				avg += finfos[last_index - i]->dispersion;
+				avg += finfos[last_index - i].dispersion;
 			avg /= n;
 			for (i = 0; i < n; i++)
-				e += (finfos[last_index - i]->dispersion - avg)*
-					 (finfos[last_index - i]->dispersion - avg);
+				e += (finfos[last_index - i].dispersion - avg)*
+					 (finfos[last_index - i].dispersion - avg);
 			e = (int)sqrt((double)e/(double)n);
 			if (e <= Noise)
+			{
+#if AF_DEBUG_LOG
+				fprintf(info, "AF stoped: e <= Noise\n");
+				fflush(info);
+#endif
 				stop = true;
+			}
 		}
 
 		int max_disp = maxdispersion();
 		//int min_disp = mindispersion();
-		if (finf->dispersion > max_disp && (int)finfos.size() > 50 + NoiseCounts)
+		if (finf.dispersion > max_disp && finfos.count() > 50 + NoiseCounts)
+		{
+#if AF_DEBUG_LOG
+				fprintf(info, "AF stoped: to many iterations\n");
+				fflush(info);
+#endif
 			stop = true;
+		}
 
-		if (finf->focusDir != finfos[last_index - 1]->focusDir && abs(finfos[last_index - 1]->focusDir) > 0)
+		if (finf.focusDir != finfos[last_index - 1].focusDir && abs(finfos[last_index - 1].focusDir) > 0)
 			change_count++;
 		if (change_count > 2)
 			focus_step = 1;
 		if (change_count > 4)
-			stop = true;
-
-		if (finf->dispersion >= finfos[last_index - 1]->dispersion ||
-			abs(finf->dispersion - max_disp) < 3*Noise/2)
 		{
-			NextFocus = finf->focusDir > 0 ? focus_step : -focus_step;
+#if AF_DEBUG_LOG
+				fprintf(info, "AF stoped: change_count > 4\n");
+				fflush(info);
+#endif
+			stop = true;
+		}
+
+		if (finf.dispersion >= finfos[last_index - 1].dispersion ||
+			abs(finf.dispersion - max_disp) < 3*Noise/2)
+		{
+			NextFocus = finf.focusDir > 0 ? focus_step : -focus_step;
 		}
 		else
 		{
-			NextFocus = finf->focusDir > 0 ? -focus_step : focus_step;
+			NextFocus = finf.focusDir > 0 ? -focus_step : focus_step;
 		}
 	}
 	if (stop)
 		NextFocus = 0;
+#if AF_DEBUG_LOG
+		fprintf(info, "i = %d\ndisp = %d, NextFocus = %d\n", *cookie, finf.dispersion, NextFocus);
+		if (info)
+			fclose(info);
+#endif
 }
 
 int GAutoFocus::maxdispersion()
 {
-	int ret = finfos[0]->dispersion;
-	int infs = finfos.size();
+	int infs = finfos.count();
+	if (infs < 1)
+		return 0;
+	int ret = finfos[0].dispersion;
 	for(int i = 0; i < infs; i++)
 	{
-		if (ret < finfos[i]->dispersion)
-			ret = finfos[i]->dispersion;
+		if (ret < finfos[i].dispersion)
+			ret = finfos[i].dispersion;
 	}
 	return ret;
 }
 
 int GAutoFocus::mindispersion()
 {
-	int ret = finfos[0]->dispersion;
-	int infs = finfos.size();
+	int infs = finfos.count();
+	if (infs < 1)
+		return 0;
+	int ret = finfos[0].dispersion;
 	for(int i = 0; i < infs; i++)
 	{
-		if (ret > finfos[i]->dispersion)
-			ret = finfos[i]->dispersion;
+		if (ret > finfos[i].dispersion)
+			ret = finfos[i].dispersion;
 	}
 	return ret;
 }
@@ -260,7 +303,7 @@ int GAutoFocus::average(int** array, int w, int h)
 	return res;
 }
 
-#if 0
+#if AF_DEBUG_LOG
 QImage array_to_image(int** array, int w, int h)
 {
 	QImage img(w, h, QImage::Format_RGB32);

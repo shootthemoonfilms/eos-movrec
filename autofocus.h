@@ -21,7 +21,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <vector>
+#include <QList>
 
 class GAutoFocus
 {
@@ -37,7 +37,7 @@ private:
 		int focusPosition;
 		int focusDir;
 	};
-	std::vector <GAutoFocus::focusingInfo*> finfos;
+	QList <GAutoFocus::focusingInfo> finfos;
 public:
 	bool stop;
 	GAutoFocus();
@@ -48,7 +48,7 @@ public:
 	{
 		return Noise;
 	}
-	void NextIter(int **image_arr, int w, int h);
+	void NextIter(int **image_arr, int w, int h, int* cookie);
 	int getNextFocus()
 	{
 		if ((int)finfos.size() <= NoiseCounts)

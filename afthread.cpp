@@ -28,8 +28,6 @@
 #include <QWidget>
 #include <QApplication>
 
-#define AF_DEBUG_LOG	1
-
 #if AF_DEBUG_LOG
 #include <stdio.h>
 #endif
@@ -58,6 +56,7 @@ void GAFThread::run()
 {
 	int** pict;
 	QSize pictSz;
+	int cookie = 0;
 	int nextfocus;
 	int dir;
 	int count1, count2, count3;
@@ -82,14 +81,14 @@ void GAFThread::run()
 			noise = fc->noise();
 #endif
 			pictSz = CapWnd->getFocusingAreaSize();
-			fc->NextIter(pict, pictSz.width(), pictSz.height());
+			fc->NextIter(pict, pictSz.width(), pictSz.height(), &cookie);
 			nextfocus = fc->getNextFocus();
 #if AF_DEBUG_LOG
 			pos = fc->lastPosition();
 			disp = fc->lastDispersion();
 			str_disp.sprintf("%d, %d", disp, nextfocus);
 			CapWnd->setText(str_disp);
-			fprintf(f, "%d, pos=%d, %d -> %d, noise=%d\n", disp, pos, old_nf, nextfocus, noise);
+			fprintf(f, "i = %d; %d, pos=%d, %d -> %d, noise=%d\n", cookie, disp, pos, old_nf, nextfocus, noise);
 #endif
 			if (!fc->stop)
 			{
@@ -118,6 +117,7 @@ void GAFThread::run()
 				//delete fc;
 				//fc = new FocusingClass;
 			}
+			cookie++;
 		}
 		CapWnd->unlockFocusingArea();
 		WinSleep(100);
