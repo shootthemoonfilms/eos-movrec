@@ -40,7 +40,7 @@ GAutoFocus::GAutoFocus()
 	focus_step = 8;
 	NextFocus = focus_step;
 	change_count = 0;
-	NoiseCounts = 10;		// must calibrate
+	NoiseCounts = 4;		// must calibrate
 }
 
 GAutoFocus::~GAutoFocus()
@@ -78,7 +78,7 @@ void GAutoFocus::NextIter(int **image_arr, int w, int h, int* cookie)
 	int last_index = finfos.count() - 1;
 	focusingInfo finf;
 	int** gauss_image = gauss_filter(image_arr, w, h);
-	int** sobel_image = sobel_filter(gauss_arr, w, h);
+	int** sobel_image = sobel_filter(gauss_image, w, h);
 #if AF_DEBUG_LOG
 	QString name1 = QString("afimg_%1.bmp").arg(*cookie, 3, 10, QLatin1Char('0'));
 	QString name2 = QString("afimg_%1_gauss.bmp").arg(*cookie, 3, 10, QLatin1Char('0'));
@@ -150,7 +150,7 @@ void GAutoFocus::NextIter(int **image_arr, int w, int h, int* cookie)
 			if (8*e < Noise)
 			{
 #if AF_DEBUG_LOG
-				fprintf(info, "AF stoped: e <= Noise\n");
+				fprintf(info, "AF stoped: e <= Noise(%d): e = %d\n", Noise, e*8);
 				fflush(info);
 #endif
 				stop = true;
@@ -181,8 +181,13 @@ void GAutoFocus::NextIter(int **image_arr, int w, int h, int* cookie)
 			stop = true;
 		}
 
-		if (finf.dispersion >= finfos[last_index - 1].dispersion ||
-			abs(finf.dispersion >= finfos[last_index - 1].dispersion) <= Noise/2)
+#if AF_DEBUG_LOG
+				fprintf(info, "prev disp = %d\n", finfos[last_index - 1].dispersion);
+				fprintf(info, "max_disp = %d\n", max_disp);
+				fflush(info);
+#endif
+		if (finf.dispersion >= max_disp ||
+			abs(finf.dispersion - finfos[last_index - 1].dispersion) <= Noise)
 		{
 			NextFocus = finf.focusDir > 0 ? focus_step : -focus_step;
 		}

@@ -67,7 +67,7 @@ void GAFThread::run()
 	int pos;
 	int disp;
 	QString str_disp;
-	FILE* f = fopen("af.log", "at");
+	FILE* f = fopen("af.log", "wt");
 	fprintf(f, "af start!\n");;
 #endif
 	while (!Stopped)
