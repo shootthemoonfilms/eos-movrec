@@ -77,17 +77,24 @@ void GAutoFocus::NextIter(int **image_arr, int w, int h, int* cookie)
 	int i;
 	int last_index = finfos.count() - 1;
 	focusingInfo finf;
-	int** sobel_image = sobel_trans(image_arr, w, h);
+	int** gauss_image = gauss_filter(image_arr, w, h);
+	int** sobel_image = sobel_filter(gauss_arr, w, h);
 #if AF_DEBUG_LOG
 	QString name1 = QString("afimg_%1.bmp").arg(*cookie, 3, 10, QLatin1Char('0'));
-	QString name2 = QString("afimg_%1_sobel.bmp").arg(*cookie, 3, 10, QLatin1Char('0'));
-	char name3[128];
-	sprintf(name3, "afimg_%03d.txt", *cookie);
+	QString name2 = QString("afimg_%1_gauss.bmp").arg(*cookie, 3, 10, QLatin1Char('0'));
+	QString name3 = QString("afimg_%1_g+s.bmp").arg(*cookie, 3, 10, QLatin1Char('0'));
+	char name4[128];
+	sprintf(name4, "afimg_%03d.txt", *cookie);
 	array_to_image(image_arr, w, h).save(name1);
-	array_to_image(sobel_image, w, h).save(name2);
-	FILE* info = fopen(name3, "wt");
+	array_to_image(gauss_image, w, h).save(name2);
+	array_to_image(sobel_image, w, h).save(name3);
+	FILE* info = fopen(name4, "wt");
 #endif
-	finf.dispersion = dispersion(sobel_image, w, h);	// this value of dispersion is a result of previous NextFocus
+	finf.dispersion = dispersion(sobel_image, w, h, 2);	// this value of dispersion is a result of previous NextFocus
+	// delete gauss image
+	for (i = 0; i < h; i++)
+		free(gauss_image[i]);
+	free(gauss_image);
 	// delete sobel image
 	for (i = 0; i < h; i++)
 		free(sobel_image[i]);
@@ -221,7 +228,7 @@ int GAutoFocus::mindispersion()
 	return ret;
 }
 
-int** GAutoFocus::sobel_trans(int** src_image, int w, int h)
+int** GAutoFocus::sobel_filter(int** src_image, int w, int h)
 {
 	static const int Gx[3][3] =
 		{
@@ -249,60 +256,125 @@ int** GAutoFocus::sobel_trans(int** src_image, int w, int h)
 	int i, j;
 	int sum_x, sum_y;
 	int sum;
-	for (y = 0; y < h; y++)
+	for (y = 1; y < h - 1; y++)
 	{
-		for (x = 0; x < w; x++)
+		for (x = 1; x < w - 1; x++)
 		{
-			if (x == 0 || x == w - 1 || y == 0 || y == h - 1)
-				sum = 0;
-			else
+			sum_x = 0;
+			sum_y = 0;
+			for (i = 0; i < 3; i++)
 			{
-				sum_x = 0;
-				sum_y = 0;
-				for (i = 0; i < 3; i++)
+				for (j = 0; j < 3; j++)
 				{
-					for (j = 0; j < 3; j++)
-					{
-						sum_x += src_image[y + i - 1][x + j - 1]*Gx[i][j];
-						sum_y += src_image[y + i - 1][x + j - 1]*Gy[i][j];
-					}
+					sum_x += src_image[y + i - 1][x + j - 1]*Gx[i][j];
+					sum_y += src_image[y + i - 1][x + j - 1]*Gy[i][j];
 				}
-				sum = abs(sum_x) + abs(sum_y);
-				if (sum > 255)
-					sum = 255;
-				else if (sum < 0)
-					sum = 0;
 			}
+			sum = abs(sum_x) + abs(sum_y);
+			if (sum > 255)
+				sum = 255;
+			else if (sum < 0)
+				sum = 0;
 			dst_vals[y][x] = 255 - sum;
 		}
+	}
+	for (i = 0; i < w; i++)
+	{
+		dst_vals[0][i] = dst_vals[1][i];
+		dst_vals[h - 1][i] = dst_vals[h - 2][i];
+	}
+	for (i = 0; i < h; i++)
+	{
+		dst_vals[i][0] = dst_vals[i][1];
+		dst_vals[i][w - 1] = dst_vals[i][w - 2];
 	}
 	return dst_vals;
 }
 
-int GAutoFocus::dispersion(int** array, int w, int h)
+int** GAutoFocus::gauss_filter(int** src_image, int w, int h)
+{
+	static const int M[5][5] =
+	{
+		{1,  4,  6,  4, 1},
+		{4, 16, 24, 16, 4},
+		{6, 24, 36, 24, 6},
+		{4, 16, 24, 16, 4},
+		{1,  4,  6,  4, 1}
+	};
+	int x, y;
+	// allocate destination array
+	int** dst_vals = (int**)malloc(h*sizeof(int*));
+	if (!dst_vals)
+	{
+		return 0;
+	}
+	for (y = 0; y < h; y++)
+	{
+		dst_vals[y] = (int*)malloc(w*sizeof(int));
+	}
+	int i, j;
+	int sum;
+	for (y = 2; y < h - 2; y++)
+	{
+		for (x = 2; x < w - 2; x++)
+		{
+			sum = 0;
+			for (i = 0; i < 5; i++)
+			{
+				for (j = 0; j < 5; j++)
+				{
+					sum += src_image[y + i - 2][x + j - 2]*M[i][j];
+				}
+			}
+			sum /= 256;
+			if (sum > 255)
+				sum = 255;
+			else if (sum < 0)
+				sum = 0;
+			dst_vals[y][x] = sum;
+		}
+	}
+	for (i = 0; i < w; i++)
+	{
+		dst_vals[0][i] = dst_vals[2][i];
+		dst_vals[1][i] = dst_vals[2][i];
+		dst_vals[h - 2][i] = dst_vals[h - 3][i];
+		dst_vals[h - 1][i] = dst_vals[h - 3][i];
+	}
+	for (i = 0; i < h; i++)
+	{
+		dst_vals[i][0] = dst_vals[i][2];
+		dst_vals[i][1] = dst_vals[i][2];
+		dst_vals[i][w - 2] = dst_vals[i][w - 3];
+		dst_vals[i][w - 1] = dst_vals[i][w - 3];
+	}
+	return dst_vals;
+}
+
+int GAutoFocus::dispersion(int** array, int w, int h, int n)
 {
 	int i, j;
 	int res = 0;
-	int avg = average(array, w, h);
-	for (i = 1; i < h - 1; i++)
+	int avg = average(array, w, h, n);
+	for (i = n; i < h - n; i++)
 	{
-		for (j = 1; j < w - 1; j++)
+		for (j = n; j < w - n; j++)
 			res += (array[i][j] - avg)*(array[i][j] - avg);
 	}
-	res = res/((w - 2)*(h - 2));
+	res = res/((w - 2*n)*(h - 2*n));
 	return res;
 }
 
-int GAutoFocus::average(int** array, int w, int h)
+int GAutoFocus::average(int** array, int w, int h, int n)
 {
 	int i, j;
 	int res = 0;
-	for (i = 1; i < h - 1; i++)
+	for (i = n; i < h - n; i++)
 	{
-		for (j = 1; j < w - 1; j++)
+		for (j = n; j < w - n; j++)
 			res += array[i][j];
 	}
-	res = res/((w - 2)*(h - 2));
+	res = res/((w - 2*n)*(h - 2*n));
 	return res;
 }
 

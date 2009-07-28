@@ -63,8 +63,9 @@ private:
 	int maxdispersion();
 	int mindispersion();
 
-	int** sobel_trans(int** src_image, int w, int h);
-	int dispersion(int** array, int w, int h);
-	int average(int** array, int w, int h);
+	int** sobel_filter(int** src_image, int w, int h);
+	int** gauss_filter(int** src_image, int w, int h);
+	int dispersion(int** array, int w, int h, int n);
+	int average(int** array, int w, int h, int n);
 	//QImage array_to_image(int** array, int w, int h);
 };
