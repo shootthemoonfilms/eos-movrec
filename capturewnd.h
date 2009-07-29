@@ -65,7 +65,8 @@ private:
 	int** FocusArea;
 	QRect FocusAreaRect;
 	QMutex FocusMutex;
-	QWaitContition FocusCond;
+	QMutex WaitMutex;
+	QWaitCondition FocusCond;
 	QString Text;
 };
 

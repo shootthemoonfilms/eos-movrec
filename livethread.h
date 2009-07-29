@@ -127,6 +127,7 @@ private:
 	char* FileName;
 	int BufferSize;
 	QMutex CommandMutex;
+	QMutex WaitMutex;
 	QWaitCondition CommandCond;
 	QMutex WrtFlagMutex;
 	QMutex HistogramMutex;

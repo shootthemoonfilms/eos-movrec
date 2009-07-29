@@ -188,9 +188,9 @@ void GEOSCaptureWnd::mouseMoveEvent(QMouseEvent* event)
 
 void GEOSCaptureWnd::waitPicture()
 {
-	FocusMutex.lock();
-	FocusCond.wait();
-	FocusMutex.unlock();
+	WaitMutex.lock();
+	FocusCond.wait(&WaitMutex);
+	WaitMutex.unlock();
 }
 
 void GEOSCaptureWnd::customEvent(QEvent* event)

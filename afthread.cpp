@@ -72,6 +72,7 @@ void GAFThread::run()
 #endif
 	while (!Stopped)
 	{
+		CapWnd->waitPicture();
 		CapWnd->lockFocusingArea();
 		pict = CapWnd->getFocusingArea();
 		if (pict)
@@ -113,7 +114,6 @@ void GAFThread::run()
 					for (i = 0; i < count1; i++)
 						LiveThread->cmdAdjFocus(dir, 1);
 					LiveThread->waitCommands();
-					CapWnd->waitPicture();
 				}
 			}
 			else

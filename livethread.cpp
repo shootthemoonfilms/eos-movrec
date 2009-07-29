@@ -435,9 +435,9 @@ EdsError GMyLiveThread::processCommand()
 
 void GMyLiveThread::waitCommands()
 {
-	CommandMutex.lock();
-	CommandCond.wait(&CommandMutex);
-	CommandMutex.unlock();
+	WaitMutex.lock();
+	CommandCond.wait(&WaitMutex);
+	WaitMutex.unlock();
 }
 
 void GMyLiveThread::run()
