@@ -69,9 +69,12 @@ void GAFThread::run()
 	QString str_disp;
 	FILE* f = fopen("af.log", "wt");
 	fprintf(f, "af start!\n");;
+	fflush(f);
 #endif
 	while (!Stopped)
 	{
+		if (fc->stop)
+			break;
 		CapWnd->waitPicture();
 		CapWnd->lockFocusingArea();
 		pict = CapWnd->getFocusingArea();
@@ -90,33 +93,31 @@ void GAFThread::run()
 			str_disp.sprintf("%d, %d", disp, nextfocus);
 			CapWnd->setText(str_disp);
 			fprintf(f, "i = %d; %d, pos=%d, %d -> %d, noise=%d\n", cookie, disp, pos, old_nf, nextfocus, noise);
+			fflush(f);
 #endif
-			if (!fc->stop)
+			if (nextfocus != 0)
 			{
-				if (nextfocus != 0)
+				if (nextfocus < 0)
 				{
-					if (nextfocus < 0)
-					{
-						nextfocus = -nextfocus;
-						dir = 0;
-					}
-					else
-						dir = 1;
-					// adjust nextfocus
-					//nextfocus *= 7;
-					count3 = nextfocus / 30;
-					count2 = (nextfocus - count3*30) / 8;
-					count1 = nextfocus - count3*30 - count2*8;
-					for (i = 0; i < count3; i++)
-						LiveThread->cmdAdjFocus(dir, 3);
-					for (i = 0; i < count2; i++)
-						LiveThread->cmdAdjFocus(dir, 2);
-					for (i = 0; i < count1; i++)
-						LiveThread->cmdAdjFocus(dir, 1);
-					LiveThread->waitCommands();
+					nextfocus = -nextfocus;
+					dir = 0;
 				}
+				else
+					dir = 1;
+				// adjust nextfocus
+				//nextfocus *= 7;
+				count3 = nextfocus / 30;
+				count2 = (nextfocus - count3*30) / 8;
+				count1 = nextfocus - count3*30 - count2*8;
+				for (i = 0; i < count3; i++)
+					LiveThread->cmdAdjFocus(dir, 3);
+				for (i = 0; i < count2; i++)
+					LiveThread->cmdAdjFocus(dir, 2);
+				for (i = 0; i < count1; i++)
+					LiveThread->cmdAdjFocus(dir, 1);
+				LiveThread->waitCommands();
 			}
-			else
+			if (fc->stop)
 			{
 				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AF_STOPPED));
 				//delete fc;
@@ -126,6 +127,8 @@ void GAFThread::run()
 		}
 		CapWnd->unlockFocusingArea();
 		//WinSleep(100);
+		if (fc->stop)
+			break;
 	}
 #if AF_DEBUG_LOG
 	fprintf(f, "af end.\n\n");

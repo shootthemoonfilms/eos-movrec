@@ -80,9 +80,9 @@ void GAutoFocus::NextIter(int **image_arr, int w, int h, int* cookie)
 	int** gauss_image = gauss_filter(image_arr, w, h);
 	int** sobel_image = sobel_filter(gauss_image, w, h);
 #if AF_DEBUG_LOG
-	QString name1 = QString("afimg_%1.bmp").arg(*cookie, 3, 10, QLatin1Char('0'));
-	QString name2 = QString("afimg_%1_gauss.bmp").arg(*cookie, 3, 10, QLatin1Char('0'));
-	QString name3 = QString("afimg_%1_g+s.bmp").arg(*cookie, 3, 10, QLatin1Char('0'));
+	QString name1 = QString("afimg_%1.png").arg(*cookie, 3, 10, QLatin1Char('0'));
+	QString name2 = QString("afimg_%1_gauss.png").arg(*cookie, 3, 10, QLatin1Char('0'));
+	QString name3 = QString("afimg_%1_g+s.png").arg(*cookie, 3, 10, QLatin1Char('0'));
 	char name4[128];
 	sprintf(name4, "afimg_%03d.txt", *cookie);
 	array_to_image(image_arr, w, h).save(name1);
@@ -157,7 +157,8 @@ void GAutoFocus::NextIter(int **image_arr, int w, int h, int* cookie)
 			}
 		}
 
-		int max_disp = maxdispersion();
+		int max_disp_pos = 0;
+		int max_disp = maxdispersion(&max_disp_pos);
 		//int min_disp = mindispersion();
 		if (finf.dispersion > max_disp && finfos.count() > 50 + NoiseCounts)
 		{
@@ -186,26 +187,31 @@ void GAutoFocus::NextIter(int **image_arr, int w, int h, int* cookie)
 				fprintf(info, "max_disp = %d\n", max_disp);
 				fflush(info);
 #endif
-		if (finf.dispersion >= max_disp ||
-			abs(finf.dispersion - finfos[last_index - 1].dispersion) <= Noise)
+		if (stop)
 		{
-			NextFocus = finf.focusDir > 0 ? focus_step : -focus_step;
+			NextFocus = max_disp_pos - finf.focusPosition;
 		}
 		else
 		{
-			NextFocus = finf.focusDir > 0 ? -focus_step : focus_step;
+			if (finf.dispersion >= finfos[last_index - 1].dispersion ||
+				abs(finf.dispersion - finfos[last_index - 1].dispersion)*2/3 <= Noise)
+			{
+				NextFocus = finf.focusDir > 0 ? focus_step : -focus_step;
+			}
+			else
+			{
+				NextFocus = finf.focusDir > 0 ? -focus_step : focus_step;
+			}
 		}
 	}
-	if (stop)
-		NextFocus = 0;
 #if AF_DEBUG_LOG
-		fprintf(info, "i = %d\ndisp = %d, NextFocus = %d\n", *cookie, finf.dispersion, NextFocus);
-		if (info)
-			fclose(info);
+	fprintf(info, "i = %d\ndisp = %d, NextFocus = %d\n", *cookie, finf.dispersion, NextFocus);
+	if (info)
+		fclose(info);
 #endif
 }
 
-int GAutoFocus::maxdispersion()
+int GAutoFocus::maxdispersion(int* focus_pos)
 {
 	int infs = finfos.count();
 	if (infs < 1)
@@ -214,7 +220,11 @@ int GAutoFocus::maxdispersion()
 	for(int i = 0; i < infs; i++)
 	{
 		if (ret < finfos[i].dispersion)
+		{
 			ret = finfos[i].dispersion;
+			if (focus_pos)
+				*focus_pos = finfos[i].focusPosition;
+		}
 	}
 	return ret;
 }

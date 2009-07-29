@@ -60,7 +60,7 @@ private:
 	{
 		return i > 0 ? i : -i;
 	}
-	int maxdispersion();
+	int maxdispersion(int* focus_pos = 0);
 	int mindispersion();
 
 	int** sobel_filter(int** src_image, int w, int h);
