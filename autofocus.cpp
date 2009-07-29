@@ -356,7 +356,7 @@ int** GAutoFocus::sobel_filter(int** src_image, int w, int h)
 	return dst_vals;
 }*/
 
-int** gauss_filter(int** src_image, int w, int h)
+int** GAutoFocus::gauss_filter(int** src_image, int w, int h)
 {
 	static const int M[3][3] =
 	{
