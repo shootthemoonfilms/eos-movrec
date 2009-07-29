@@ -249,9 +249,7 @@ void GMyLiveThread::cmdDoLVAF(int mode)
 
 EdsError GMyLiveThread::processCommand()
 {
-	CommandMutex.lock();
 	GCameraCommand cmd = CommandsQueue.takeFirst();
-	CommandMutex.unlock();
 	int param1 = cmd.param1();
 	int param2 = cmd.param2();
 	/*FILE* f = fopen("cmds.log", "at");
@@ -437,9 +435,9 @@ EdsError GMyLiveThread::processCommand()
 
 void GMyLiveThread::waitCommands()
 {
-	//CommandMutex.lock();
+	CommandMutex.lock();
 	CommandCond.wait(&CommandMutex);
-	//CommandMutex.unlock();
+	CommandMutex.unlock();
 }
 
 void GMyLiveThread::run()
@@ -501,8 +499,6 @@ void GMyLiveThread::run()
 	int TempFrameCount = 0;
 	double TempFPS;
 
-	/*while (!CommandsQueue.isEmpty())
-		processCommand();*/
 	// for internal EDSDK message queue
 	int SDKMsgCheckTime1 = WinGetTickCount();
 	int SDKMsgCheckTime2 = SDKMsgCheckTime1;
@@ -539,12 +535,14 @@ FILE* f = fopen("d", "wt");
 fprintf(f, "%d\n", c);
 fclose(f);
 c++;*/
+		CommandMutex.lock();
 		if (!CommandsQueue.isEmpty())
 		{
 			while (!CommandsQueue.isEmpty())
 				processCommand();
 			CommandCond.wakeAll();
 		}
+		CommandMutex.unlock();
 
 		// process internal EDSDK message queue
 		if (SDKMsgCheckTime2 - SDKMsgCheckTime1 > 500)

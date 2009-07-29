@@ -24,6 +24,7 @@
 #include <QWidget>
 #include <QImage>
 #include <QMutex>
+#include <QWaitCondition>
 
 class GEOSCaptureWnd: public QWidget
 {
@@ -39,6 +40,8 @@ public:
 	void setText(const QString& text);
 	void clearText();
 	void setZoomPositionDivisor(double zpd_x, double zpd_y) { ZPD_x = zpd_x; ZPD_y = zpd_y; }
+	// call only from other thread!
+	void waitPicture();
 protected:
 	//virtual void showEvent(QShowEvent* event);
 	virtual void paintEvent(QPaintEvent * event);
@@ -62,6 +65,7 @@ private:
 	int** FocusArea;
 	QRect FocusAreaRect;
 	QMutex FocusMutex;
+	QWaitContition FocusCond;
 	QString Text;
 };
 

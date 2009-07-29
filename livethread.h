@@ -74,6 +74,8 @@ public:
 	void cmdSetZoom(int zoom);
 	void cmdSetZoomPos(int x, int y);
 	void cmdDoLVAF(int mode);
+	// wait for all commands
+	// call only from other threads!
 	void waitCommands();
 	const unsigned int* avList() const { return AvList; }
 	int avListSize() const { return AvListSize; }

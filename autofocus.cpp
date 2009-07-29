@@ -296,7 +296,7 @@ int** GAutoFocus::sobel_filter(int** src_image, int w, int h)
 	return dst_vals;
 }
 
-int** GAutoFocus::gauss_filter(int** src_image, int w, int h)
+/*int** GAutoFocus::gauss_filter(int** src_image, int w, int h)
 {
 	static const int M[5][5] =
 	{
@@ -352,6 +352,60 @@ int** GAutoFocus::gauss_filter(int** src_image, int w, int h)
 		dst_vals[i][1] = dst_vals[i][2];
 		dst_vals[i][w - 2] = dst_vals[i][w - 3];
 		dst_vals[i][w - 1] = dst_vals[i][w - 3];
+	}
+	return dst_vals;
+}*/
+
+int** gauss_filter(int** src_image, int w, int h)
+{
+	static const int M[3][3] =
+	{
+		{1, 2, 1},
+		{2, 4, 2},
+		{1, 2, 1}
+	};
+	int x, y;
+	// allocate destination array
+	int** dst_vals = (int**)malloc(h*sizeof(int*));
+	if (!dst_vals)
+	{
+		return 0;
+	}
+	for (y = 0; y < h; y++)
+	{
+		dst_vals[y] = (int*)malloc(w*sizeof(int));
+	}
+	int i, j;
+	int sum;
+	for (y = 1; y < h - 1; y++)
+	{
+		for (x = 1; x < w - 1; x++)
+		{
+			sum = 0;
+			for (i = 0; i < 3; i++)
+			{
+				for (j = 0; j < 3; j++)
+				{
+					sum += src_image[y + i - 1][x + j - 1]*M[i][j];
+				}
+			}
+			sum /= 16;
+			if (sum > 255)
+				sum = 255;
+			else if (sum < 0)
+				sum = 0;
+			dst_vals[y][x] = sum;
+		}
+	}
+	for (i = 0; i < w; i++)
+	{
+		dst_vals[0][i] = dst_vals[1][i];
+		dst_vals[h - 1][i] = dst_vals[h - 2][i];
+	}
+	for (i = 0; i < h; i++)
+	{
+		dst_vals[i][0] = dst_vals[i][1];
+		dst_vals[i][w - 1] = dst_vals[i][w - 2];
 	}
 	return dst_vals;
 }

@@ -186,6 +186,13 @@ void GEOSCaptureWnd::mouseMoveEvent(QMouseEvent* event)
 	}
 }
 
+void GEOSCaptureWnd::waitPicture()
+{
+	FocusMutex.lock();
+	FocusCond.wait();
+	FocusMutex.unlock();
+}
+
 void GEOSCaptureWnd::customEvent(QEvent* event)
 {
 	static int old_width = 0;
@@ -230,6 +237,7 @@ void GEOSCaptureWnd::customEvent(QEvent* event)
 					old_width = live_buffer::frame_width;
 					old_height = live_buffer::frame_height;
 				}
+				FocusCond.wakeAll();
 				update(0, 0, live_buffer::frame_width, live_buffer::frame_height);
 			}
 			live_buffer::IsPainting = false;
@@ -291,37 +299,12 @@ int** GEOSCaptureWnd::getFocusingArea()
 	//QImage img = LiveImage.copy(FocusAreaRect).scaled(FocusAreaRect.width()/2, FocusAreaRect.height()/2, Qt::IgnoreAspectRatio, Qt::FastTransformation).convertToFormat(QImage::Format_RGB32, Qt::ColorOnly);
 	//QImage img = LiveImage.copy(FocusAreaRect).convertToFormat(QImage::Format_RGB32, Qt::ColorOnly);
 	QImage img = LiveImage.copy(FocusAreaRect);
-	//unsigned char* bits = img.bits();
-	//int num_bytes = img.numBytes();
-
-	// debug code ...
-	//img.save("focus.bmp", "bmp");
-	/*FILE* f = fopen("focus.bin", "wb");
-	if (f)
-	{
-		fwrite(bits, num_bytes, 1, f);
-		fclose(f);
-	}*/
-	// end of debug code
-
-	// image data already aligned by a 32-bit
-	// image is 32 bit
 	int i, j;
-	//int ind = 0;
 	for (i = 0; i < FocusAreaRect.height(); i++)
 	{
 		for (j = 0; j < FocusAreaRect.width(); j++)
-		{
-			/*FocusArea[j][i] = 2*bits[ind] + bits[ind + 1] + 2*bits[ind + 2];
-			FocusArea[j][i] /= 5.0;
-			ind += 4;			// RGB32 format
-			if (ind + 2 >= num_bytes)
-				break;*/
 			FocusArea[i][j] = qGray(img.pixel(j, i));
-		}
 	}
-	// ???????????????????
-	//free(bits);
 	return FocusArea;
 }
 

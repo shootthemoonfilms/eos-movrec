@@ -94,9 +94,13 @@ void GAFThread::run()
 			{
 				if (nextfocus != 0)
 				{
-					dir = nextfocus < 0 ? 0 : 1;
 					if (nextfocus < 0)
+					{
 						nextfocus = -nextfocus;
+						dir = 0;
+					}
+					else
+						dir = 1;
 					// adjust nextfocus
 					//nextfocus *= 7;
 					count3 = nextfocus / 30;
@@ -108,7 +112,8 @@ void GAFThread::run()
 						LiveThread->cmdAdjFocus(dir, 2);
 					for (i = 0; i < count1; i++)
 						LiveThread->cmdAdjFocus(dir, 1);
-					//LiveThread->waitCommands();
+					LiveThread->waitCommands();
+					CapWnd->waitPicture();
 				}
 			}
 			else
@@ -120,7 +125,7 @@ void GAFThread::run()
 			cookie++;
 		}
 		CapWnd->unlockFocusingArea();
-		WinSleep(100);
+		//WinSleep(100);
 	}
 #if AF_DEBUG_LOG
 	fprintf(f, "af end.\n\n");
