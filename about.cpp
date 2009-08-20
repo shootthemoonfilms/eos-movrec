@@ -28,7 +28,7 @@ GAboutDlg::GAboutDlg(QWidget* parent)
  : QDialog(parent)
 {
 	QString text = tr("<body bgcolor=\"%1\"><p>EOS Camera Movie Record<br/>"
-										  "Version 0.2 Beta"
+										  "Version 0.1.10 Beta"
 					  "<center>Authors:</center>"
 					  "Chernov Aleksey - lead programmer (<a href=\"mailto:valexvir@yandex.ru\">valexvir@yandex.ru</a>)<br/>"
 					  "Uterr - autofocus programmer <br/>"

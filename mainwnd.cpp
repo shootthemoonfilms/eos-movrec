@@ -72,13 +72,13 @@ GEOSRecWnd::GEOSRecWnd()
 	startBtn = new QPushButton(tr("Write!"), this);
 	startBtn->setIcon(QPixmap(record_xpm));
 	startBtn->setEnabled(false);
-	startBtn->setToolTip(tr("Start recording"));
+	startBtn->setToolTip(tr("Start recording (R)"));
 	btn_layout->addWidget(startBtn, 0);
 
 	stopBtn = new QPushButton(tr("Stop"), this);
 	stopBtn->setIcon(QPixmap(stop_xpm));
 	stopBtn->setEnabled(false);
-	stopBtn->setToolTip(tr("Stop recording"));
+	stopBtn->setToolTip(tr("Stop recording (S)"));
 	btn_layout->addWidget(stopBtn, 0);
 
 	btn_layout->addSpacing(10);
@@ -102,7 +102,7 @@ GEOSRecWnd::GEOSRecWnd()
 	dofBtn->setText("DOF");
 	dofBtn->setCheckable(true);
 	dofBtn->setEnabled(false);
-	dofBtn->setToolTip(tr("Enable/disable depth of field"));
+	dofBtn->setToolTip(tr("Enable/disable depth of field (D)"));
 	btn_layout->addWidget(dofBtn, 0);
 
 	avBox = new QComboBox(this);
@@ -143,7 +143,7 @@ GEOSRecWnd::GEOSRecWnd()
 	//reconnBtn->setText(tr("R"));
 	reconnBtn->setIcon(QPixmap(usb_sign_black_xpm));
 	reconnBtn->setEnabled(false);
-	reconnBtn->setToolTip(tr("Reconnect to camera"));
+	reconnBtn->setToolTip(tr("Reconnect to camera (O)"));
 	focus_layout->addWidget(reconnBtn, 0);
 	focus_layout->addSpacing(10);
 	focus_layout->addWidget(new QLabel(tr("Focus adjust"), this), 0);
@@ -202,7 +202,7 @@ GEOSRecWnd::GEOSRecWnd()
 	zoom5xBtn->setText(tr("5x"));
 	zoom5xBtn->setEnabled(false);
 	zoom5xBtn->setCheckable(true);
-	zoom5xBtn->setToolTip(tr("5x Zoom (crop)"));
+	zoom5xBtn->setToolTip(tr("5x Zoom (crop) (Z)"));
 	focus_layout->addWidget(zoom5xBtn, 0);
 
 	HistBtn = new QToolButton(this);
@@ -261,6 +261,11 @@ GEOSRecWnd::GEOSRecWnd()
 	QShortcut* focusFar1Shortcut = new QShortcut(QKeySequence(tr("4")), this);
 	QShortcut* focusFar2Shortcut = new QShortcut(QKeySequence(tr("5")), this);
 	QShortcut* focusFar3Shortcut = new QShortcut(QKeySequence(tr("6")), this);
+	QShortcut* recordShortcut = new QShortcut(QKeySequence(tr("R,r")), this);
+	QShortcut* stopShortcut = new QShortcut(QKeySequence(tr("S,s")), this);
+	QShortcut* reconnectShortcut = new QShortcut(QKeySequence(tr("O,o,0")), this);
+	QShortcut* dofShortcut = new QShortcut(QKeySequence(tr("D,d")), this);
+	QShortcut* zoomShortcut = new QShortcut(QKeySequence(tr("Z,z")), this);
 
 	connect(selFileBtn, SIGNAL(clicked()), this, SLOT(slotSelFile()));
 	connect(reconnBtn, SIGNAL(clicked()), this, SLOT(slotReconnect()));
@@ -293,6 +298,11 @@ GEOSRecWnd::GEOSRecWnd()
 	connect(focusFar1Shortcut, SIGNAL(activated()), this, SLOT(slotFocusFar1()));
 	connect(focusFar2Shortcut, SIGNAL(activated()), this, SLOT(slotFocusFar2()));
 	connect(focusFar3Shortcut, SIGNAL(activated()), this, SLOT(slotFocusFar3()));
+	connect(recordShortcut, SIGNAL(activated()), this, SLOT(slotStart()));
+	connect(stopShortcut, SIGNAL(activated()), this, SLOT(slotStop()));
+	connect(reconnectShortcut, SIGNAL(activated()), this, SLOT(slotReconnect()));
+	connect(dofShortcut, SIGNAL(activated()), this, SLOT(slotDofPressed()));
+	connect(zoomShortcut, SIGNAL(activated()), this, SLOT(slotZoom5x()));
 
 	CurrSettings.Path = tr("out.avi");
 	CurrSettings.Av = -1;
