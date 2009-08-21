@@ -124,6 +124,7 @@ GEOSRecWnd::GEOSRecWnd()
 	btn_layout->addStretch(10);
 
 	showBox = new QCheckBox(tr("Show captured image"), this);
+	showBox->setToolTip(tr("Show captured image (I)"));
 	btn_layout->addWidget(showBox, 0);
 	showBox->setCheckState(Qt::Checked);
 
@@ -255,17 +256,18 @@ GEOSRecWnd::GEOSRecWnd()
 	//setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 	setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
-	QShortcut* focusNear3Shortcut = new QShortcut(QKeySequence(tr("1")), this);
-	QShortcut* focusNear2Shortcut = new QShortcut(QKeySequence(tr("2")), this);
-	QShortcut* focusNear1Shortcut = new QShortcut(QKeySequence(tr("3")), this);
-	QShortcut* focusFar1Shortcut = new QShortcut(QKeySequence(tr("4")), this);
-	QShortcut* focusFar2Shortcut = new QShortcut(QKeySequence(tr("5")), this);
-	QShortcut* focusFar3Shortcut = new QShortcut(QKeySequence(tr("6")), this);
-	QShortcut* recordShortcut = new QShortcut(QKeySequence(tr("R,r")), this);
-	QShortcut* stopShortcut = new QShortcut(QKeySequence(tr("S,s")), this);
-	QShortcut* reconnectShortcut = new QShortcut(QKeySequence(tr("O,o,0")), this);
-	QShortcut* dofShortcut = new QShortcut(QKeySequence(tr("D,d")), this);
-	QShortcut* zoomShortcut = new QShortcut(QKeySequence(tr("Z,z")), this);
+	QShortcut* focusNear3Shortcut = new QShortcut(QKeySequence(Qt::Key_1), this);
+	QShortcut* focusNear2Shortcut = new QShortcut(QKeySequence(Qt::Key_2), this);
+	QShortcut* focusNear1Shortcut = new QShortcut(QKeySequence(Qt::Key_3), this);
+	QShortcut* focusFar1Shortcut = new QShortcut(QKeySequence(Qt::Key_4), this);
+	QShortcut* focusFar2Shortcut = new QShortcut(QKeySequence(Qt::Key_5), this);
+	QShortcut* focusFar3Shortcut = new QShortcut(QKeySequence(Qt::Key_6), this);
+	QShortcut* recordShortcut = new QShortcut(QKeySequence(Qt::Key_R), this);
+	QShortcut* stopShortcut = new QShortcut(QKeySequence(Qt::Key_S), this);
+	QShortcut* reconnectShortcut = new QShortcut(QKeySequence(Qt::Key_O), this);
+	QShortcut* dofShortcut = new QShortcut(QKeySequence(Qt::Key_D), this);
+	QShortcut* zoomShortcut = new QShortcut(QKeySequence(Qt::Key_Z), this);
+	QShortcut* captureShortcut = new QShortcut(QKeySequence(Qt::Key_I), this);
 
 	connect(selFileBtn, SIGNAL(clicked()), this, SLOT(slotSelFile()));
 	connect(reconnBtn, SIGNAL(clicked()), this, SLOT(slotReconnect()));
@@ -301,8 +303,9 @@ GEOSRecWnd::GEOSRecWnd()
 	connect(recordShortcut, SIGNAL(activated()), this, SLOT(slotStart()));
 	connect(stopShortcut, SIGNAL(activated()), this, SLOT(slotStop()));
 	connect(reconnectShortcut, SIGNAL(activated()), this, SLOT(slotReconnect()));
-	connect(dofShortcut, SIGNAL(activated()), this, SLOT(slotDofPressed()));
-	connect(zoomShortcut, SIGNAL(activated()), this, SLOT(slotZoom5x()));
+	connect(dofShortcut, SIGNAL(activated()), dofBtn, SLOT(click()));
+	connect(zoomShortcut, SIGNAL(activated()), zoom5xBtn, SLOT(click()));
+	connect(captureShortcut, SIGNAL(activated()), showBox, SLOT(click()));
 
 	CurrSettings.Path = tr("out.avi");
 	CurrSettings.Av = -1;
@@ -431,6 +434,7 @@ void GEOSRecWnd::slotStartTimeout()
 				dofBtn->setEnabled(true);
 				zoom5xBtn->setEnabled(true);
 				HistBtn->setEnabled(true);
+				showBox->setEnabled(true);
 				// next line realy work in customEvents()
 				//AFCamBtn->setEnabled(features.HasAF);
 				blinkLabel->stop();
@@ -455,18 +459,21 @@ void GEOSRecWnd::slotStartTimeout()
 
 void GEOSRecWnd::slotReconnect()
 {
-	blinkLabel->stop();
-	blinkLabel->setText(tr("Starting..."));
-	reconnBtn->setEnabled(false);
+	if (!LiveThread)
+	{
+		blinkLabel->stop();
+		blinkLabel->setText(tr("Starting..."));
+		reconnBtn->setEnabled(false);
 
-	LiveThread = new GMyLiveThread(this);
-	LiveThread->setCaptureWnd(CaptureWnd);
-	LiveThread->start(QThread::HighestPriority);
+		LiveThread = new GMyLiveThread(this);
+		LiveThread->setCaptureWnd(CaptureWnd);
+		LiveThread->start(QThread::HighestPriority);
 
-	//QTimer::singleShot(4000, this, SLOT(slotStartTimeout()));
-	StartTimer->start(4000);
-	// отключено по просьбе форумчан (forum.ixbt.com)
-	//QTimer::singleShot(1200000, this, SLOT(slotWorkTimeout()));		// max work time is 20 min
+		//QTimer::singleShot(4000, this, SLOT(slotStartTimeout()));
+		StartTimer->start(4000);
+		// отключено по просьбе форумчан (forum.ixbt.com)
+		//QTimer::singleShot(1200000, this, SLOT(slotWorkTimeout()));		// max work time is 20 min
+	}
 }
 
 void GEOSRecWnd::loadSettings()
