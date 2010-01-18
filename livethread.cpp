@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2009 by Чернов А.А.                                *
+ *   Copyright (C) 2008-2010 by Чернов А.А.                                *
  *   valexlin@gmail.com                                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -734,7 +734,16 @@ EdsError GMyLiveThread::fillCameraName()
 			CamFeatures.LiveViewSize_x = 1024;
 			CamFeatures.LiveViewSize_y = 680;
 			CamFeatures.HasAF = false;
-#warning "Resolution on 1D Mark III is unknow!"
+#warning "LiveView resolution on EOS 1D Mark III is unknow!"
+		}
+		else if (CameraName == "Canon EOS-1D Mark IV")
+		{
+			CamFeatures.JpegLargeSize_x = 4896;
+			CamFeatures.JpegLargeSize_y = 3264;
+			CamFeatures.LiveViewSize_x = 1024;
+			CamFeatures.LiveViewSize_y = 680;
+			CamFeatures.HasAF = true;
+#warning "LiveView resolution on EOS 1D Mark IV is unknow!"
 		}
 		else if (CameraName == "Canon EOS-1Ds Mark III")
 		{
@@ -751,6 +760,15 @@ EdsError GMyLiveThread::fillCameraName()
 			CamFeatures.LiveViewSize_x = 1024;
 			CamFeatures.LiveViewSize_y = 680;
 			CamFeatures.HasAF = true;
+		}
+		else if (CameraName == "Canon EOS 7D")
+		{
+			CamFeatures.JpegLargeSize_x = 5184;
+			CamFeatures.JpegLargeSize_y = 3456;
+			CamFeatures.LiveViewSize_x = 1024;
+			CamFeatures.LiveViewSize_y = 680;
+			CamFeatures.HasAF = true;
+#warning "LiveView resolution on EOS 7D is unknow!"
 		}
 		else if (CameraName == "Canon EOS 40D")
 		{
