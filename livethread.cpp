@@ -29,6 +29,8 @@
 #include "events.h"
 #include "command.h"
 
+#include <math.h>
+
 static QMutex ImageMutex;
 
 EdsError EDSCALLBACK handleObjectEvent(EdsObjectEvent event, EdsBaseRef object, EdsVoid * context);
@@ -623,8 +625,11 @@ void GMyLiveThread::run()
 			if (Owner)
 			{
 				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_FPS_UPDATED, QVariant(TempFPS)));
-				if (StableFPSCount == 5)
-					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_FPS_CALCULATED, QVariant(StableFPS)));
+				if (StableFPSCount == 4)
+				{
+					StableFPS = trunc(StableFPS);
+					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_FPS_CALCULATED, QVariant((int)StableFPS)));
+				}
 			}
 		}
 		TempTime2 = WinGetTickCount();

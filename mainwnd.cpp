@@ -388,7 +388,7 @@ void GEOSRecWnd::closeEvent(QCloseEvent* event)
 			fprintf(f, "elapsed time (sec): %d\n", p->elapsedTime()/1000);
 			if (p->elapsedTime() > 0)
 			{
-				fprintf(f, "stable FPS (calc at start): %0.1f\n", p->stableFPS());
+				fprintf(f, "stable FPS (calc at start): %.0f\n", p->stableFPS());
 				fprintf(f, "refresh rate(fps): %.1f\n", 1000.0*(float)p->allFramesCount()/((float)p->elapsedTime()));
 			}
 			fclose(f);
@@ -1168,7 +1168,7 @@ void GEOSRecWnd::shutdown()
 		fprintf(f, "elapsed time (sec): %d\n", p->elapsedTime()/1000);
 		if (p->elapsedTime() > 0)
 		{
-			fprintf(f, "stable FPS (calc at start): %0.1f\n", p->stableFPS());
+			fprintf(f, "stable FPS (calc at start): %.0f\n", p->stableFPS());
 			fprintf(f, "refresh rate(fps): %.1f\n", 1000.0*(float)p->allFramesCount()/((float)p->elapsedTime()));
 		}
 		fclose(f);
