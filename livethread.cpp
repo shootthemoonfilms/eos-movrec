@@ -56,6 +56,7 @@ GMyLiveThread::GMyLiveThread(QWidget* owner)
 	ElapsedTime = 0;
 	FileName = strdup("out.avi");
 	BufferSize = 1024*1024;
+	StableFPS = 0.0;
 
 	AvListSize = 0;
 }
@@ -498,6 +499,7 @@ void GMyLiveThread::run()
 	int TempTime2 = TempTime1;
 	int TempFrameCount = 0;
 	double TempFPS;
+	int StableFPSCount = 0;
 
 	// for internal EDSDK message queue
 	int SDKMsgCheckTime1 = WinGetTickCount();
@@ -530,11 +532,6 @@ void GMyLiveThread::run()
 		QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_LV_STARTED));
 	while (!Stoped)
 	{
-/*static int c = 0;
-FILE* f = fopen("d", "wt");
-fprintf(f, "%d\n", c);
-fclose(f);
-c++;*/
 		CommandMutex.lock();
 		if (!CommandsQueue.isEmpty())
 		{
@@ -595,10 +592,9 @@ c++;*/
 			{
 				StopWriteTime = WinGetTickCount();
 				double fps = ((double)WritenCount*1000.0)/(double)(StopWriteTime - StartWriteTime);
-				if (fps > 25.0)
-					fps = 25.0;
+				if (fps > 60.0)
+					fps = 60.0;
 				mjpegSetup(mjpeg, live_buffer::frame_width, live_buffer::frame_height, fps, 10000);
-				//mjpegSetup(mjpeg, frame_width, frame_height, 25.0, 10000);
 				mjpegSetMaxChunkSize(mjpeg, max_frame_size);
 				mjpegCloseFile(mjpeg);
 				mjpeg = 0;
@@ -619,8 +615,17 @@ c++;*/
 			TempFPS = ((double)TempFrameCount*1000.0)/(double)(TempTime2 - TempTime1);
 			TempTime1 = TempTime2;
 			TempFrameCount = 0;
+			StableFPSCount++;
+			if (StableFPSCount == 2)
+				StableFPS = TempFPS;
+			else if (StableFPSCount > 2 && StableFPSCount < 5)
+				StableFPS = ((double)(StableFPSCount - 2)*StableFPS + TempFPS)/(double)(StableFPSCount - 1);
 			if (Owner)
+			{
 				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_FPS_UPDATED, QVariant(TempFPS)));
+				if (StableFPSCount == 5)
+					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_FPS_CALCULATED, QVariant(StableFPS)));
+			}
 		}
 		TempTime2 = WinGetTickCount();
 
@@ -652,8 +657,8 @@ c++;*/
 		WriteMovie = false;
 		StopWriteTime = WinGetTickCount();
 		double fps = ((double)WritenCount*1000.0)/(double)(StopWriteTime - StartWriteTime);
-		if (fps > 50.0)
-			fps = 50.0;
+		if (fps > 60.0)
+			fps = 60.0;
 		mjpegSetup(mjpeg, live_buffer::frame_width, live_buffer::frame_height, fps, 10000);
 		//mjpegSetup(mjpeg, frame_width, frame_height, 25.0, 10000);
 		mjpegSetMaxChunkSize(mjpeg, max_frame_size);

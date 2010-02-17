@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2009 by Чернов А.А.                                *
+ *   Copyright (C) 2008-2010 by Чернов А.А.                                *
  *   valexlin@gmail.com                                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -89,6 +89,7 @@ public:
 	__uint64_t allFramesCount() { return AllFramesCount; }
 	__uint64_t writenCount() { return WritenCount; }
 	__uint64_t skippedCount() { return SkippedCount; }
+	double stableFPS() { return StableFPS; }
 	int elapsedTime() { return ElapsedTime; }
 	int zoom() const { return Zoom; }
 	int zoomPosX() const { return ZoomPosX; }
@@ -126,6 +127,7 @@ private:
 	bool WriteMovie;
 	char* FileName;
 	int BufferSize;
+	double StableFPS;
 	QMutex CommandMutex;
 	QMutex WaitMutex;
 	QWaitCondition CommandCond;

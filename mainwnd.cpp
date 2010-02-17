@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2009 by Чернов А.А.                                *
+ *   Copyright (C) 2008-2010 by Чернов А.А.                                *
  *   valexlin@gmail.com                                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -387,7 +387,10 @@ void GEOSRecWnd::closeEvent(QCloseEvent* event)
 			fprintf(f, "skipped frames on painting: %I64d\n", p->skippedCount());
 			fprintf(f, "elapsed time (sec): %d\n", p->elapsedTime()/1000);
 			if (p->elapsedTime() > 0)
+			{
+				fprintf(f, "stable FPS (calc at start): %0.1f\n", p->stableFPS());
 				fprintf(f, "refresh rate(fps): %.1f\n", 1000.0*(float)p->allFramesCount()/((float)p->elapsedTime()));
+			}
 			fclose(f);
 		}
 		delete p;
@@ -429,7 +432,7 @@ void GEOSRecWnd::slotStartTimeout()
 				if (!largeSize.isEmpty() && !lvSize.isEmpty())
 					CaptureWnd->setZoomPositionDivisor(largeSize.width()/lvSize.width(), largeSize.height()/lvSize.height());
 				selFileBtn->setEnabled(true);
-				startBtn->setEnabled(true);
+				//startBtn->setEnabled(true);
 				AEModeBox->setEnabled(true);
 				dofBtn->setEnabled(true);
 				zoom5xBtn->setEnabled(true);
@@ -713,6 +716,9 @@ void GEOSRecWnd::customEvent(QEvent* event)
 			sprintf(str, "%.1f fps", fps);
 			fpsLabel->setText(QString(str));
 		}
+		break;
+	case CAMERA_EVENT_FPS_CALCULATED:
+		startBtn->setEnabled(true);
 		break;
 	case CAMERA_EVENT_AEMODE_CHANGED:
 		{
@@ -1161,7 +1167,10 @@ void GEOSRecWnd::shutdown()
 		fprintf(f, "skipped frames on painting: %I64d\n", p->skippedCount());
 		fprintf(f, "elapsed time (sec): %d\n", p->elapsedTime()/1000);
 		if (p->elapsedTime() > 0)
+		{
+			fprintf(f, "stable FPS (calc at start): %0.1f\n", p->stableFPS());
 			fprintf(f, "refresh rate(fps): %.1f\n", 1000.0*(float)p->allFramesCount()/((float)p->elapsedTime()));
+		}
 		fclose(f);
 	}
 	delete p;
