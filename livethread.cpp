@@ -30,6 +30,7 @@
 #include "command.h"
 
 #include <math.h>
+#include <stdio.h>
 
 static QMutex ImageMutex;
 
@@ -55,6 +56,7 @@ GMyLiveThread::GMyLiveThread(QWidget* owner)
 	SkippedCount = 0;
 	AllFramesCount = 0;
 	WritenCount = 0;
+	DuplicatedCount = 0;
 	ElapsedTime = 0;
 	FileName = strdup("out.avi");
 	BufferSize = 1024*1024;
@@ -472,12 +474,11 @@ void GMyLiveThread::run()
 	cmdRequestAFMode();
 	// get AE mode
 	cmdRequestAEMode();
-	// get camera name & its resolution
-	fillCameraName();
-	//
+
 	SkippedCount = 0;
 	AllFramesCount = 0;
 	WritenCount = 0;
+	DuplicatedCount = 0;
 	ElapsedTime = 0;
 	int StartTime;
 	int EndTime;
@@ -497,19 +498,19 @@ void GMyLiveThread::run()
 	int StartWriteTime = -1;		// ms
 	int StopWriteTime = -1;			// ms
 	// for temp fps
-	int TempTime1 = WinGetTickCount();
-	int TempTime2 = TempTime1;
 	int TempFrameCount = 0;
 	double TempFPS;
 	int StableFPSCount = 0;
+	int MustBeFrames = 0;	// need to control stable fps recording
+	int CurrTime;
 
 	// for internal EDSDK message queue
-	int SDKMsgCheckTime1 = WinGetTickCount();
-	int SDKMsgCheckTime2 = SDKMsgCheckTime1;
+	int SDKMsgCheckTime1 = StartTime;
+	int SDKMsgCheckTime2 = StartTime;
 	//WinQueryPerformanceFrequency(&freq);
 	// Wait a camera
-	int RealyStartT1 = WinGetTickCount();
-	int RealyStartT2 = WinGetTickCount();
+	int RealyStartT1 = StartTime;
+	int RealyStartT2 = StartTime;
 	while (!LiveViewStarted && RealyStartT2 - RealyStartT1 < 4000)
 	{
 		if (SDKMsgCheckTime2 - SDKMsgCheckTime1 > 100)
@@ -519,19 +520,43 @@ void GMyLiveThread::run()
 		}
 		while (!CommandsQueue.isEmpty())
 			processCommand();
-		WinSleep(100);
+		WinSleep(50);
 		RealyStartT2 = WinGetTickCount();
+		SDKMsgCheckTime2 = RealyStartT2;
 	}
-	while (!CommandsQueue.isEmpty())
+	/*while (!CommandsQueue.isEmpty())
+	{
 		processCommand();
+		WinProcessMsg();
+	}*/
 	if (!LiveViewStarted)
 	{
 		deInitializeEds();
 		return;
 	}
+	RealyStartT1 = WinGetTickCount();
+	RealyStartT2 = RealyStartT1;
+	while ((err = downloadEvfData()) != EDS_ERR_OK && RealyStartT2 - RealyStartT1 < 4000)
+	{
+		WinProcessMsg();
+		WinSleep(50);
+		RealyStartT2 = WinGetTickCount();
+	}
+	if (err != EDS_ERR_OK)
+	{
+		deInitializeEds();
+		return;
+	}
+	// get camera name & its resolution
+	fillCameraName();
 	Inited = true;
 	if (Owner)
 		QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_LV_STARTED));
+	StartTime = WinGetTickCount();
+	int TempTime1 = StartTime;
+	int TempTime2 = StartTime;
+	SDKMsgCheckTime1 = StartTime;
+	SDKMsgCheckTime2 = StartTime;
 	while (!Stoped)
 	{
 		CommandMutex.lock();
@@ -603,12 +628,36 @@ void GMyLiveThread::run()
 			}
 			else if (PrevWriteMovie && WriteMovie)	// simple write next image
 			{
-				mjpegWriteChunk(mjpeg, (unsigned char*)live_buffer::frame, live_buffer::frame_size);
-				WritenCount++;
+				if (WritenCount > 10)
+				{
+					CurrTime = WinGetTickCount();
+					MustBeFrames = (int)round((double)(CurrTime - StartWriteTime)*StableFPS/1000.0);
+					if (MustBeFrames < WritenCount + 1)			// too fast, we must skip frame
+					{
+						;										// do nothing...
+					}
+					else
+					{
+						mjpegWriteChunk(mjpeg, (unsigned char*)live_buffer::frame, live_buffer::frame_size);
+						WritenCount++;
+						while (MustBeFrames > WritenCount)		// too less, we must add dublicated frames
+						{
+							mjpegWriteChunk(mjpeg, (unsigned char*)live_buffer::frame, live_buffer::frame_size);
+							WritenCount++;
+							DuplicatedCount++;
+						}
+					}
+				}
+				else
+				{
+					mjpegWriteChunk(mjpeg, (unsigned char*)live_buffer::frame, live_buffer::frame_size);
+					WritenCount++;
+				}
 			}
 			PrevWriteMovie = WriteMovie;
 			TempFrameCount++;
 			WrtFlagMutex.unlock();
+
 		}
 
 		// calc temp fps
@@ -626,14 +675,10 @@ void GMyLiveThread::run()
 			{
 				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_FPS_UPDATED, QVariant(TempFPS)));
 				if (StableFPSCount == 4)
-				{
-					StableFPS = trunc(StableFPS);
 					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_FPS_CALCULATED, QVariant((int)StableFPS)));
-				}
 			}
 		}
 		TempTime2 = WinGetTickCount();
-
 		SDKMsgCheckTime2 = TempTime2;
 
 		//WinQueryPerformanceCounter(&t2);
@@ -739,8 +784,8 @@ EdsError GMyLiveThread::fillCameraName()
 		CameraName = QString((const char*)str);
 		if (CameraName == "Canon EOS-1D Mark III")
 		{
-			CamFeatures.JpegLargeSize_x = 3888;
-			CamFeatures.JpegLargeSize_y = 2592;
+			//CamFeatures.JpegLargeSize_x = 3888;
+			//CamFeatures.JpegLargeSize_y = 2592;
 			CamFeatures.LiveViewSize_x = 1024;
 			CamFeatures.LiveViewSize_y = 680;
 			CamFeatures.HasAF = false;
@@ -748,8 +793,8 @@ EdsError GMyLiveThread::fillCameraName()
 		}
 		else if (CameraName == "Canon EOS-1D Mark IV")
 		{
-			CamFeatures.JpegLargeSize_x = 4896;
-			CamFeatures.JpegLargeSize_y = 3264;
+			//CamFeatures.JpegLargeSize_x = 4896;
+			//CamFeatures.JpegLargeSize_y = 3264;
 			CamFeatures.LiveViewSize_x = 1024;
 			CamFeatures.LiveViewSize_y = 680;
 			CamFeatures.HasAF = true;
@@ -757,24 +802,24 @@ EdsError GMyLiveThread::fillCameraName()
 		}
 		else if (CameraName == "Canon EOS-1Ds Mark III")
 		{
-			CamFeatures.JpegLargeSize_x = 5616;
-			CamFeatures.JpegLargeSize_y = 3744;
+			//CamFeatures.JpegLargeSize_x = 5616;
+			//CamFeatures.JpegLargeSize_y = 3744;
 			CamFeatures.LiveViewSize_x = 1024;
 			CamFeatures.LiveViewSize_y = 680;
 			CamFeatures.HasAF = false;
 		}
 		else if (CameraName == "Canon EOS 5D Mark II")
 		{
-			CamFeatures.JpegLargeSize_x = 5616;
-			CamFeatures.JpegLargeSize_y = 3744;
+			//CamFeatures.JpegLargeSize_x = 5616;
+			//CamFeatures.JpegLargeSize_y = 3744;
 			CamFeatures.LiveViewSize_x = 1024;
 			CamFeatures.LiveViewSize_y = 680;
 			CamFeatures.HasAF = true;
 		}
 		else if (CameraName == "Canon EOS 7D")
 		{
-			CamFeatures.JpegLargeSize_x = 5184;
-			CamFeatures.JpegLargeSize_y = 3456;
+			//CamFeatures.JpegLargeSize_x = 5184;
+			//CamFeatures.JpegLargeSize_y = 3456;
 			CamFeatures.LiveViewSize_x = 1024;
 			CamFeatures.LiveViewSize_y = 680;
 			CamFeatures.HasAF = true;
@@ -782,45 +827,99 @@ EdsError GMyLiveThread::fillCameraName()
 		}
 		else if (CameraName == "Canon EOS 40D")
 		{
-			CamFeatures.JpegLargeSize_x = 3888;
-			CamFeatures.JpegLargeSize_y = 2592;
+			//CamFeatures.JpegLargeSize_x = 3888;
+			//CamFeatures.JpegLargeSize_y = 2592;
 			CamFeatures.LiveViewSize_x = 1024;
 			CamFeatures.LiveViewSize_y = 680;
 			CamFeatures.HasAF = false;
 		}
 		else if (CameraName == "Canon EOS 50D")
 		{
-			CamFeatures.JpegLargeSize_x = 4752;
-			CamFeatures.JpegLargeSize_y = 3168;
+			//CamFeatures.JpegLargeSize_x = 4752;
+			//CamFeatures.JpegLargeSize_y = 3168;
 			CamFeatures.LiveViewSize_x = 1024;
 			CamFeatures.LiveViewSize_y = 680;
 			CamFeatures.HasAF = true;
 		}
 		else if (CameraName == "Canon EOS 450D" || CameraName == "Canon EOS DIGITAL REBEL XSi" || CameraName == "Canon EOS Kiss X2")
 		{
-			CamFeatures.JpegLargeSize_x = 4272;
-			CamFeatures.JpegLargeSize_y = 2848;
+			//CamFeatures.JpegLargeSize_x = 4272;
+			//CamFeatures.JpegLargeSize_y = 2848;
 			CamFeatures.LiveViewSize_x = 848;
 			CamFeatures.LiveViewSize_y = 560;
 			CamFeatures.HasAF = false;
 		}
 		else if (CameraName == "Canon EOS 1000D" || CameraName == "Canon EOS DIGITAL REBEL XS" || CameraName == "Canon EOS Kiss F")
 		{
-			CamFeatures.JpegLargeSize_x = 3888;
-			CamFeatures.JpegLargeSize_y = 2592;
+			//CamFeatures.JpegLargeSize_x = 3888;
+			//CamFeatures.JpegLargeSize_y = 2592;
 			CamFeatures.LiveViewSize_x = 768;
 			CamFeatures.LiveViewSize_y = 512;
 			CamFeatures.HasAF = false;
 		}
 		else if (CameraName == "Canon EOS 500D" || CameraName == "Canon EOS DIGITAL REBEL T1i" || CameraName == "Canon EOS Kiss X3")
 		{
-			CamFeatures.JpegLargeSize_x = 4752;
-			CamFeatures.JpegLargeSize_y = 3168;
+			//CamFeatures.JpegLargeSize_x = 4752;
+			//CamFeatures.JpegLargeSize_y = 3168;
+			CamFeatures.LiveViewSize_x = 928;
+			CamFeatures.LiveViewSize_y = 616;
+			CamFeatures.HasAF = true;
+		}
+		else if (CameraName == "Canon EOS 550D" || CameraName == "Canon REBEL T2i" || CameraName == "Canon EOS Kiss X4")
+		{
 			CamFeatures.LiveViewSize_x = 928;
 			CamFeatures.LiveViewSize_y = 616;
 			CamFeatures.HasAF = true;
 		}
 	}
+
+
+
+	EdsStreamRef stream = NULL;
+	EdsEvfImageRef evfImage = NULL;
+
+	// Create memory stream.
+	err = EdsCreateMemoryStream(0, &stream);
+	// Create EvfImageRef.
+	if (err == EDS_ERR_OK)
+	{
+		err = EdsCreateEvfImageRef(stream, &evfImage);
+	}
+	// Download live view image data.
+	if (err == EDS_ERR_OK)
+	{
+		err = EdsDownloadEvfImage(camera, evfImage);
+	}
+	// Get properties...
+	if (err == EDS_ERR_OK)
+	{
+		EdsSize sz;
+		err = EdsGetPropertyData(evfImage, kEdsPropID_Evf_CoordinateSystem, 0 , sizeof(sz), &sz);
+		if (err == EDS_ERR_OK)
+		{
+			CamFeatures.JpegLargeSize_x = sz.width;
+			CamFeatures.JpegLargeSize_y = sz.height;
+		}
+	}
+
+	// Release stream
+	if (stream != NULL)
+	{
+		EdsRelease(stream);
+		stream = NULL;
+	}
+	// Release evfImage
+	if (evfImage != NULL)
+	{
+		EdsRelease(evfImage);
+		evfImage = NULL;
+	}
+
+
+
+
+
+
 	if (CameraName.isEmpty())
 		CameraName = tr("Unknown camera");
 	return err;
@@ -923,6 +1022,7 @@ EdsError GMyLiveThread::downloadEvfData()
 	EdsError err = EDS_ERR_OK;
 	EdsStreamRef stream = NULL;
 	EdsEvfImageRef evfImage = NULL;
+
 	// Create memory stream.
 	err = EdsCreateMemoryStream(0, &stream);
 	// Create EvfImageRef.

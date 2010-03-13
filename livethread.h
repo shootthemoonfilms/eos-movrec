@@ -89,6 +89,7 @@ public:
 	__uint64_t allFramesCount() { return AllFramesCount; }
 	__uint64_t writenCount() { return WritenCount; }
 	__uint64_t skippedCount() { return SkippedCount; }
+	__uint64_t duplicatedCount() { return DuplicatedCount; }
 	double stableFPS() { return StableFPS; }
 	int elapsedTime() { return ElapsedTime; }
 	int zoom() const { return Zoom; }
@@ -154,6 +155,7 @@ private:
 	__uint64_t AllFramesCount;
 	__uint64_t WritenCount;
 	__uint64_t SkippedCount;
+	__uint64_t DuplicatedCount;
 	int ElapsedTime;
 };
 

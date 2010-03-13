@@ -338,7 +338,7 @@ GEOSRecWnd::GEOSRecWnd()
 	StartTimer = new QTimer(this);
 	StartTimer->setSingleShot(true);
 	connect(StartTimer, SIGNAL(timeout()), this, SLOT(slotStartTimeout()));
-	StartTimer->start(4000);
+	StartTimer->start(10000);
 	// отключено по просьбе форумчан (forum.ixbt.com)
 	//QTimer::singleShot(1200000, this, SLOT(slotWorkTimeout()));		// max work time is 20 min
 
@@ -388,7 +388,8 @@ void GEOSRecWnd::closeEvent(QCloseEvent* event)
 			fprintf(f, "elapsed time (sec): %d\n", p->elapsedTime()/1000);
 			if (p->elapsedTime() > 0)
 			{
-				fprintf(f, "stable FPS (calc at start): %.0f\n", p->stableFPS());
+				fprintf(f, "duplicated frames on writing: %I64d\n", p->duplicatedCount());
+				fprintf(f, "stable FPS (calc at start): %.2f\n", p->stableFPS());
 				fprintf(f, "refresh rate(fps): %.1f\n", 1000.0*(float)p->allFramesCount()/((float)p->elapsedTime()));
 			}
 			fclose(f);
@@ -1168,7 +1169,8 @@ void GEOSRecWnd::shutdown()
 		fprintf(f, "elapsed time (sec): %d\n", p->elapsedTime()/1000);
 		if (p->elapsedTime() > 0)
 		{
-			fprintf(f, "stable FPS (calc at start): %.0f\n", p->stableFPS());
+			fprintf(f, "duplicated frames on writing: %I64d\n", p->duplicatedCount());
+			fprintf(f, "stable FPS (calc at start): %.2f\n", p->stableFPS());
 			fprintf(f, "refresh rate(fps): %.1f\n", 1000.0*(float)p->allFramesCount()/((float)p->elapsedTime()));
 		}
 		fclose(f);
