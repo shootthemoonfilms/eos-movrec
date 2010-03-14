@@ -617,6 +617,8 @@ void GMyLiveThread::run()
 			}
 			else if (PrevWriteMovie && !WriteMovie)	// stop recording
 			{
+				mjpegWriteChunk(mjpeg, (unsigned char*)live_buffer::frame, live_buffer::frame_size);
+				WritenCount++;
 				StopWriteTime = WinGetTickCount();
 				double fps = ((double)WritenCount*1000.0)/(double)(StopWriteTime - StartWriteTime);
 				if (fps > 60.0)
