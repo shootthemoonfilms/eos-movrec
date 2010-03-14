@@ -89,7 +89,7 @@ void GEOSCaptureWnd::closeEvent(QCloseEvent* /*event*/)
 
 void GEOSCaptureWnd::mousePressEvent(QMouseEvent* event)
 {
-	ZoomRectMoving = Zoom == 1 && ZoomRect.contains(event->pos(), true) || Zoom == 5;
+	ZoomRectMoving = (Zoom == 1 && ZoomRect.contains(event->pos(), true)) || Zoom == 5;
 	if (ZoomRectMoving)
 		MousePressPoint = event->pos();
 }

@@ -23,6 +23,10 @@
 #include <QWidget>
 #include <QApplication>
 
+#include <QBuffer>
+#include <QImageReader>
+#include <QImage>
+
 #include "mjpegwrt.h"
 #include "os_api.h"
 #include "buffer.h"
@@ -501,7 +505,7 @@ void GMyLiveThread::run()
 	int TempFrameCount = 0;
 	double TempFPS;
 	int StableFPSCount = 0;
-	int MustBeFrames = 0;	// need to control stable fps recording
+	__uint64_t MustBeFrames = 0;	// need to control stable fps recording
 	int CurrTime;
 
 	// for internal EDSDK message queue
@@ -769,6 +773,7 @@ EdsError GMyLiveThread::fillISOList()
 	return err;
 }
 
+// call only first successfull downloadEvfData()!
 EdsError GMyLiveThread::fillCameraName()
 {
 	CameraName.clear();
@@ -788,89 +793,89 @@ EdsError GMyLiveThread::fillCameraName()
 		{
 			//CamFeatures.JpegLargeSize_x = 3888;
 			//CamFeatures.JpegLargeSize_y = 2592;
-			CamFeatures.LiveViewSize_x = 1024;
-			CamFeatures.LiveViewSize_y = 680;
+			//CamFeatures.LiveViewSize_x = 1024;
+			//CamFeatures.LiveViewSize_y = 680;
 			CamFeatures.HasAF = false;
-#warning "LiveView resolution on EOS 1D Mark III is unknow!"
+//#warning "LiveView resolution on EOS 1D Mark III is unknow!"
 		}
 		else if (CameraName == "Canon EOS-1D Mark IV")
 		{
 			//CamFeatures.JpegLargeSize_x = 4896;
 			//CamFeatures.JpegLargeSize_y = 3264;
-			CamFeatures.LiveViewSize_x = 1024;
-			CamFeatures.LiveViewSize_y = 680;
+			//CamFeatures.LiveViewSize_x = 1024;
+			//CamFeatures.LiveViewSize_y = 680;
 			CamFeatures.HasAF = true;
-#warning "LiveView resolution on EOS 1D Mark IV is unknow!"
+//#warning "LiveView resolution on EOS 1D Mark IV is unknow!"
 		}
 		else if (CameraName == "Canon EOS-1Ds Mark III")
 		{
 			//CamFeatures.JpegLargeSize_x = 5616;
 			//CamFeatures.JpegLargeSize_y = 3744;
-			CamFeatures.LiveViewSize_x = 1024;
-			CamFeatures.LiveViewSize_y = 680;
+			//CamFeatures.LiveViewSize_x = 1024;
+			//CamFeatures.LiveViewSize_y = 680;
 			CamFeatures.HasAF = false;
 		}
 		else if (CameraName == "Canon EOS 5D Mark II")
 		{
 			//CamFeatures.JpegLargeSize_x = 5616;
 			//CamFeatures.JpegLargeSize_y = 3744;
-			CamFeatures.LiveViewSize_x = 1024;
-			CamFeatures.LiveViewSize_y = 680;
+			//CamFeatures.LiveViewSize_x = 1024;
+			//CamFeatures.LiveViewSize_y = 680;
 			CamFeatures.HasAF = true;
 		}
 		else if (CameraName == "Canon EOS 7D")
 		{
 			//CamFeatures.JpegLargeSize_x = 5184;
 			//CamFeatures.JpegLargeSize_y = 3456;
-			CamFeatures.LiveViewSize_x = 1024;
-			CamFeatures.LiveViewSize_y = 680;
+			//CamFeatures.LiveViewSize_x = 1024;
+			//CamFeatures.LiveViewSize_y = 680;
 			CamFeatures.HasAF = true;
-#warning "LiveView resolution on EOS 7D is unknow!"
+//#warning "LiveView resolution on EOS 7D is unknow!"
 		}
 		else if (CameraName == "Canon EOS 40D")
 		{
 			//CamFeatures.JpegLargeSize_x = 3888;
 			//CamFeatures.JpegLargeSize_y = 2592;
-			CamFeatures.LiveViewSize_x = 1024;
-			CamFeatures.LiveViewSize_y = 680;
+			//CamFeatures.LiveViewSize_x = 1024;
+			//CamFeatures.LiveViewSize_y = 680;
 			CamFeatures.HasAF = false;
 		}
 		else if (CameraName == "Canon EOS 50D")
 		{
 			//CamFeatures.JpegLargeSize_x = 4752;
 			//CamFeatures.JpegLargeSize_y = 3168;
-			CamFeatures.LiveViewSize_x = 1024;
-			CamFeatures.LiveViewSize_y = 680;
+			//CamFeatures.LiveViewSize_x = 1024;
+			//CamFeatures.LiveViewSize_y = 680;
 			CamFeatures.HasAF = true;
 		}
 		else if (CameraName == "Canon EOS 450D" || CameraName == "Canon EOS DIGITAL REBEL XSi" || CameraName == "Canon EOS Kiss X2")
 		{
 			//CamFeatures.JpegLargeSize_x = 4272;
 			//CamFeatures.JpegLargeSize_y = 2848;
-			CamFeatures.LiveViewSize_x = 848;
-			CamFeatures.LiveViewSize_y = 560;
+			//CamFeatures.LiveViewSize_x = 848;
+			//CamFeatures.LiveViewSize_y = 560;
 			CamFeatures.HasAF = false;
 		}
 		else if (CameraName == "Canon EOS 1000D" || CameraName == "Canon EOS DIGITAL REBEL XS" || CameraName == "Canon EOS Kiss F")
 		{
 			//CamFeatures.JpegLargeSize_x = 3888;
 			//CamFeatures.JpegLargeSize_y = 2592;
-			CamFeatures.LiveViewSize_x = 768;
-			CamFeatures.LiveViewSize_y = 512;
+			//CamFeatures.LiveViewSize_x = 768;
+			//CamFeatures.LiveViewSize_y = 512;
 			CamFeatures.HasAF = false;
 		}
 		else if (CameraName == "Canon EOS 500D" || CameraName == "Canon EOS DIGITAL REBEL T1i" || CameraName == "Canon EOS Kiss X3")
 		{
 			//CamFeatures.JpegLargeSize_x = 4752;
 			//CamFeatures.JpegLargeSize_y = 3168;
-			CamFeatures.LiveViewSize_x = 928;
-			CamFeatures.LiveViewSize_y = 616;
+			//CamFeatures.LiveViewSize_x = 928;
+			//CamFeatures.LiveViewSize_y = 616;
 			CamFeatures.HasAF = true;
 		}
 		else if (CameraName == "Canon EOS 550D" || CameraName == "Canon REBEL T2i" || CameraName == "Canon EOS Kiss X4")
 		{
-			CamFeatures.LiveViewSize_x = 928;
-			CamFeatures.LiveViewSize_y = 616;
+			//CamFeatures.LiveViewSize_x = 928;
+			//CamFeatures.LiveViewSize_y = 616;
 			CamFeatures.HasAF = true;
 		}
 	}
@@ -879,6 +884,8 @@ EdsError GMyLiveThread::fillCameraName()
 
 	EdsStreamRef stream = NULL;
 	EdsEvfImageRef evfImage = NULL;
+    EdsVoid* ptr;
+    EdsUInt32 stream_len = 0;
 
 	// Create memory stream.
 	err = EdsCreateMemoryStream(0, &stream);
@@ -892,7 +899,33 @@ EdsError GMyLiveThread::fillCameraName()
 	{
 		err = EdsDownloadEvfImage(camera, evfImage);
 	}
-	// Get properties...
+    err = EdsGetPointer(stream, &ptr);
+    if (err == EDS_ERR_OK)
+        err = EdsGetLength(stream, &stream_len);
+    if (stream_len == 0)
+        err = EDS_ERR_OBJECT_NOTREADY;
+
+    if (err == EDS_ERR_OK)
+    {
+        QByteArray a = QByteArray::fromRawData(reinterpret_cast<const char *>(ptr), stream_len);
+        QBuffer b;
+        QImage img;
+        b.setData(a);
+        b.open(QIODevice::ReadOnly);
+        static QImageReader ir;
+        ir.setDevice(&b);
+        ir.setFormat("jpeg");
+        if (ir.read(&img))
+        {
+            if (!img.isNull())
+            {
+                CamFeatures.LiveViewSize_x = img.width();
+                CamFeatures.LiveViewSize_y = img.height();
+            }
+        }
+    }
+
+    // Get properties...
 	if (err == EDS_ERR_OK)
 	{
 		EdsSize sz;
