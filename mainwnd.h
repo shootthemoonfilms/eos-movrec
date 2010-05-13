@@ -123,6 +123,7 @@ private:
 		int AEMode;
 		int AFMode;
 		int BufferSize;
+		bool UseStabFPS;
 	};
 	struct GSavedSettings CurrSettings;
 	struct GSavedSettings BackupSettings;

@@ -25,17 +25,20 @@
 
 class QSpinBox;
 class QComboBox;
+class QCheckBox;
 
 class GOptionsDlg: public QDialog
 {
 public:
 	GOptionsDlg(QWidget* parent);
-	void setOptions(int buff_sz, int afmode);
+	void setOptions(int buff_sz, int afmode, bool s);
 	int bufferSize();
 	int afMode();
+	bool useStabFPS();
 private:
 	QSpinBox* BufferBox;
 	QComboBox* AFModeBox;
+	QCheckBox* StabFPSBox;
 };
 
 #endif // _optionsdlg_h

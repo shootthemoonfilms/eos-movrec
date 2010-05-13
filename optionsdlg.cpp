@@ -26,6 +26,7 @@
 #include <QLabel>
 #include <QSpinBox>
 #include <QComboBox>
+#include <QCheckBox>
 
 GOptionsDlg::GOptionsDlg(QWidget* parent)
  : QDialog(parent)
@@ -53,6 +54,9 @@ GOptionsDlg::GOptionsDlg(QWidget* parent)
 	layout_line2->addWidget(AFModeBox, 0);
 	layout->addLayout(layout_line2, 0);
 
+	StabFPSBox = new QCheckBox(tr("Use stabilized FPS"), this);
+	layout->addWidget(StabFPSBox, 0);
+
 	QHBoxLayout* layout_btn = new QHBoxLayout();
 	layout_btn->addStretch(10);
 	QPushButton* okBtn = new QPushButton(this);
@@ -71,10 +75,11 @@ GOptionsDlg::GOptionsDlg(QWidget* parent)
 	connect(cancelBtn, SIGNAL(clicked()), this, SLOT(reject()));
 }
 
-void GOptionsDlg::setOptions(int buff_sz, int afmode)
+void GOptionsDlg::setOptions(int buff_sz, int afmode, bool s)
 {
 	BufferBox->setValue(buff_sz/1048576);
 	AFModeBox->setCurrentIndex(afmode);
+	StabFPSBox->setChecked(s);
 }
 
 int GOptionsDlg::bufferSize()
@@ -85,4 +90,9 @@ int GOptionsDlg::bufferSize()
 int GOptionsDlg::afMode()
 {
 	return AFModeBox->currentIndex();
+}
+
+bool GOptionsDlg::useStabFPS()
+{
+	return StabFPSBox->isChecked();
 }

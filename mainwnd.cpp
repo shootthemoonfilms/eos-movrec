@@ -316,6 +316,7 @@ GEOSRecWnd::GEOSRecWnd()
 	CurrSettings.AEMode = -1;
 	CurrSettings.AFMode = 1;
 	CurrSettings.BufferSize = 1024*1024;
+	CurrSettings.UseStabFPS = true;
 
 	BackupSettings.Path = CurrSettings.Path;
 	BackupSettings.Av = CurrSettings.Av;
@@ -326,6 +327,7 @@ GEOSRecWnd::GEOSRecWnd()
 	BackupSettings.AEMode = CurrSettings.AEMode;
 	BackupSettings.AFMode = CurrSettings.AFMode;
 	BackupSettings.BufferSize = CurrSettings.BufferSize;
+	BackupSettings.UseStabFPS = CurrSettings.UseStabFPS;
 
 	LiveThread = new GMyLiveThread(this);
 	LiveThread->setCaptureWnd(CaptureWnd);
@@ -447,6 +449,7 @@ void GEOSRecWnd::slotStartTimeout()
 				optionsBtn->setEnabled(true);
 				// at this time we already received all settings from camera
 				loadSettings();
+				LiveThread->setUseStabFPS(CurrSettings.UseStabFPS);
 			}
 		}
 		else
@@ -490,6 +493,7 @@ void GEOSRecWnd::loadSettings()
 	BackupSettings.WbTemp = CurrSettings.WbTemp;
 	BackupSettings.AFMode = CurrSettings.AFMode;
 	BackupSettings.BufferSize = CurrSettings.BufferSize;
+	BackupSettings.UseStabFPS = CurrSettings.UseStabFPS;
 
 	QSettings settings(QSettings::UserScope, QString("eos_movrec"));
 	CurrSettings.Path = settings.value(QString("Path"), QVariant(QString("out.avi"))).toString();
@@ -542,6 +546,7 @@ void GEOSRecWnd::loadSettings()
 		}
 	CurrSettings.AFMode = settings.value(QString("AFMode"), (int)1).toInt();
 	CurrSettings.BufferSize = settings.value(QString("BufferSize"), (int)1024*1024).toInt();
+	CurrSettings.UseStabFPS = settings.value(QString("UseStabFPS"), true).toBool();
 }
 
 void GEOSRecWnd::saveSettings()
@@ -568,6 +573,7 @@ void GEOSRecWnd::saveSettings()
 	settings.setValue(QString("WBTemp"), QVariant(CurrSettings.WbTemp));
 	settings.setValue(QString("AFMode"), QVariant(CurrSettings.AFMode));
 	settings.setValue(QString("BufferSize"), QVariant(CurrSettings.BufferSize));
+	settings.setValue(QString("UseStabFPS"), QVariant(CurrSettings.UseStabFPS));
 }
 
 void GEOSRecWnd::customEvent(QEvent* event)
@@ -1218,13 +1224,17 @@ void GEOSRecWnd::slotShowImageChanged(int state)
 void GEOSRecWnd::slotOptions()
 {
 	GOptionsDlg dlg(this);
-	dlg.setOptions(CurrSettings.BufferSize, CurrSettings.AFMode);
+	dlg.setOptions(CurrSettings.BufferSize, CurrSettings.AFMode, CurrSettings.UseStabFPS);
 	if (dlg.exec() == QDialog::Accepted)
 	{
 		CurrSettings.BufferSize = dlg.bufferSize();
 		CurrSettings.AFMode = dlg.afMode();
+		CurrSettings.UseStabFPS = dlg.useStabFPS();
 		if (LiveThread && LiveThread->isInit())
+		{
 			LiveThread->setBufferSize(CurrSettings.BufferSize);
+			LiveThread->setUseStabFPS(CurrSettings.UseStabFPS);
+		}
 	}
 }
 

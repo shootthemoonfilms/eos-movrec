@@ -35,9 +35,7 @@ SOURCES = main.cpp \
 	optionsdlg.cpp
 TARGET = bin/eos_movrec
 EDSDKPATH = ./EDSDK
-debug {
-	DEFINES += AF_DEBUG_LOG=1
-}
+#DEFINES += AF_DEBUG_LOG=1
 INCLUDEPATH = $$EDSDKPATH/Header
 LIBS += -L$$EDSDKPATH/Library \
 	-ledsdk

@@ -64,6 +64,7 @@ GMyLiveThread::GMyLiveThread(QWidget* owner)
 	ElapsedTime = 0;
 	FileName = strdup("out.avi");
 	BufferSize = 1024*1024;
+	UseStabFPS = true;
 	StableFPS = 0.0;
 
 	AvListSize = 0;
@@ -85,6 +86,11 @@ void GMyLiveThread::setBufferSize(int buffer_sz)
 {
 	BufferSize = buffer_sz;
 	// setup for mjpeg file only on starting writing!
+}
+
+void GMyLiveThread::setUseStabFPS(bool s)
+{
+	UseStabFPS = s;
 }
 
 void GMyLiveThread::setCaptureWnd(QWidget* wnd)
@@ -636,21 +642,29 @@ void GMyLiveThread::run()
 			{
 				if (WritenCount > 10)
 				{
-					CurrTime = WinGetTickCount();
-					MustBeFrames = (int)round((double)(CurrTime - StartWriteTime)*StableFPS/1000.0);
-					if (MustBeFrames < WritenCount + 1)			// too fast, we must skip frame
-					{
-						;										// do nothing...
-					}
-					else
+					if (!UseStabFPS)
 					{
 						mjpegWriteChunk(mjpeg, (unsigned char*)live_buffer::frame, live_buffer::frame_size);
 						WritenCount++;
-						while (MustBeFrames > WritenCount)		// too less, we must add dublicated frames
+					}
+					else
+					{
+						CurrTime = WinGetTickCount();
+						MustBeFrames = (int)round((double)(CurrTime - StartWriteTime)*StableFPS/1000.0);
+						if (MustBeFrames < WritenCount + 1)			// too fast, we must skip frame
+						{
+							;										// do nothing...
+						}
+						else
 						{
 							mjpegWriteChunk(mjpeg, (unsigned char*)live_buffer::frame, live_buffer::frame_size);
 							WritenCount++;
-							DuplicatedCount++;
+							while (MustBeFrames > WritenCount)		// too less, we must add dublicated frames
+							{
+								mjpegWriteChunk(mjpeg, (unsigned char*)live_buffer::frame, live_buffer::frame_size);
+								WritenCount++;
+								DuplicatedCount++;
+							}
 						}
 					}
 				}

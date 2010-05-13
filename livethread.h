@@ -56,6 +56,7 @@ public:
 	bool writeEnabled() { return WriteMovie; }
 	void setFileName(const char* fname);
 	void setBufferSize(int);
+	void setUseStabFPS(bool s);
 	void cmdSetAEMode(int ae);
 	void cmdSetWB(int wb, int temp);
 	void cmdSetISO(int iso);
@@ -149,6 +150,7 @@ private:
 	bool WantHistogram;
 	int Histogram[256*4];
 	bool isSDKLoaded;
+	bool UseStabFPS;
 	QString CameraName;
 	struct EOSCamFeatures CamFeatures;
 	// for statistics
