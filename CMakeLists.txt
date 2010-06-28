@@ -3,6 +3,7 @@ project(eos-movrec)
 cmake_minimum_required(VERSION 2.6.2)
 
 include(FindPkgConfig)
+include(CheckIncludeFile)
 
 #set(CMAKE_VERBOSE_MAKEFILE on)
 
@@ -14,9 +15,13 @@ include_directories (${QT_INCLUDES} ${CMAKE_BINARY_DIR})
 
 set(EDSDK_LDFLAGS "")
 if(WIN32)
-	set(EDSDKPATH "./EDSDK")
+	set(EDSDKPATH "${CMAKE_SOURCE_DIR}/EDSDK")
 	include_directories(${EDSDKPATH}/Header)
 	set(EDSDK_LDFLAGS "-L${EDSDKPATH}/Library -lEDSDK")
+	CHECK_INCLUDE_FILE(${EDSDKPATH}/Header/EDSDK.h EDSDK_H)
+	if(NOT EDSDK_H)
+		message(FATAL_ERROR "EDSDK not found!\nYou must insert EDSDK into project folder.")
+	endif(NOT EDSDK_H)
 elseif(UNIX)
 	pkg_check_modules(LIBGPHOTO2 REQUIRED libgphoto2>=2.4.8)
 	include_directories(${LIBGPHOTO2_INCLUDE_DIRS})
@@ -68,7 +73,9 @@ if (WIN32)
 	enable_language(RC)
 
 	# -mwindows -> window application (without terminal screen)
-	set(CMAKE_EXE_LINKER_FLAGS "-mwindows")
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -mwindows")
+	# for gcc-4.5 and shared libstdc++
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--enable-auto-import")
 endif(WIN32)
 
 add_executable(eos_movrec ${eos_movrec_SRCS} ${MOC_SRCS})
