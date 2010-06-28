@@ -7,7 +7,16 @@ include(CheckIncludeFile)
 
 #set(CMAKE_VERBOSE_MAKEFILE on)
 
-find_package(Qt4 4.4.2 COMPONENTS QtCore QtGui QtNetwork REQUIRED)
+#check mingw
+if(WIN32)
+	if(MINGW)
+		message(STATUS "Using MinGW.")
+	else(MINGW)
+		message(FATAL_ERROR "On Windows supported only MinGW gcc!")
+	endif(MINGW)
+endif(WIN32)
+
+find_package(Qt4 4.4.2 COMPONENTS QtCore QtGui REQUIRED)
 include(${QT_USE_FILE})
 
 add_definitions (${QT_DEFINITIONS})
@@ -58,7 +67,7 @@ set(eos_movrec_MOC_HEADERS
 # force use exceptions
 set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -fexceptions")
 # add debug defines
-set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -DAF_DEBUG_LOG")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG")
 
 add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGE_FILES=1)
