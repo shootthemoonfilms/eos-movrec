@@ -18,7 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "LiveThread.h"
+#include "livethread.h"
 #include <QMutex>
 #include <QWidget>
 #include <QApplication>
@@ -38,9 +38,11 @@
 
 static QMutex ImageMutex;
 
+#ifdef EDSDK
 EdsError EDSCALLBACK handleObjectEvent(EdsObjectEvent event, EdsBaseRef object, EdsVoid * context);
 EdsError EDSCALLBACK handlePropertyEvent(EdsPropertyEvent event, EdsPropertyID property, EdsUInt32 inParam, EdsVoid * context);
 EdsError EDSCALLBACK handleStateEvent(EdsStateEvent event, EdsUInt32 parameter, EdsVoid * context);
+#endif
 
 // class GMyLiveThread
 GMyLiveThread::GMyLiveThread(QWidget* owner)
@@ -262,7 +264,7 @@ void GMyLiveThread::cmdDoLVAF(int mode)
 	CommandMutex.unlock();
 }
 
-EdsError GMyLiveThread::processCommand()
+int GMyLiveThread::processCommand()
 {
 	GCameraCommand cmd = CommandsQueue.takeFirst();
 	int param1 = cmd.param1();
@@ -273,22 +275,32 @@ EdsError GMyLiveThread::processCommand()
 		fprintf(f, "cmd = %d, p1 = %d, p2 = %d\n", cmd.command(), param1, param2);
 		fclose(f);
 	}*/
+#ifdef EDSDK
 	EdsError err = EDS_ERR_OK;
+#endif
+#ifdef GPHOTO2
+	int err = 0;
+#endif
 	switch (cmd.command())
 	{
 	case COMMAND_SET_WB:		// set WB
+#ifdef EDSDK
 		err = EdsSetPropertyData(camera, kEdsPropID_Evf_WhiteBalance, 0, sizeof(EdsInt32), &param1);
 		if (err == EDS_ERR_OK)
 		{
 			if (param1 == 9)
 				err = EdsSetPropertyData(camera, kEdsPropID_Evf_ColorTemperature, 0, sizeof(EdsInt32), &param2);
 		}
+#endif
 		break;
 	case COMMAND_SET_ISO:		// set ISO
+#ifdef EDSDK
 		err = EdsSetPropertyData(camera, kEdsPropID_ISOSpeed, 0, sizeof(EdsUInt32), &param1);
+#endif
 		break;
 	case COMMAND_REQ_ISO:
 	{
+#ifdef EDSDK
 		int iso = 0;
 		err = EdsGetPropertyData(camera, kEdsPropID_ISOSpeed, 0, sizeof(EdsUInt32), &iso);
 		if (err == EDS_ERR_OK)
@@ -296,19 +308,23 @@ EdsError GMyLiveThread::processCommand()
 			{
 				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_ISO_CHANGED, QVariant((int)iso)));
 			}
+#endif
 	}
 	break;
 	case COMMAND_REQ_ISOLIST:	// request ISO list
+#ifdef EDSDK
 		err = fillISOList();
 		if (err == EDS_ERR_OK)
 			if (Owner)
 			{
 				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_ISOLIST_CHANGED, 0));
 			}
+#endif
 			break;
 	case COMMAND_SET_AV:		// set Av & DOF
 		if (param1 > 0x1)
 		{
+#ifdef EDSDK
 			EdsUInt32 av;
 			err = EdsGetPropertyData(camera, kEdsPropID_Av, 0, sizeof(EdsUInt32), &av);
 			if (err == EDS_ERR_OK)
@@ -316,12 +332,16 @@ EdsError GMyLiveThread::processCommand()
 				if (av != (EdsUInt32)param1)
 					err = EdsSetPropertyData(camera, kEdsPropID_Av, 0, sizeof(EdsUInt32), &param1);
 			}
+#endif
 		}
+#ifdef EDSDK
 		if (err == EDS_ERR_OK)
 			err = EdsSetPropertyData(camera, kEdsPropID_Evf_DepthOfFieldPreview, 0, sizeof(EdsUInt32), &param2);
+#endif
 		break;
 	case COMMAND_REQ_AV:		// request Av
 		{
+#ifdef EDSDK
 			int av = 0;
 			err = EdsGetPropertyData(camera, kEdsPropID_Av, 0, sizeof(EdsUInt32), &av);
 			if (err == EDS_ERR_OK)
@@ -329,19 +349,23 @@ EdsError GMyLiveThread::processCommand()
 				{
 					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AV_CHANGED, QVariant((int)av)));
 				}
+#endif
 		}
 		break;
 	case COMMAND_REQ_AVLIST:	// request Av list
+#ifdef EDSDK
 		err = fillAvList();
 		if (err == EDS_ERR_OK)
 			if (Owner)
 			{
 				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AVLIST_CHANGED, 0));
 			}
+#endif
 		break;
 	case COMMAND_SET_TV:		// set Tv
 		if (param1 >= 0x10)
 		{
+#ifdef EDSDK
 			EdsUInt32 tv;
 			err = EdsGetPropertyData(camera, kEdsPropID_Tv, 0, sizeof(EdsUInt32), &tv);
 			if (err == EDS_ERR_OK)
@@ -349,10 +373,12 @@ EdsError GMyLiveThread::processCommand()
 				if (tv != (EdsUInt32)param1)
 					err = EdsSetPropertyData(camera, kEdsPropID_Tv, 0, sizeof(EdsUInt32), &param1);
 			}
+#endif
 		}
 		break;
 	case COMMAND_REQ_TV:		// request Tv
 		{
+#ifdef EDSDK
 			int tv = 0;
 			err = EdsGetPropertyData(camera, kEdsPropID_Tv, 0, sizeof(EdsUInt32), &tv);
 			if (err == EDS_ERR_OK)
@@ -360,18 +386,22 @@ EdsError GMyLiveThread::processCommand()
 				{
 					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_TV_CHANGED, QVariant((int)tv)));
 				}
+#endif
 		}
 		break;
 	case COMMAND_REQ_TVLIST:	// request Tv list
+#ifdef EDSDK
 		err = fillTvList();
 		if (err == EDS_ERR_OK)
 			if (Owner)
 			{
 				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_TVLIST_CHANGED, 0));
 			}
+#endif
 		break;
 	case COMMAND_REQ_EVF_OUT:	// request Evf output device
 		{
+#ifdef EDSDK
 			EdsUInt32 device;
 			err = EdsGetPropertyData(camera, kEdsPropID_Evf_OutputDevice, 0, sizeof(device), &device);
 			if (err == EDS_ERR_OK)
@@ -380,13 +410,17 @@ EdsError GMyLiveThread::processCommand()
 				if (device & kEdsEvfOutputDevice_PC)
 					LiveViewStarted = true;
 			}
+#endif
 		}
 		break;
 	case COMMAND_SET_AEMODE:	// set AE mode
+#ifdef EDSDK
 		err = EdsSetPropertyData(camera, kEdsPropID_AEMode, 0, sizeof(EdsUInt32), &param1);
+#endif
 		break;
 	case COMMAND_REQ_AEMODE:	// request AE mode
 		{
+#ifdef EDSDK
 			EdsUInt32 mode;
 			err = EdsGetPropertyData(camera, kEdsPropID_AEMode, 0, sizeof(mode), &mode);
 			if (err == EDS_ERR_OK)
@@ -394,10 +428,12 @@ EdsError GMyLiveThread::processCommand()
 				{
 					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AEMODE_CHANGED, QVariant((int)mode)));
 				}
+#endif
 		}
 		break;
 	case COMMAND_ADJ_FOCUS:	// adjust focus
 		{
+#ifdef EDSDK
 			EdsUInt32 inParam = 0;
 			switch (param2)
 			{
@@ -414,32 +450,41 @@ EdsError GMyLiveThread::processCommand()
 					break;
 			}
 			err = EdsSendCommand(camera, kEdsCameraCommand_DriveLensEvf, inParam);
+#endif
 		}
 		break;
 	case COMMAND_REQ_AFMODE:	// request AF mode
 		{
+#ifdef EDSDK
 			EdsUInt32 mode;
 			err = EdsGetPropertyData(camera, kEdsPropID_AFMode, 0, sizeof(mode), &mode);
 			if (err == EDS_ERR_OK)
 				if (Owner)
 					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AFMODE_CHANGED, QVariant((int)mode)));
+#endif
 		}
 		break;
 	case COMMAND_SET_ZOOM:
+#ifdef EDSDK
 		err = EdsSetPropertyData(camera, kEdsPropID_Evf_Zoom, 0, sizeof(EdsUInt32), &param1);
+#endif
 		break;
 	case COMMAND_SET_ZOOMPOS:
 		{
+#ifdef EDSDK
 			EdsPoint p;
 			p.x = (EdsInt32)param1;
 			p.y = (EdsInt32)param2;
 			err = EdsSetPropertyData(camera, kEdsPropID_Evf_ZoomPosition, 0, sizeof(EdsPoint), &p);
+#endif
 		}
 		break;
 	case COMMAND_DO_LVAF:
 		{
+#ifdef EDSDK
 			EdsEvfAFMode mode = (EdsEvfAFMode)param1;
 			err = EdsSendCommand(camera, kEdsCameraCommand_DoEvfAf, mode);
+#endif
 		}
 		break;
 	default:
@@ -458,7 +503,9 @@ void GMyLiveThread::waitCommands()
 void GMyLiveThread::run()
 {
 	// init
-	EdsError err = initializeEds();
+#ifdef EDSDK
+	EdsError err;
+	err = initializeEds();
 	if (err == EDS_ERR_OK)
 	{
 		err = startLiveView();
@@ -468,6 +515,11 @@ void GMyLiveThread::run()
 		deInitializeEds();
 		return;
 	}
+#endif
+#ifdef GPHOTO2
+	int err;
+	; // to-do: init & check camera
+#endif
 	// get Av list to main window
 	cmdRequestAvList();
 	// get Tv list to main window
@@ -504,7 +556,7 @@ void GMyLiveThread::run()
 	//__int64_t t2;
 	//int code_time;
 	//int sleep_time;
-	StartTime = WinGetTickCount();
+	StartTime = OSGetTickCount();
 	int StartWriteTime = -1;		// ms
 	int StopWriteTime = -1;			// ms
 	// for temp fps
@@ -525,13 +577,13 @@ void GMyLiveThread::run()
 	{
 		if (SDKMsgCheckTime2 - SDKMsgCheckTime1 > 100)
 		{
-			WinProcessMsg();
+			OSProcessMsg();
 			SDKMsgCheckTime1 = SDKMsgCheckTime2;
 		}
 		while (!CommandsQueue.isEmpty())
 			processCommand();
-		WinSleep(50);
-		RealyStartT2 = WinGetTickCount();
+		OSSleep(50);
+		RealyStartT2 = OSGetTickCount();
 		SDKMsgCheckTime2 = RealyStartT2;
 	}
 	/*while (!CommandsQueue.isEmpty())
@@ -541,20 +593,32 @@ void GMyLiveThread::run()
 	}*/
 	if (!LiveViewStarted)
 	{
+#ifdef EDSDK
 		deInitializeEds();
+#endif
+#ifdef GPHOTO2
+		;
+#endif
 		return;
 	}
-	RealyStartT1 = WinGetTickCount();
+	// Wait for a first preview image
+	RealyStartT1 = OSGetTickCount();
 	RealyStartT2 = RealyStartT1;
-	while ((err = downloadEvfData()) != EDS_ERR_OK && RealyStartT2 - RealyStartT1 < 4000)
+	bool start_ok = false;
+	while (!(start_ok = downloadEvfData()) && RealyStartT2 - RealyStartT1 < 4000)
 	{
-		WinProcessMsg();
-		WinSleep(50);
-		RealyStartT2 = WinGetTickCount();
+		OSProcessMsg();
+		OSSleep(50);
+		RealyStartT2 = OSGetTickCount();
 	}
-	if (err != EDS_ERR_OK)
+	if (!start_ok)
 	{
+#ifdef EDSDK
 		deInitializeEds();
+#endif
+#ifdef GPHOTO2
+		;
+#endif
 		return;
 	}
 	// get camera name & its resolution
@@ -562,11 +626,12 @@ void GMyLiveThread::run()
 	Inited = true;
 	if (Owner)
 		QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_LV_STARTED));
-	StartTime = WinGetTickCount();
+	StartTime = OSGetTickCount();
 	int TempTime1 = StartTime;
 	int TempTime2 = StartTime;
 	SDKMsgCheckTime1 = StartTime;
 	SDKMsgCheckTime2 = StartTime;
+	// main job
 	while (!Stoped)
 	{
 		CommandMutex.lock();
@@ -581,13 +646,13 @@ void GMyLiveThread::run()
 		// process internal EDSDK message queue
 		if (SDKMsgCheckTime2 - SDKMsgCheckTime1 > 500)
 		{
-			WinProcessMsg();
+			OSProcessMsg();
 			SDKMsgCheckTime1 = SDKMsgCheckTime2;
 		}
 
 		//WinQueryPerformanceCounter(&t1);
 		// fetch image.
-		if (downloadEvfData() == EDS_ERR_OK)
+		if (downloadEvfData())
 		{
 			WrtFlagMutex.lock();
 			AllFramesCount++;
@@ -610,7 +675,7 @@ void GMyLiveThread::run()
 			// write to file if needed
 			if (!PrevWriteMovie && WriteMovie)			// start record
 			{
-				StartWriteTime = WinGetTickCount();
+				StartWriteTime = OSGetTickCount();
 				WritenCount = 0;
 				if (mjpeg)
 					mjpegCloseFile(mjpeg);
@@ -629,7 +694,7 @@ void GMyLiveThread::run()
 			{
 				mjpegWriteChunk(mjpeg, (unsigned char*)live_buffer::frame, live_buffer::frame_size);
 				WritenCount++;
-				StopWriteTime = WinGetTickCount();
+				StopWriteTime = OSGetTickCount();
 				double fps = ((double)WritenCount*1000.0)/(double)(StopWriteTime - StartWriteTime);
 				if (fps > 60.0)
 					fps = 60.0;
@@ -649,7 +714,7 @@ void GMyLiveThread::run()
 					}
 					else
 					{
-						CurrTime = WinGetTickCount();
+						CurrTime = OSGetTickCount();
 						MustBeFrames = (int)round((double)(CurrTime - StartWriteTime)*StableFPS/1000.0);
 						if (MustBeFrames < WritenCount + 1)			// too fast, we must skip frame
 						{
@@ -698,7 +763,7 @@ void GMyLiveThread::run()
 					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_FPS_CALCULATED, QVariant((int)StableFPS)));
 			}
 		}
-		TempTime2 = WinGetTickCount();
+		TempTime2 = OSGetTickCount();
 		SDKMsgCheckTime2 = TempTime2;
 
 		//WinQueryPerformanceCounter(&t2);
@@ -725,7 +790,7 @@ void GMyLiveThread::run()
 	if (mjpeg)
 	{
 		WriteMovie = false;
-		StopWriteTime = WinGetTickCount();
+		StopWriteTime = OSGetTickCount();
 		double fps = ((double)WritenCount*1000.0)/(double)(StopWriteTime - StartWriteTime);
 		if (fps > 60.0)
 			fps = 60.0;
@@ -735,11 +800,17 @@ void GMyLiveThread::run()
 		mjpegCloseFile(mjpeg);
 		mjpeg = 0;
 	}
-	EndTime = WinGetTickCount();
+	EndTime = OSGetTickCount();
 	ElapsedTime = EndTime - StartTime;
 
 	err = endLiveView();
+#ifdef EDSDK
 	deInitializeEds();
+#endif
+#ifdef GPHOTO2
+	// to-do: deinitialisation
+	;
+#endif
 
 	if (live_buffer::frame)
 	{
@@ -748,8 +819,9 @@ void GMyLiveThread::run()
 	}
 }
 
-EdsError GMyLiveThread::fillAvList()
+int GMyLiveThread::fillAvList()
 {
+#ifdef EDSDK
 	EdsPropertyDesc desc;
 	EdsError err = EdsGetPropertyDesc(camera, kEdsPropID_Av, &desc);
 	if (err == EDS_ERR_OK)
@@ -759,10 +831,15 @@ EdsError GMyLiveThread::fillAvList()
 			AvList[i] = desc.propDesc[i];
 	}
 	return err;
+#endif
+#ifdef GPHOTO2
+	return -1;
+#endif
 }
 
-EdsError GMyLiveThread::fillTvList()
+int GMyLiveThread::fillTvList()
 {
+#ifdef EDSDK
 	EdsPropertyDesc desc;
 	EdsError err = EdsGetPropertyDesc(camera, kEdsPropID_Tv, &desc);
 	if (err == EDS_ERR_OK)
@@ -772,10 +849,15 @@ EdsError GMyLiveThread::fillTvList()
 			TvList[i] = desc.propDesc[i];
 	}
 	return err;
+#endif
+#ifdef GPHOTO2
+	return -1;
+#endif
 }
 
-EdsError GMyLiveThread::fillISOList()
+int GMyLiveThread::fillISOList()
 {
+#ifdef EDSDK
 	EdsPropertyDesc desc;
 	EdsError err = EdsGetPropertyDesc(camera, kEdsPropID_ISOSpeed, &desc);
 	if (err == EDS_ERR_OK)
@@ -785,11 +867,16 @@ EdsError GMyLiveThread::fillISOList()
 			ISOList[i] = desc.propDesc[i];
 	}
 	return err;
+#endif
+#ifdef GPHOTO2
+	return -1;
+#endif
 }
 
 // call only first successfull downloadEvfData()!
-EdsError GMyLiveThread::fillCameraName()
+int GMyLiveThread::fillCameraName()
 {
+#ifdef EDSDK
 	CameraName.clear();
 	//CameraFotoLargeSize = QSize(0, 0);
 	//CameraLVSize = QSize(0, 0);
@@ -898,8 +985,8 @@ EdsError GMyLiveThread::fillCameraName()
 
 	EdsStreamRef stream = NULL;
 	EdsEvfImageRef evfImage = NULL;
-    EdsVoid* ptr;
-    EdsUInt32 stream_len = 0;
+	EdsVoid* ptr;
+	EdsUInt32 stream_len = 0;
 
 	// Create memory stream.
 	err = EdsCreateMemoryStream(0, &stream);
@@ -913,33 +1000,33 @@ EdsError GMyLiveThread::fillCameraName()
 	{
 		err = EdsDownloadEvfImage(camera, evfImage);
 	}
-    err = EdsGetPointer(stream, &ptr);
-    if (err == EDS_ERR_OK)
-        err = EdsGetLength(stream, &stream_len);
-    if (stream_len == 0)
-        err = EDS_ERR_OBJECT_NOTREADY;
+	err = EdsGetPointer(stream, &ptr);
+	if (err == EDS_ERR_OK)
+		err = EdsGetLength(stream, &stream_len);
+	if (stream_len == 0)
+		err = EDS_ERR_OBJECT_NOTREADY;
 
-    if (err == EDS_ERR_OK)
-    {
-        QByteArray a = QByteArray::fromRawData(reinterpret_cast<const char *>(ptr), stream_len);
-        QBuffer b;
-        QImage img;
-        b.setData(a);
-        b.open(QIODevice::ReadOnly);
-        static QImageReader ir;
-        ir.setDevice(&b);
-        ir.setFormat("jpeg");
-        if (ir.read(&img))
-        {
-            if (!img.isNull())
-            {
-                CamFeatures.LiveViewSize_x = img.width();
-                CamFeatures.LiveViewSize_y = img.height();
-            }
-        }
-    }
+	if (err == EDS_ERR_OK)
+	{
+		QByteArray a = QByteArray::fromRawData(reinterpret_cast<const char *>(ptr), stream_len);
+		QBuffer b;
+		QImage img;
+		b.setData(a);
+		b.open(QIODevice::ReadOnly);
+		static QImageReader ir;
+		ir.setDevice(&b);
+		ir.setFormat("jpeg");
+		if (ir.read(&img))
+		{
+			if (!img.isNull())
+			{
+				CamFeatures.LiveViewSize_x = img.width();
+				CamFeatures.LiveViewSize_y = img.height();
+			}
+		}
+	}
 
-    // Get properties...
+	// Get properties...
 	if (err == EDS_ERR_OK)
 	{
 		EdsSize sz;
@@ -972,8 +1059,13 @@ EdsError GMyLiveThread::fillCameraName()
 	if (CameraName.isEmpty())
 		CameraName = tr("Unknown camera");
 	return err;
+#endif
+#ifdef GPHOTO2
+	return -1;
+#endif
 }
 
+#ifdef EDSDK
 EdsError GMyLiveThread::initializeEds()
 {
 	EdsError err = EDS_ERR_OK;
@@ -1048,9 +1140,11 @@ EdsError GMyLiveThread::deInitializeEds()
 		EdsTerminateSDK();
 	return err;
 }
+#endif
 
-EdsError GMyLiveThread::startLiveView()
+int GMyLiveThread::startLiveView()
 {
+#ifdef EDSDK
 	EdsError err = EDS_ERR_OK;
 	// Get the output device for the live view image
 	EdsUInt32 device;
@@ -1064,10 +1158,15 @@ EdsError GMyLiveThread::startLiveView()
 	// A property change event notification is issued from the camera if property settings are made successfully.
 	// Start downloading of the live view image once the property change notification arrives.
 	return err;
+#endif
+#ifdef GPHOTO2
+	return -1;
+#endif
 }
 
-EdsError GMyLiveThread::downloadEvfData()
+bool GMyLiveThread::downloadEvfData()
 {
+#ifdef EDSDK
 	EdsError err = EDS_ERR_OK;
 	EdsStreamRef stream = NULL;
 	EdsEvfImageRef evfImage = NULL;
@@ -1140,11 +1239,17 @@ EdsError GMyLiveThread::downloadEvfData()
 		EdsRelease(evfImage);
 		evfImage = NULL;
 	}
-	return err;
+	return err == EDS_ERR_OK;
+#endif
+#if GPHOTO2
+	// to-do: download preview image
+	return false;
+#endif
 }
 
-EdsError GMyLiveThread::endLiveView()
+int GMyLiveThread::endLiveView()
 {
+#ifdef EDSDK
 	EdsError err = EDS_ERR_OK;
 	// Get the output device for the live view image
 	EdsUInt32 device;
@@ -1158,8 +1263,13 @@ EdsError GMyLiveThread::endLiveView()
 	if (err == EDS_ERR_OK)
 		LiveViewStarted = false;
 	return err;
+#endif
+#ifdef GPHOTO2
+	return -1;
+#endif
 }
 
+#ifdef EDSDK
 void GMyLiveThread::objectEvent(EdsObjectEvent event, EdsBaseRef object)
 {
 	/*FILE* f = fopen("obj_event.log", "at");
@@ -1264,7 +1374,9 @@ void GMyLiveThread::stateEvent(EdsStateEvent event, EdsUInt32 parameter)
 			QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_SHUTDOWN, 0));
 	}
 }
+#endif
 
+#ifdef EDSDK
 EdsError EDSCALLBACK handleObjectEvent(EdsObjectEvent event, EdsBaseRef object, EdsVoid * context)
 {
 	GMyLiveThread* thread = (GMyLiveThread*)context;
@@ -1285,3 +1397,4 @@ EdsError EDSCALLBACK handleStateEvent(EdsStateEvent event, EdsUInt32 parameter, 
 	thread->stateEvent(event, parameter);
 	return EDS_ERR_OK;
 }
+#endif

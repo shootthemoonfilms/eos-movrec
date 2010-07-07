@@ -27,8 +27,13 @@
 #include <QSize>
 
 #include "command.h"
-
+#ifdef EDSDK
 #include "EDSDK.h"
+#endif
+#ifdef GPHOTO2
+#include <gphoto2/gphoto2.h>
+#include <gphoto2/gphoto2-camera.h>
+#endif
 #include "types.h"
 
 class QWidget;
@@ -102,24 +107,28 @@ public:
 	void lockHistogram() { HistogramMutex.lock(); }
 	void unlockHistogram() { HistogramMutex.unlock(); }
 	// handlers
+#ifdef EDSDK
 	// ED-SDK documentation say:
 	// "The callback function is executed on a newly generated thread"
 	void objectEvent(EdsObjectEvent event, EdsBaseRef object);
 	void propertyEvent(EdsPropertyEvent event, EdsPropertyID property, EdsUInt32 inParam);
 	void stateEvent(EdsStateEvent event, EdsUInt32 parameter);
+#endif
 protected:
 	virtual void run();
 private:
+#ifdef EDSDK
 	EdsError initializeEds();
 	EdsError deInitializeEds();
-	EdsError startLiveView();
-	EdsError downloadEvfData();
-	EdsError endLiveView();
-	EdsError processCommand();
-	EdsError fillAvList();
-	EdsError fillTvList();
-	EdsError fillISOList();
-	EdsError fillCameraName();
+#endif
+	int startLiveView();
+	bool downloadEvfData();
+	int endLiveView();
+	int processCommand();
+	int fillAvList();
+	int fillTvList();
+	int fillISOList();
+	int fillCameraName();
 private:
 	bool Stoped;
 	bool Inited;
@@ -137,7 +146,12 @@ private:
 	QMutex HistogramMutex;
 	GCameraCommandsQueue CommandsQueue;
 	int max_frame_size;
+#ifdef EDSDK
 	EdsCameraRef camera;
+#endif
+#ifdef GPHOTO2
+	Camera* camera;
+#endif
 	unsigned int AvList[128];
 	int AvListSize;
 	unsigned int TvList[128];

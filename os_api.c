@@ -28,19 +28,20 @@
 #define _WINDOWS
 #endif
 
-#ifdef _WINDOWS
-#include <windows.h>
-#endif
-
 #if defined(__MACOS__) || defined(__APPLE__) || defined(__GLIBC__) || defined(__FreeBSD__)
 #define _UNIX
 #endif
 
-#ifdef _UNIX
-#include <unistd.h>
+#ifdef _WINDOWS
+#include <windows.h>
 #endif
 
-void WinSleep(int ms)
+#ifdef _UNIX
+#include <unistd.h>
+#include <sys/time.h>
+#endif
+
+void OSSleep(int ms)
 {
 #ifdef _WINDOWS
 	Sleep(ms);
@@ -51,18 +52,29 @@ void WinSleep(int ms)
 #endif
 }
 
-int WinGetTickCount()
+int OSGetTickCount()
 {
 #ifdef _WINDOWS
 	return GetTickCount();
-#else
-#ifdef __MACOS__
-	return 100*TickCount()/6;
-#endif
-#endif
+#else	// _WINDOWS
+#ifdef _UNIX
+	// this is not true implementation of GetTickCount() for Unix
+	// but it usefull to compute time difference.
+	static int start_time_sec = 0;
+	struct timeval tv;
+	if (start_time_sec == 0)			// first call
+	{
+		gettimeofday(&tv, NULL);
+		start_time_sec = tv.tv_sec;
+	}
+	gettimeofday(&tv, NULL);
+	// to exclude integer overflow decrement start time.
+	return (tv.tv_sec - start_time_sec)*1000 + tv.tv_usec/1000;
+#endif	// _UNIX
+#endif	// _WINDOWS
 }
 
-int WinProcessMsg()
+int OSProcessMsg()
 {
 #ifdef _WINDOWS
 	MSG msg;

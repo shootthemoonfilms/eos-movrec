@@ -31,9 +31,11 @@ if(WIN32)
 	if(NOT EDSDK_H)
 		message(FATAL_ERROR "EDSDK not found!\nYou must insert EDSDK into project folder.")
 	endif(NOT EDSDK_H)
+	add_definitions(-DEDSDK=1)
 elseif(UNIX)
 	pkg_check_modules(LIBGPHOTO2 REQUIRED libgphoto2>=2.4.8)
 	include_directories(${LIBGPHOTO2_INCLUDE_DIRS})
+	add_definitions(-DGPHOTO2=1)
 endif(WIN32)
 
 set(eos_movrec_SRCS

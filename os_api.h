@@ -25,10 +25,17 @@
 extern "C" {
 #endif
 
-void WinSleep(int ms);
-int WinGetTickCount();
+void OSSleep(int ms);
+int OSGetTickCount();
 
-int WinProcessMsg();
+int OSProcessMsg();
+
+#if defined(__MINGW32__) || defined (_MSC_VER)
+#define INT64_PRINTF_SPEC	"%I64d"
+#endif
+#ifdef __GLIBC__
+#define INT64_PRINTF_SPEC	"%lld"
+#endif
 
 #ifdef __cplusplus
 }

@@ -36,6 +36,7 @@ SOURCES = main.cpp \
 TARGET = bin/eos_movrec
 EDSDKPATH = ./EDSDK
 #DEFINES += AF_DEBUG_LOG=1
+win32:DEFINES += EDSDK=1
 INCLUDEPATH = $$EDSDKPATH/Header
 LIBS += -L$$EDSDKPATH/Library \
 	-ledsdk

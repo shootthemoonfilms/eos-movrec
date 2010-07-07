@@ -384,13 +384,13 @@ void GEOSRecWnd::closeEvent(QCloseEvent* event)
 #endif
 		if (f)
 		{
-			fprintf(f, "all frames: %I64d\n", p->allFramesCount());
-			fprintf(f, "all writen frames: %I64d\n", p->writenCount());
-			fprintf(f, "skipped frames on painting: %I64d\n", p->skippedCount());
+			fprintf(f, "all frames: " INT64_PRINTF_SPEC "\n", p->allFramesCount());
+			fprintf(f, "all writen frames: " INT64_PRINTF_SPEC "\n", p->writenCount());
+			fprintf(f, "skipped frames on painting: " INT64_PRINTF_SPEC "\n", p->skippedCount());
 			fprintf(f, "elapsed time (sec): %d\n", p->elapsedTime()/1000);
 			if (p->elapsedTime() > 0)
 			{
-				fprintf(f, "duplicated frames on writing: %I64d\n", p->duplicatedCount());
+				fprintf(f, "duplicated frames on writing: " INT64_PRINTF_SPEC "\n", p->duplicatedCount());
 				fprintf(f, "stable FPS (calc at start): %.2f\n", p->stableFPS());
 				fprintf(f, "refresh rate(fps): %.1f\n", 1000.0*(float)p->allFramesCount()/((float)p->elapsedTime()));
 			}
@@ -561,7 +561,7 @@ void GEOSRecWnd::saveSettings()
 		//LiveThread->cmdSetWB(BackupSettings.Wb, 0);
 		// bad code!!!
 		// give some time to thread to perform commands
-		WinSleep(100);
+		OSSleep(100);
 	}
 	QSettings settings(QSettings::UserScope, QString("eos_movrec"));
 	settings.setValue(QString("Path"), QVariant(CurrSettings.Path));
@@ -1169,13 +1169,13 @@ void GEOSRecWnd::shutdown()
 #endif
 	if (f)
 	{
-		fprintf(f, "all frames: %I64d\n", p->allFramesCount());
-		fprintf(f, "all writen frames: %I64d\n", p->writenCount());
-		fprintf(f, "skipped frames on painting: %I64d\n", p->skippedCount());
+		fprintf(f, "all frames: " INT64_PRINTF_SPEC "\n", p->allFramesCount());
+		fprintf(f, "all writen frames: " INT64_PRINTF_SPEC "\n", p->writenCount());
+		fprintf(f, "skipped frames on painting: " INT64_PRINTF_SPEC "\n", p->skippedCount());
 		fprintf(f, "elapsed time (sec): %d\n", p->elapsedTime()/1000);
 		if (p->elapsedTime() > 0)
 		{
-			fprintf(f, "duplicated frames on writing: %I64d\n", p->duplicatedCount());
+			fprintf(f, "duplicated frames on writing: " INT64_PRINTF_SPEC "\n", p->duplicatedCount());
 			fprintf(f, "stable FPS (calc at start): %.2f\n", p->stableFPS());
 			fprintf(f, "refresh rate(fps): %.1f\n", 1000.0*(float)p->allFramesCount()/((float)p->elapsedTime()));
 		}
