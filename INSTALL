@@ -1,7 +1,9 @@
 	Requirements
+
+cmake-2.6.2
 Qt 4.6
-EDSDK (for Windows)
-libgphoto2 (for Linux)
+EDSDK-2.4 (for Windows)
+libgphoto2-2.4.8 (for Linux)
 
 	1. Windows (using MinGW)
 
