@@ -1,0 +1,27 @@
+	Requirements
+Qt 4.6
+EDSDK (for Windows)
+libgphoto2 (for Linux)
+
+	1. Windows (using MinGW)
+
+1.1 Windows console
+
+mkdir build
+cd build
+cmake -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release ..
+mingw32-make
+
+1.2 MSYS console
+
+mkdir build
+cd build
+cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release ..
+make
+
+	2. Linux
+
+mkdir build
+cd build
+cmake -DCMAKE_BUILD_TYPE=Release ..
+make
