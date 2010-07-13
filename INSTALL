@@ -1,7 +1,7 @@
 	Requirements
 
 cmake-2.6.2
-Qt 4.6
+Qt 4.4
 EDSDK-2.4 (for Windows)
 libgphoto2-2.4.8 (for Linux)
 

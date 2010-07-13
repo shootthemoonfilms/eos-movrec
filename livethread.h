@@ -118,12 +118,16 @@ protected:
 	virtual void run();
 private:
 #ifdef EDSDK
-	EdsError initializeEds();
-	EdsError deInitializeEds();
+	bool initializeEds();
+	bool deInitializeEds();
 #endif
-	int startLiveView();
+#ifdef GPHOTO2
+	bool initializeGPhoto2();
+	bool deInitializeGPhoto2();
+#endif
+	bool startLiveView();
 	bool downloadEvfData();
-	int endLiveView();
+	bool endLiveView();
 	int processCommand();
 	int fillAvList();
 	int fillTvList();
@@ -150,6 +154,7 @@ private:
 	EdsCameraRef camera;
 #endif
 #ifdef GPHOTO2
+	GPContext *camera_context;
 	Camera* camera;
 #endif
 	unsigned int AvList[128];
