@@ -514,24 +514,29 @@ void GMyLiveThread::run()
 	// init
 #ifdef EDSDK
 	bool ok = initializeEds();
-	if (ok)
-		ok = startLiveView();
-	if (!ok)
-	{
-		deInitializeEds();
-		return;
-	}
 #endif
 #ifdef GPHOTO2
 	bool ok = initializeGPhoto2();
-	if (ok)
-		ok = startLiveView();
+#endif
 	if (!ok)
 	{
-		deInitializeGPhoto2();
+		if (Owner)
+			QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_NOCAMERA));
 		return;
 	}
+	ok = startLiveView();
+	if (!ok)
+	{
+#ifdef EDSDK
+		deInitializeEds();
 #endif
+#ifdef GPHOTO2
+		deInitializeGPhoto2();
+#endif
+		if (Owner)
+			QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_LV_NOTSTARTED));
+		return;
+	}
 	// get Av list to main window
 	cmdRequestAvList();
 	// get Tv list to main window
@@ -563,9 +568,6 @@ void GMyLiveThread::run()
 	live_buffer::frame = 0;
 	void* mjpeg = 0;
 	bool PrevWriteMovie = false;
-	//__int64_t freq;
-	//__int64_t t1;
-	//__int64_t t2;
 	//int code_time;
 	//int sleep_time;
 	StartTime = OSGetTickCount();
@@ -611,13 +613,15 @@ void GMyLiveThread::run()
 #ifdef GPHOTO2
 		deInitializeGPhoto2();
 #endif
+		if (Owner)
+			QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_LV_NOTSTARTED));
 		return;
 	}
 	// Wait for a first preview image
 	RealyStartT1 = OSGetTickCount();
 	RealyStartT2 = RealyStartT1;
 	bool start_ok = false;
-	while (!(start_ok = downloadEvfData()) && RealyStartT2 - RealyStartT1 < 4000)
+	while (!(start_ok = downloadEvfData()) && RealyStartT2 - RealyStartT1 < 10000)
 	{
 		OSProcessMsg();
 		OSSleep(50);
@@ -631,6 +635,8 @@ void GMyLiveThread::run()
 #ifdef GPHOTO2
 		deInitializeGPhoto2();
 #endif
+		if (Owner)
+			QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_LV_NOTSTARTED));
 		return;
 	}
 	// get camera name & its resolution
@@ -1567,8 +1573,40 @@ bool GMyLiveThread::downloadEvfData()
 	return err == EDS_ERR_OK;
 #endif
 #if GPHOTO2
-	// to-do: download preview image
-	return false;
+	int ret;
+	CameraFile *gpfile = 0;
+	const char* ptr = 0;
+	unsigned long int data_size = 0;
+
+	ret = gp_file_new(&gpfile);
+	if (ret == GP_OK)
+	{
+		ret = gp_camera_capture_preview(camera, gpfile, camera_context);
+	}
+	if (ret == GP_OK)
+	{
+		// owner of 'data' is gpfile
+		ret = gp_file_get_data_and_size(gpfile, &ptr, &data_size);
+	}
+	// TO-DO: get zoom & zoom border position
+	if (ret == GP_OK)
+	{
+		// start critical section!!!
+		live_buffer::ImageMutex.lock();
+		if (max_frame_size < (int)data_size)
+		{
+			live_buffer::frame = (unsigned char*)realloc(live_buffer::frame, data_size);
+			max_frame_size = (int)data_size;
+		}
+		memcpy(live_buffer::frame, ptr, data_size);
+		live_buffer::frame_size = (int)data_size;
+		live_buffer::ImageMutex.unlock();
+		// end of critical section!!!
+	}
+	// TO-DO: get histogram
+	if (gpfile)
+		gp_file_free(gpfile);
+	return ret == GP_OK;
 #endif
 }
 

@@ -24,7 +24,7 @@
 #include <QWidget>
 #include <QImage>
 
-class QTimer;
+//class QTimer;
 //class QImage;
 class QCheckBox;
 class QPushButton;
@@ -50,7 +50,7 @@ protected slots:
 	void slotSelFile();
 	void slotStart();
 	void slotStop();
-	void slotStartTimeout();
+	//void slotStartTimeout();
 	//void slotWorkTimeout();
 	void slotAESelected(int ae_ind);
 	void slotDofPressed();
@@ -82,7 +82,7 @@ private:
 	void loadSettings();
 	void saveSettings();
 private:
-	QTimer* StartTimer;
+	//QTimer* StartTimer;
 	QBlinkLabel* blinkLabel;
 	QToolButton* reconnBtn;
 	QToolButton* selFileBtn;

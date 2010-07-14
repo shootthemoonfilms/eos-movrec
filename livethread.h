@@ -21,6 +21,14 @@
 #ifndef _livethread_h
 #define _livethread_h
 
+#if !defined(EDSDK) && !defined(GPHOTO2)
+#  error "You must define one of EDSDK or GPHOTO2!"
+#endif
+
+#if defined(EDSDK) && defined(GPHOTO2)
+#  error "You must define only EDSDK or GPHOTO2!"
+#endif
+
 #include <QThread>
 #include <QMutex>
 #include <QWaitCondition>

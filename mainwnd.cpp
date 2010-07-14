@@ -89,6 +89,7 @@ GEOSRecWnd::GEOSRecWnd()
 	AEModeBox->addItem(tr("Av"), QVariant((int)2));
 	AEModeBox->addItem(tr("M"), QVariant((int)3));
 	AEModeBox->addItem(tr("A-DEP"), QVariant((int)5));
+	AEModeBox->setEnabled(false);
 	AEModeBox->setToolTip(tr("Select AE Mode"));
 	btn_layout->addWidget(AEModeBox, 0);
 
@@ -337,27 +338,18 @@ GEOSRecWnd::GEOSRecWnd()
 	HistogramWnd = 0;
 
 	//QTimer::singleShot(4000, this, SLOT(slotStartTimeout()));
-	StartTimer = new QTimer(this);
+	/*StartTimer = new QTimer(this);
 	StartTimer->setSingleShot(true);
 	connect(StartTimer, SIGNAL(timeout()), this, SLOT(slotStartTimeout()));
-	StartTimer->start(10000);
+	StartTimer->start(10000);*/
 	// отключено по просьбе форумчан (forum.ixbt.com)
 	//QTimer::singleShot(1200000, this, SLOT(slotWorkTimeout()));		// max work time is 20 min
-
-	/*QList<QByteArray> formats = QImageReader::supportedImageFormats();
-	QList<QByteArray>::iterator it = formats.begin();
-	while (it != formats.end())
-	{
-		printf("format: %s\n", (*it).data());
-		fflush(stdout);
-		it++;
-	}*/
 }
 
 GEOSRecWnd::~GEOSRecWnd()
 {
-	if (StartTimer)
-		delete StartTimer;
+	/*if (StartTimer)
+		delete StartTimer;*/
 }
 
 void GEOSRecWnd::closeEvent(QCloseEvent* event)
@@ -413,7 +405,7 @@ void GEOSRecWnd::closeEvent(QCloseEvent* event)
 	}
 }
 
-void GEOSRecWnd::slotStartTimeout()
+/*void GEOSRecWnd::slotStartTimeout()
 {
 	if (LiveThread)
 	{
@@ -462,7 +454,7 @@ void GEOSRecWnd::slotStartTimeout()
 		}
 	}
 	StartTimer->stop();
-}
+}*/
 
 void GEOSRecWnd::slotReconnect()
 {
@@ -477,7 +469,7 @@ void GEOSRecWnd::slotReconnect()
 		LiveThread->start(QThread::HighestPriority);
 
 		//QTimer::singleShot(4000, this, SLOT(slotStartTimeout()));
-		StartTimer->start(4000);
+		//StartTimer->start(4000);
 		// отключено по просьбе форумчан (forum.ixbt.com)
 		//QTimer::singleShot(1200000, this, SLOT(slotWorkTimeout()));		// max work time is 20 min
 	}
@@ -584,8 +576,42 @@ void GEOSRecWnd::customEvent(QEvent* event)
 	GCameraEvent* e = (GCameraEvent*)event;
 	switch (e->type())
 	{
+	case CAMERA_EVENT_NOCAMERA:
+		shutdown();
+		blinkLabel->setText(tr("Camera not found/not supported/not connected!"));
+		blinkLabel->start();
+		QMessageBox::critical(this, tr("Error"), tr("Can't initialize your camera!\nCheck connection."));
+		break;
+	case CAMERA_EVENT_LV_NOTSTARTED:
+		shutdown();
+		blinkLabel->setText(tr("Can't initialize LiveView mode!"));
+		blinkLabel->start();
+		QMessageBox::critical(this, tr("Error"), tr("Can't initialize LiveView mode!\nMay be your camera not support this?"));
+		break;
 	case CAMERA_EVENT_LV_STARTED:
-		slotStartTimeout();
+		{
+			struct EOSCamFeatures features = LiveThread->cameraFeatures();
+			QSizeF largeSize = QSizeF(features.JpegLargeSize_x, features.JpegLargeSize_y);
+			QSizeF lvSize = QSizeF(features.LiveViewSize_x, features.LiveViewSize_y);
+			if (!largeSize.isEmpty() && !lvSize.isEmpty())
+				CaptureWnd->setZoomPositionDivisor(largeSize.width()/lvSize.width(), largeSize.height()/lvSize.height());
+			selFileBtn->setEnabled(true);
+			//startBtn->setEnabled(true);
+			AEModeBox->setEnabled(true);
+			dofBtn->setEnabled(true);
+			zoom5xBtn->setEnabled(true);
+			HistBtn->setEnabled(true);
+			showBox->setEnabled(true);
+			// next line realy work in customEvents()
+			//AFCamBtn->setEnabled(features.HasAF);
+			blinkLabel->stop();
+			QString str = LiveThread->cameraName() + QString(": ");
+			blinkLabel->setText(str + tr("Ready"));
+			optionsBtn->setEnabled(true);
+			// at this time we already received all settings from camera
+			loadSettings();
+			LiveThread->setUseStabFPS(CurrSettings.UseStabFPS);
+		}
 		break;
 	case CAMERA_EVENT_ISO_CHANGED:
 		{
