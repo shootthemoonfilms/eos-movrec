@@ -100,10 +100,10 @@ public:
 	QString cameraName() const { return CameraName; }
 	struct EOSCamFeatures cameraFeatures() const { return CamFeatures; }
 	// stat function
-	__uint64_t allFramesCount() { return AllFramesCount; }
-	__uint64_t writenCount() { return WritenCount; }
-	__uint64_t skippedCount() { return SkippedCount; }
-	__uint64_t duplicatedCount() { return DuplicatedCount; }
+	long long int allFramesCount() { return AllFramesCount; }
+	long long int writenCount() { return WritenCount; }
+	long long int skippedCount() { return SkippedCount; }
+	long long int duplicatedCount() { return DuplicatedCount; }
 	double stableFPS() { return StableFPS; }
 	int elapsedTime() { return ElapsedTime; }
 	int zoom() const { return Zoom; }
@@ -181,10 +181,10 @@ private:
 	QString CameraName;
 	struct EOSCamFeatures CamFeatures;
 	// for statistics
-	__uint64_t AllFramesCount;
-	__uint64_t WritenCount;
-	__uint64_t SkippedCount;
-	__uint64_t DuplicatedCount;
+	long long int AllFramesCount;
+	long long int WritenCount;
+	long long int SkippedCount;
+	long long int DuplicatedCount;
 	int ElapsedTime;
 };
 

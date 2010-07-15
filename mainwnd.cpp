@@ -24,7 +24,7 @@
 #include <QComboBox>
 #include <QSpinBox>
 #include <QLabel>
-#include <QTimer>
+//#include <QTimer>
 #include <QBoxLayout>
 #include <QFileDialog>
 #include <QTextCodec>

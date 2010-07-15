@@ -45,9 +45,9 @@ EdsError EDSCALLBACK handleStateEvent(EdsStateEvent event, EdsUInt32 parameter, 
 #endif
 
 #ifdef GPHOTO2
-static void ctx_error_func (GPContext *context, const char *format, va_list args, void *data);
+/*static void ctx_error_func (GPContext *context, const char *format, va_list args, void *data);
 static void ctx_status_func (GPContext *context, const char *format, va_list args, void *data);
-static void gp2_errordumper(GPLogLevel level, const char *domain, const char *format, va_list args, void *data);
+static void gp2_errordumper(GPLogLevel level, const char *domain, const char *format, va_list args, void *data);*/
 #endif
 
 // class GMyLiveThread
@@ -522,6 +522,12 @@ void GMyLiveThread::run()
 	{
 		if (Owner)
 			QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_NOCAMERA));
+#ifdef EDSDK
+		deInitializeEds();
+#endif
+#ifdef GPHOTO2
+		deInitializeGPhoto2();
+#endif
 		return;
 	}
 	ok = startLiveView();
@@ -577,7 +583,7 @@ void GMyLiveThread::run()
 	int TempFrameCount = 0;
 	double TempFPS;
 	int StableFPSCount = 0;
-	__uint64_t MustBeFrames = 0;	// need to control stable fps recording
+	long long int MustBeFrames = 0;	// need to control stable fps recording
 	int CurrTime;
 
 	// for internal EDSDK message queue
@@ -1166,19 +1172,10 @@ bool GMyLiveThread::initializeGPhoto2()
 	if (!camera_context)
 		return false;
 
-	gp_context_set_error_func(camera_context, ctx_error_func, NULL);
-	gp_context_set_status_func(camera_context, ctx_status_func, NULL);
+	//gp_context_set_error_func(camera_context, ctx_error_func, NULL);
+	//gp_context_set_status_func(camera_context, ctx_status_func, NULL);
 
-	/*
-	gp_context_set_cancel_func    (p->context, ctx_cancel_func,  p);
-		gp_context_set_message_func   (p->context, ctx_message_func, p);
-		if (isatty (STDOUT_FILENO))
-				gp_context_set_progress_funcs (p->context,
-						ctx_progress_start_func, ctx_progress_update_func,
-						ctx_progress_stop_func, p);
-	 */
-
-	gp_log_add_func(GP_LOG_ERROR, gp2_errordumper, NULL);
+	//gp_log_add_func(GP_LOG_ERROR, gp2_errordumper, NULL);
 
 
 
@@ -1196,6 +1193,7 @@ bool GMyLiveThread::initializeGPhoto2()
 	int cc;
 	CameraAbilities	a;
 	GPPortInfo	pi;
+	Camera* tmp_camera = 0;
 
 	camera_model[0] = 0;
 	camera_port[0] = 0;
@@ -1350,13 +1348,13 @@ bool GMyLiveThread::initializeGPhoto2()
 	printf("camera_model = '%s'\n", camera_model);
 	printf("camera_port = '%s'\n", camera_port);
 
-	gp_camera_new(&camera);
+	gp_camera_new(&tmp_camera);
 
 	ret = gp_abilities_list_lookup_model(want_abilities, camera_model);
 	if (ret < GP_OK)
 	{
 		fprintf(stderr, "gp_abilities_list_lookup_model failed.\n");
-		gp_camera_free(camera);
+		gp_camera_free(tmp_camera);
 		gp_abilities_list_free(want_abilities);
 		gp_port_info_list_free(portinfolist);
 		return false;
@@ -1368,18 +1366,18 @@ bool GMyLiveThread::initializeGPhoto2()
 		if (ret < GP_OK)
 		{
 			fprintf(stderr, "gp_abilities_list_get_abilities failed.\n");
-			gp_camera_free(camera);
+			gp_camera_free(tmp_camera);
 			gp_abilities_list_free(want_abilities);
 			gp_port_info_list_free(portinfolist);
 			return false;
 		}
 		else
 		{
-			ret = gp_camera_set_abilities(camera, a);
+			ret = gp_camera_set_abilities(tmp_camera, a);
 			if (ret < GP_OK)
 			{
 				fprintf(stderr, "gp_camera_set_abilities failed.\n");
-				gp_camera_free(camera);
+				gp_camera_free(tmp_camera);
 				gp_abilities_list_free(want_abilities);
 				gp_port_info_list_free(portinfolist);
 				return false;
@@ -1393,7 +1391,7 @@ bool GMyLiveThread::initializeGPhoto2()
 	if (ret < GP_OK)
 	{
 		fprintf(stderr, "gp_port_info_list_lookup_path failed.\n");
-		gp_camera_free(camera);
+		gp_camera_free(tmp_camera);
 		gp_port_info_list_free(portinfolist);
 		return false;
 	}
@@ -1402,28 +1400,29 @@ bool GMyLiveThread::initializeGPhoto2()
 	if (ret < GP_OK)
 	{
 		fprintf(stderr, "gp_port_info_list_get_info failed.\n");
-		gp_camera_free(camera);
+		gp_camera_free(tmp_camera);
 		gp_port_info_list_free(portinfolist);
 		return false;
 	}
-	ret = gp_camera_set_port_info(camera, pi);
+	ret = gp_camera_set_port_info(tmp_camera, pi);
 	if (ret < GP_OK)
 	{
 		fprintf(stderr, "gp_camera_set_port_info failed.\n");
-		gp_camera_free(camera);
+		gp_camera_free(tmp_camera);
 		gp_port_info_list_free(portinfolist);
 		return false;
 	}
 	gp_port_info_list_free(portinfolist);
 
 
-	ret = gp_camera_init(camera, camera_context);
+	ret = gp_camera_init(tmp_camera, camera_context);
 	if (ret < GP_OK)
 	{
 		fprintf(stderr, "No camera auto detected.\n");
-		gp_camera_free(camera);
+		gp_camera_free(tmp_camera);
 		return false;
 	}
+	camera = tmp_camera;
 
 	return true;
 }
@@ -1434,7 +1433,13 @@ bool GMyLiveThread::deInitializeGPhoto2()
 	{
 		gp_camera_exit(camera, camera_context);
 		gp_camera_free(camera);
+		camera = 0;
+	}
+	if (camera_context)
+	{
 		gp_context_unref(camera_context);
+		//free(camera_context);
+		camera_context = 0;
 	}
 }
 #endif
@@ -1797,7 +1802,7 @@ EdsError EDSCALLBACK handleStateEvent(EdsStateEvent event, EdsUInt32 parameter, 
 #endif
 
 #ifdef GPHOTO2
-static void
+/*static void
 ctx_error_func (GPContext *context, const char *format, va_list args, void *data)
 {
 	fprintf  (stderr, "\n");
@@ -1819,6 +1824,6 @@ static void gp2_errordumper(GPLogLevel level, const char *domain, const char *fo
 				 va_list args, void *data) {
   vfprintf(stdout, format, args);
   fprintf(stdout, "\n");
-}
+}*/
 
 #endif
