@@ -32,6 +32,7 @@
 #include "buffer.h"
 #include "events.h"
 #include "command.h"
+#include "cam_tables.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -48,6 +49,9 @@ EdsError EDSCALLBACK handleStateEvent(EdsStateEvent event, EdsUInt32 parameter, 
 /*static void ctx_error_func (GPContext *context, const char *format, va_list args, void *data);
 static void ctx_status_func (GPContext *context, const char *format, va_list args, void *data);
 static void gp2_errordumper(GPLogLevel level, const char *domain, const char *format, va_list args, void *data);*/
+static int _gp_lookup_widget(CameraWidget*widget, const char *key, CameraWidget **child);
+static int _gp_get_config_value_string(Camera *camera, const char *key, char **str, GPContext *context);
+static int _gp_set_config_value_string(Camera *camera, const char *key, const char *val, GPContext *context);
 #endif
 
 // class GMyLiveThread
@@ -233,6 +237,14 @@ void GMyLiveThread::cmdRequestAEMode()
 	CommandMutex.unlock();
 }
 
+void GMyLiveThread::cmdRequestAEModeList()
+{
+	CommandMutex.lock();
+	GCameraCommand cmd(COMMAND_REQ_AEMODELIST, 0, 0);
+	CommandsQueue.append(cmd);
+	CommandMutex.unlock();
+}
+
 void GMyLiveThread::cmdAdjFocus(int direction, int val)
 {
 	CommandMutex.lock();
@@ -273,8 +285,9 @@ void GMyLiveThread::cmdDoLVAF(int mode)
 	CommandMutex.unlock();
 }
 
-int GMyLiveThread::processCommand()
+bool GMyLiveThread::processCommand()
 {
+	bool res = false;
 	GCameraCommand cmd = CommandsQueue.takeFirst();
 	int param1 = cmd.param1();
 	int param2 = cmd.param2();
@@ -301,112 +314,161 @@ int GMyLiveThread::processCommand()
 				err = EdsSetPropertyData(camera, kEdsPropID_Evf_ColorTemperature, 0, sizeof(EdsInt32), &param2);
 		}
 #endif
+#ifdef GPHOTO2
+#warning "COMMAND_SET_WB: Not implemented yet!"
+#endif
 		break;
 	case COMMAND_SET_ISO:		// set ISO
+		if (param1 >= 0 && param1 < EOS_ISO_TABLE_SZ)
+		{
 #ifdef EDSDK
-		err = EdsSetPropertyData(camera, kEdsPropID_ISOSpeed, 0, sizeof(EdsUInt32), &param1);
+			err = EdsSetPropertyData(camera, kEdsPropID_ISOSpeed, 0, sizeof(EdsUInt32), &ISOTable[param1].edsdk_val);
 #endif
+#ifdef GPHOTO2
+			err = _gp_set_config_value_string(camera, "iso", ISOTable[param1].ISO, camera_context);
+#endif
+		}
 		break;
 	case COMMAND_REQ_ISO:
 	{
+		int iso_ind;
 #ifdef EDSDK
 		int iso = 0;
 		err = EdsGetPropertyData(camera, kEdsPropID_ISOSpeed, 0, sizeof(EdsUInt32), &iso);
 		if (err == EDS_ERR_OK)
+		{
+			iso_ind = findISO_edsdk(iso);
 			if (Owner)
+				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_ISO_CHANGED, QVariant((int)iso_ind)));
+		}
+#endif
+#ifdef GPHOTO2
+			char* str_val = 0;
+			err = _gp_get_config_value_string(camera, "iso", &str_val, camera_context);
+			if (err >= GP_OK && str_val)
 			{
-				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_ISO_CHANGED, QVariant((int)iso)));
+				iso_ind = findISO_str(str_val);
+				if (Owner)
+					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_ISO_CHANGED, QVariant(iso_ind)));
 			}
+			if (str_val)
+				free(str_val);
 #endif
 	}
 	break;
 	case COMMAND_REQ_ISOLIST:	// request ISO list
-#ifdef EDSDK
-		err = fillISOList();
-		if (err == EDS_ERR_OK)
+		if (fillISOList())
 			if (Owner)
 			{
 				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_ISOLIST_CHANGED, 0));
 			}
-#endif
 			break;
 	case COMMAND_SET_AV:		// set Av & DOF
-		if (param1 > 0x1)
+		if (param1 > 0 && param1 < EOS_AV_TABLE_SZ)
 		{
 #ifdef EDSDK
 			EdsUInt32 av;
 			err = EdsGetPropertyData(camera, kEdsPropID_Av, 0, sizeof(EdsUInt32), &av);
 			if (err == EDS_ERR_OK)
 			{
-				if (av != (EdsUInt32)param1)
+				if (av != (EdsUInt32)AvTable[param1].edsdk_val)
 					err = EdsSetPropertyData(camera, kEdsPropID_Av, 0, sizeof(EdsUInt32), &param1);
 			}
+#endif
+#ifdef GPHOTO2
+			err = _gp_set_config_value_string(camera, "aperture", AvTable[param1].av, camera_context);
 #endif
 		}
 #ifdef EDSDK
 		if (err == EDS_ERR_OK)
 			err = EdsSetPropertyData(camera, kEdsPropID_Evf_DepthOfFieldPreview, 0, sizeof(EdsUInt32), &param2);
 #endif
+#ifdef GPHOTO2
+		#warning "COMMAND_SET_AV: set dof not implemented yet!"
+#endif
 		break;
 	case COMMAND_REQ_AV:		// request Av
 		{
+			int av_ind = 0;
 #ifdef EDSDK
 			int av = 0;
 			err = EdsGetPropertyData(camera, kEdsPropID_Av, 0, sizeof(EdsUInt32), &av);
 			if (err == EDS_ERR_OK)
+			{
+				av_ind = findAV_edsdk(av);
 				if (Owner)
-				{
-					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AV_CHANGED, QVariant((int)av)));
-				}
+					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AV_CHANGED, QVariant(av_ind)));
+			}
+#endif
+#ifdef GPHOTO2
+			char* str_val = 0;
+			err = _gp_get_config_value_string(camera, "aperture", &str_val, camera_context);
+			if (err >= GP_OK && str_val)
+			{
+				av_ind = findAV_str(str_val);
+				if (Owner)
+					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_ISO_CHANGED, QVariant(av_ind)));
+			}
+			if (str_val)
+				free(str_val);
 #endif
 		}
 		break;
 	case COMMAND_REQ_AVLIST:	// request Av list
-#ifdef EDSDK
-		err = fillAvList();
-		if (err == EDS_ERR_OK)
+		if (fillAvList())
 			if (Owner)
-			{
 				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AVLIST_CHANGED, 0));
-			}
-#endif
 		break;
 	case COMMAND_SET_TV:		// set Tv
-		if (param1 >= 0x10)
+		if (param1 >= 0 && param1 < EOS_TV_TABLE_SZ)
 		{
 #ifdef EDSDK
 			EdsUInt32 tv;
 			err = EdsGetPropertyData(camera, kEdsPropID_Tv, 0, sizeof(EdsUInt32), &tv);
 			if (err == EDS_ERR_OK)
 			{
-				if (tv != (EdsUInt32)param1)
-					err = EdsSetPropertyData(camera, kEdsPropID_Tv, 0, sizeof(EdsUInt32), &param1);
+				if (tv != (EdsUInt32)TvTable[param1].edsdk_val)
+					err = EdsSetPropertyData(camera, kEdsPropID_Tv, 0, sizeof(EdsUInt32), &TvTable[param1].edsdk_val);
 			}
+#endif
+#ifdef GPHOTO2
+			err = _gp_set_config_value_string(camera, "shutterspeed", TvTable[param1].tv, camera_context);
 #endif
 		}
 		break;
 	case COMMAND_REQ_TV:		// request Tv
 		{
+			int tv_ind = 0;
 #ifdef EDSDK
 			int tv = 0;
 			err = EdsGetPropertyData(camera, kEdsPropID_Tv, 0, sizeof(EdsUInt32), &tv);
 			if (err == EDS_ERR_OK)
+			{
+				tv_ind = findTV_edsdk(tv);
 				if (Owner)
-				{
-					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_TV_CHANGED, QVariant((int)tv)));
-				}
+					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_TV_CHANGED, QVariant((int)tv_ind)));
+			}
+#endif
+#ifdef GPHOTO2
+			char* str_val = 0;
+			err = _gp_get_config_value_string(camera, "shutterspeed", &str_val, camera_context);
+			if (err >= GP_OK && str_val)
+			{
+				tv_ind = findTV_str(str_val);
+				if (Owner)
+					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_ISO_CHANGED, QVariant(tv_ind)));
+			}
+			if (str_val)
+				free(str_val);
 #endif
 		}
 		break;
 	case COMMAND_REQ_TVLIST:	// request Tv list
-#ifdef EDSDK
-		err = fillTvList();
-		if (err == EDS_ERR_OK)
+		if (fillTvList())
 			if (Owner)
 			{
 				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_TVLIST_CHANGED, 0));
 			}
-#endif
 		break;
 	case COMMAND_REQ_EVF_OUT:	// request Evf output device
 		{
@@ -420,25 +482,50 @@ int GMyLiveThread::processCommand()
 					LiveViewStarted = true;
 			}
 #endif
+#ifdef GPHOTO2
+			#warning "COMMAND_REQ_EVF_OUT: not implementet yet!"
+#endif
 		}
 		break;
 	case COMMAND_SET_AEMODE:	// set AE mode
 #ifdef EDSDK
 		err = EdsSetPropertyData(camera, kEdsPropID_AEMode, 0, sizeof(EdsUInt32), &param1);
 #endif
+#ifdef GPHOTO2
+		err = _gp_set_config_value_string(camera, "autoexposuremode", TvTable[param1].tv, camera_context);
+#endif
 		break;
 	case COMMAND_REQ_AEMODE:	// request AE mode
 		{
+			int aem_ind = 0;
 #ifdef EDSDK
 			EdsUInt32 mode;
 			err = EdsGetPropertyData(camera, kEdsPropID_AEMode, 0, sizeof(mode), &mode);
 			if (err == EDS_ERR_OK)
+			{
+				aem_ind = findAEM_edsdk(mode);
 				if (Owner)
-				{
-					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AEMODE_CHANGED, QVariant((int)mode)));
-				}
+					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AEMODE_CHANGED, QVariant(aem_ind)));
+			}
+#endif
+#ifdef GPHOTO2
+			char* str_val = 0;
+			err = _gp_get_config_value_string(camera, "autoexposuremode", &str_val, camera_context);
+			if (err >= GP_OK && str_val)
+			{
+				aem_ind = findAEM_str(str_val);
+				if (Owner)
+					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AEMODE_CHANGED, QVariant(aem_ind)));
+			}
+			if (str_val)
+				free(str_val);
 #endif
 		}
+		break;
+	case COMMAND_REQ_AEMODELIST:	// request AE mode list
+		if (fillAEMList())
+			if (Owner)
+				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AEMODELIST_CHANGED, 0));
 		break;
 	case COMMAND_ADJ_FOCUS:	// adjust focus
 		{
@@ -499,7 +586,13 @@ int GMyLiveThread::processCommand()
 	default:
 		break;
 	}
-	return err;
+#ifdef EDSDK
+	res = err == EDSDK_OK;
+#endif
+#ifdef GPHOTO2
+	res = err >= GP_OK;
+#endif
+	return res;
 }
 
 void GMyLiveThread::waitCommands()
@@ -558,6 +651,7 @@ void GMyLiveThread::run()
 	// get AF mode
 	cmdRequestAFMode();
 	// get AE mode
+	cmdRequestAEModeList();
 	cmdRequestAEMode();
 
 	SkippedCount = 0;
@@ -842,25 +936,48 @@ void GMyLiveThread::run()
 	}
 }
 
-int GMyLiveThread::fillAvList()
+bool GMyLiveThread::fillAvList()
 {
 #ifdef EDSDK
 	EdsPropertyDesc desc;
+	int i, j;
 	EdsError err = EdsGetPropertyDesc(camera, kEdsPropID_Av, &desc);
 	if (err == EDS_ERR_OK)
 	{
 		AvListSize = desc.numElements;
-		for (int i = 0; i < AvListSize; i++)
-			AvList[i] = desc.propDesc[i];
+		for (i = 0; i < AvListSize; i++)
+			AvList[i] = findAV_edsdk(desc.propDesc[i]);
 	}
-	return err;
+	return err == EDS_ERR_OK;
 #endif
 #ifdef GPHOTO2
-	return -1;
+	int ret = GP_OK;
+	CameraWidget* widget = 0, *child = 0;
+	const char* choice = 0;
+	int i;
+
+	AvListSize = 0;
+	ret = gp_camera_get_config(camera, &widget, camera_context);
+	if (ret >= GP_OK)
+		ret = _gp_lookup_widget(widget, "aperture", &child);
+	if (ret >= GP_OK)
+		ret = gp_widget_count_choices(child);
+	if (ret >= GP_OK)
+		AvListSize = ret;
+	for (i = 0; i < AvListSize; i++)
+	{
+		AvList[i] = 0;
+		ret = gp_widget_get_choice(child, i, &choice);
+		if (ret >= GP_OK)
+			AvList[i] = findAV_str(choice);
+	}
+	if (widget)
+		gp_widget_free(widget);
+	return AvListSize > 0;
 #endif
 }
 
-int GMyLiveThread::fillTvList()
+bool GMyLiveThread::fillTvList()
 {
 #ifdef EDSDK
 	EdsPropertyDesc desc;
@@ -868,17 +985,39 @@ int GMyLiveThread::fillTvList()
 	if (err == EDS_ERR_OK)
 	{
 		TvListSize = desc.numElements;
-		for (int i = 0; i < TvListSize; i++)
-			TvList[i] = desc.propDesc[i];
+		for (i = 0; i < TvListSize; i++)
+			TvList[i] = findTV_edsdk(desc.propDesc[i]);
 	}
-	return err;
+	return err == EDS_ERR_OK;
 #endif
 #ifdef GPHOTO2
-	return -1;
+	int ret = GP_OK;
+	CameraWidget* widget = 0, *child = 0;
+	const char* choice = 0;
+	int i;
+
+	TvListSize = 0;
+	ret = gp_camera_get_config(camera, &widget, camera_context);
+	if (ret >= GP_OK)
+		ret = _gp_lookup_widget(widget, "shutterspeed", &child);
+	if (ret >= GP_OK)
+		ret = gp_widget_count_choices(child);
+	if (ret >= GP_OK)
+		TvListSize = ret;
+	for (i = 0; i < TvListSize; i++)
+	{
+		TvList[i] = 0;
+		ret = gp_widget_get_choice(child, i, &choice);
+		if (ret >= GP_OK)
+			TvList[i] = findTV_str(choice);
+	}
+	if (widget)
+		gp_widget_free(widget);
+	return TvListSize > 0;
 #endif
 }
 
-int GMyLiveThread::fillISOList()
+bool GMyLiveThread::fillISOList()
 {
 #ifdef EDSDK
 	EdsPropertyDesc desc;
@@ -886,18 +1025,99 @@ int GMyLiveThread::fillISOList()
 	if (err == EDS_ERR_OK)
 	{
 		ISOListSize = desc.numElements;
-		for (int i = 0; i < ISOListSize; i++)
-			ISOList[i] = desc.propDesc[i];
+		for (i = 0; i < ISOListSize; i++)
+			ISOList[i] = findISO_edsdk(desc.propDesc[i]);
 	}
-	return err;
+	return err == EDS_ERR_OK;
 #endif
 #ifdef GPHOTO2
-	return -1;
+	int ret = GP_OK;
+	CameraWidget* widget = 0, *child = 0;
+	const char* choice = 0;
+	int i;
+
+	ISOListSize = 0;
+	ret = gp_camera_get_config(camera, &widget, camera_context);
+	if (ret >= GP_OK)
+		ret = _gp_lookup_widget(widget, "iso", &child);
+	if (ret >= GP_OK)
+		ret = gp_widget_count_choices(child);
+	if (ret >= GP_OK)
+		ISOListSize = ret;
+	for (i = 0; i < ISOListSize; i++)
+	{
+		ISOList[i] = 0;
+		ret = gp_widget_get_choice(child, i, &choice);
+		if (ret >= GP_OK)
+			ISOList[i] = findISO_str(choice);
+	}
+	if (widget)
+		gp_widget_free(widget);
+	return ISOListSize > 0;
+#endif
+}
+
+bool GMyLiveThread::fillAEMList()
+{
+	int ind, j;
+#ifdef EDSDK
+	EdsPropertyDesc desc;
+	EdsError err = EdsGetPropertyDesc(camera, kEdsPropID_AEMode, &desc);
+	if (err == EDS_ERR_OK)
+	{
+		ind = 0;
+		for (i = 0; i < desc.numElements; i++)
+		{
+			j = findAEM_edsdk(desc.propDesc[i]);
+			if (j < EOS_AEM_TABLE_SZ - 1)
+			{
+				AEMList[ind] = j;
+				ind++;
+			}
+		}
+		AEMListSize = ind;
+	}
+	return err == EDS_ERR_OK;
+#endif
+#ifdef GPHOTO2
+	int ret = GP_OK;
+	CameraWidget* widget = 0, *child = 0;
+	const char* choice = 0;
+	int i, size;
+
+	AEMListSize = 0;
+	ret = gp_camera_get_config(camera, &widget, camera_context);
+	if (ret >= GP_OK)
+		ret = _gp_lookup_widget(widget, "autoexposuremode", &child);
+	if (ret >= GP_OK)
+		ret = gp_widget_count_choices(child);
+	if (ret >= GP_OK)
+		size = ret;
+	ind = 0;
+	for (i = 0; i < size; i++)
+	{
+		AEMList[ind] = 0;
+		ret = gp_widget_get_choice(child, i, &choice);
+		if (ret >= GP_OK)
+		{
+			//j = findAEM_str(choice);
+			j = findAEM_edsdk(i);
+			if (j < EOS_AEM_TABLE_SZ - 1)
+			{
+				AEMList[ind] = j;
+				ind++;
+			}
+		}
+	}
+	AEMListSize = ind;
+	if (widget)
+		gp_widget_free(widget);
+	return AEMListSize > 0;
 #endif
 }
 
 // call only first successfull downloadEvfData()!
-int GMyLiveThread::fillCameraName()
+bool GMyLiveThread::fillCameraName()
 {
 #ifdef EDSDK
 	CameraName.clear();
@@ -1081,10 +1301,10 @@ int GMyLiveThread::fillCameraName()
 
 	if (CameraName.isEmpty())
 		CameraName = tr("Unknown camera");
-	return err;
+	return err == EDS_ERR_OK;
 #endif
 #ifdef GPHOTO2
-	return -1;
+	return false;
 #endif
 }
 
@@ -1469,9 +1689,7 @@ bool GMyLiveThread::startLiveView()
 	ret = gp_camera_get_config(camera, &widget, camera_context);
 	if (ret >= GP_OK)
 	{
-		ret = gp_widget_get_child_by_name(widget, "capture", &child);
-		if (ret < GP_OK)
-			ret = gp_widget_get_child_by_label(widget, "capture", &child);
+		ret = _gp_lookup_widget(widget, "capture", &child);
 	}
 	if (ret >= GP_OK)
 	{
@@ -1640,9 +1858,7 @@ bool GMyLiveThread::endLiveView()
 	ret = gp_camera_get_config(camera, &widget, camera_context);
 	if (ret >= GP_OK)
 	{
-		ret = gp_widget_get_child_by_name(widget, "capture", &child);
-		if (ret < GP_OK)
-			ret = gp_widget_get_child_by_label(widget, "capture", &child);
+		ret = _gp_lookup_widget(widget, "capture", &child);
 	}
 	if (ret >= GP_OK)
 	{
@@ -1666,7 +1882,7 @@ bool GMyLiveThread::endLiveView()
 	if (ret >= GP_OK)
 		LiveViewStarted = false;
 	if (widget)
-		gp_widget_free (widget);
+		gp_widget_free(widget);
 	return ret >= GP_OK;
 #endif
 }
@@ -1825,5 +2041,51 @@ static void gp2_errordumper(GPLogLevel level, const char *domain, const char *fo
   vfprintf(stdout, format, args);
   fprintf(stdout, "\n");
 }*/
+
+static int _gp_lookup_widget(CameraWidget*widget, const char *key, CameraWidget **child)
+{
+	int ret;
+	ret = gp_widget_get_child_by_name (widget, key, child);
+	if (ret < GP_OK)
+		ret = gp_widget_get_child_by_label (widget, key, child);
+	return ret;
+}
+
+int _gp_get_config_value_string(Camera *camera, const char *key, char **str, GPContext *context)
+{
+	CameraWidget* widget = 0;
+	CameraWidget* child = 0;
+	int ret;
+	char *val;
+
+	ret = gp_camera_get_config(camera, &widget, context);
+	if (ret >= GP_OK)
+		ret = _gp_lookup_widget(widget, key, &child);
+	if (ret >= GP_OK)
+		ret = gp_widget_get_value(child, &val);
+	if (ret >= GP_OK)
+		*str = strdup(val);
+	if (widget)
+		gp_widget_free(widget);
+	return ret;
+}
+
+int _gp_set_config_value_string (Camera *camera, const char *key, const char *val, GPContext *context)
+{
+	CameraWidget* widget = 0;
+	CameraWidget* child = 0;
+	int ret;
+
+	ret = gp_camera_get_config(camera, &widget, context);
+	if (ret >= GP_OK)
+		ret = _gp_lookup_widget(widget, key, &child);
+	if (ret >= GP_OK)
+		ret = gp_widget_set_value(child, val);
+	if (ret >= GP_OK)
+		ret = gp_camera_set_config(camera, widget, context);
+	if (widget)
+		gp_widget_free (widget);
+	return ret;
+}
 
 #endif

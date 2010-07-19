@@ -84,11 +84,6 @@ GEOSRecWnd::GEOSRecWnd()
 	btn_layout->addSpacing(10);
 	AEModeBox = new QComboBox(this);
 	AEModeBox->setEditable(false);
-	AEModeBox->addItem(tr("P"), QVariant((int)0));
-	AEModeBox->addItem(tr("Tv"), QVariant((int)1));
-	AEModeBox->addItem(tr("Av"), QVariant((int)2));
-	AEModeBox->addItem(tr("M"), QVariant((int)3));
-	AEModeBox->addItem(tr("A-DEP"), QVariant((int)5));
 	AEModeBox->setEnabled(false);
 	AEModeBox->setToolTip(tr("Select AE Mode"));
 	btn_layout->addWidget(AEModeBox, 0);
@@ -616,13 +611,13 @@ void GEOSRecWnd::customEvent(QEvent* event)
 	case CAMERA_EVENT_ISO_CHANGED:
 		{
 			// ISO changed
-			int iso = e->value().toInt();
-			CurrSettings.ISO = iso;
+			int iso_ind = e->value().toInt();
+			CurrSettings.ISO = iso_ind;
 			int val;
 			for (int i = 0; i < isoBox->count(); i++)
 			{
 				val = isoBox->itemData(i, Qt::UserRole).toInt();
-				if (val == iso)
+				if (val == iso_ind)
 				{
 					isoBox->setCurrentIndex(i);
 					break;
@@ -641,14 +636,11 @@ void GEOSRecWnd::customEvent(QEvent* event)
 			int i, j, ind = 0;
 			for (i = 0; i < isoListSize; i++)
 			{
-				for (j = 0; j < EOS_ISO_TABLE_SZ; j++)
-					if (ISOTable[j].val == isoList[i])
-					{
-						isoBox->addItem(QString(ISOTable[j].ISO), QVariant((int)ISOTable[j].val));
-						if (isoList[i] == curr_iso)
-							isoBox->setCurrentIndex(ind);
-						ind++;
-					}
+				j = isoList[i];
+				isoBox->addItem(QString(ISOTable[j].ISO), QVariant(j));
+				if (isoList[i] == curr_iso)
+					isoBox->setCurrentIndex(ind);
+				ind++;
 			}
 		}
 		break;
@@ -686,14 +678,11 @@ void GEOSRecWnd::customEvent(QEvent* event)
 			int i, j, ind = 0;
 			for (i = 0; i < avListSize; i++)
 			{
-				for (j = 0; j < EOS_AV_TABLE_SZ; j++)
-					if (AvTable[j].val == avList[i])
-					{
-						avBox->addItem(QString(AvTable[j].av), QVariant((int)AvTable[j].val));
-						if (avList[i] == curr_av)
-							avBox->setCurrentIndex(ind);
-						ind++;
-					}
+				j = avList[i];
+				avBox->addItem(QString(AvTable[j].av), QVariant((int)j));
+				if (avList[i] == curr_av)
+					avBox->setCurrentIndex(ind);
+				ind++;
 			}
 		}
 		break;
@@ -731,14 +720,11 @@ void GEOSRecWnd::customEvent(QEvent* event)
 			int i, j, ind = 0;
 			for (i = 0; i < tvListSize; i++)
 			{
-				for (j = 0; j < EOS_TV_TABLE_SZ; j++)
-					if (TvTable[j].val == tvList[i])
-					{
-						tvBox->addItem(QString(TvTable[j].tv), QVariant((int)TvTable[j].val));
-						if (tvList[i] == curr_tv)
-							tvBox->setCurrentIndex(ind);
-						ind++;
-					}
+				j = tvList[i];
+				tvBox->addItem(QString(TvTable[j].tv), QVariant((int)j));
+				if (tvList[i] == curr_tv)
+					tvBox->setCurrentIndex(ind);
+				ind++;
 			}
 		}
 		break;
@@ -815,6 +801,27 @@ void GEOSRecWnd::customEvent(QEvent* event)
 				LiveThread->cmdRequestAv();
 				LiveThread->cmdRequestTv();
 				LiveThread->cmdRequestISO();
+			}
+		}
+		break;
+	case CAMERA_EVENT_AEMODELIST_CHANGED:
+		{
+			// AEMODE list changed
+			//QMessageBox::information(this, tr("Info"), tr("AEMODE list changed."));
+			//blinkLabel->setText(tr("AEMODE list changed."));
+			unsigned int curr_aem = AEModeBox->itemData(AEModeBox->currentIndex(), Qt::UserRole).toInt();
+			const unsigned int* aemList = LiveThread->aemList();
+			int aemListSize = LiveThread->aemListSize();
+			// fill combo
+			AEModeBox->clear();
+			int i, j, ind = 0;
+			for (i = 0; i < aemListSize; i++)
+			{
+				j = aemList[i];
+				AEModeBox->addItem(QString(AEMTable[j].aem), QVariant((int)j));
+				if (aemList[i] == curr_aem)
+					AEModeBox->setCurrentIndex(ind);
+				ind++;
 			}
 		}
 		break;

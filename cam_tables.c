@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2009 by Чернов А.А.                                *
+ *   Copyright (C) 2008-2010 by Чернов А.А.                                *
  *   valexlin@gmail.com                                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "cam_tables.h"
+#include <string.h>
 
 struct EOSAvTable AvTable[EOS_AV_TABLE_SZ] = {
 	{ 0x00, "0" },
@@ -179,3 +180,132 @@ struct EOSISOTable ISOTable[EOS_ISO_TABLE_SZ] = {
 	{ 0x88, "25600" },
 	{ 0xffffffff, "Err" }
 };
+
+struct EOSAEMTable AEMTable[EOS_AEM_TABLE_SZ] = {
+	{ 0x00, "P" },
+	{ 0x01, "Tv" },
+	{ 0x02, "Av" },
+	{ 0x03, "M" },
+	{ 0x05, "A-DEP" },
+	{ 0xffffffff, "Err" }
+};
+
+int findAV_edsdk(int edsdk_val)
+{
+	register int i;
+	register int res = EOS_AV_TABLE_SZ - 1;
+	for (i = 0; i < EOS_AV_TABLE_SZ; i++)
+	{
+		if (edsdk_val == AvTable[i].edsdk_val)
+		{
+			res = i;
+			break;
+		}
+	}
+	return res;
+}
+
+int findAV_str(const char* str)
+{
+	register int i;
+	register int res = EOS_AV_TABLE_SZ - 1;
+	for (i = 0; i < EOS_AV_TABLE_SZ; i++)
+	{
+		if (strcmp(str, AvTable[i].av) == 0)
+		{
+			res = i;
+			break;
+		}
+	}
+	return res;
+}
+
+int findTV_edsdk(int edsdk_val)
+{
+	register int i;
+	register int res = EOS_TV_TABLE_SZ - 1;
+	for (i = 0; i < EOS_TV_TABLE_SZ; i++)
+	{
+		if (edsdk_val == TvTable[i].edsdk_val)
+		{
+			res = i;
+			break;
+		}
+	}
+	return res;
+}
+
+int findTV_str(const char* str)
+{
+	register int i;
+	register int res = EOS_TV_TABLE_SZ - 1;
+	for (i = 0; i < EOS_TV_TABLE_SZ; i++)
+	{
+		if (strcmp(str, TvTable[i].tv) == 0)
+		{
+			res = i;
+			break;
+		}
+	}
+	return res;
+}
+
+int findISO_edsdk(int edsdk_val)
+{
+	register int i;
+	register int res = EOS_ISO_TABLE_SZ - 1;
+	for (i = 0; i < EOS_ISO_TABLE_SZ; i++)
+	{
+		if (edsdk_val == ISOTable[i].edsdk_val)
+		{
+			res = i;
+			break;
+		}
+	}
+	return res;
+}
+
+int findISO_str(const char* str)
+{
+	register int i;
+	register int res = EOS_ISO_TABLE_SZ - 1;
+	for (i = 0; i < EOS_ISO_TABLE_SZ; i++)
+	{
+		if (strcmp(str, ISOTable[i].ISO) == 0)
+		{
+			res = i;
+			break;
+		}
+	}
+	return res;
+}
+
+int findAEM_edsdk(int edsdk_val)
+{
+	register int i;
+	register int res = EOS_AEM_TABLE_SZ - 1;
+	for (i = 0; i < EOS_AEM_TABLE_SZ; i++)
+	{
+		if (edsdk_val == AEMTable[i].edsdk_val)
+		{
+			res = i;
+			break;
+		}
+	}
+	return res;
+}
+
+int findAEM_str(const char* str)
+{
+	register int i;
+	register int res = EOS_AEM_TABLE_SZ - 1;
+	for (i = 0; i < EOS_AEM_TABLE_SZ; i++)
+	{
+		if (strcmp(str, AEMTable[i].aem) == 0)
+		{
+			res = i;
+			break;
+		}
+	}
+	return res;
+}

@@ -83,6 +83,7 @@ public:
 	void cmdRequestTvList();
 	void cmdRequestEvfOut();
 	void cmdRequestAEMode();
+	void cmdRequestAEModeList();
 	void cmdRequestAFMode();
 	void cmdAdjFocus(int direction, int val);
 	void cmdSetZoom(int zoom);
@@ -97,6 +98,8 @@ public:
 	int tvListSize() const { return TvListSize; }
 	const unsigned int* isoList() const { return ISOList; }
 	int isoListSize() const { return ISOListSize; }
+	const unsigned int* aemList() const { return AEMList; }
+	int aemListSize() const { return AEMListSize; }
 	QString cameraName() const { return CameraName; }
 	struct EOSCamFeatures cameraFeatures() const { return CamFeatures; }
 	// stat function
@@ -136,11 +139,12 @@ private:
 	bool startLiveView();
 	bool downloadEvfData();
 	bool endLiveView();
-	int processCommand();
-	int fillAvList();
-	int fillTvList();
-	int fillISOList();
-	int fillCameraName();
+	bool processCommand();
+	bool fillAvList();
+	bool fillTvList();
+	bool fillISOList();
+	bool fillAEMList();
+	bool fillCameraName();
 private:
 	bool Stoped;
 	bool Inited;
@@ -171,6 +175,8 @@ private:
 	int TvListSize;
 	unsigned int ISOList[32];
 	int ISOListSize;
+	unsigned int AEMList[16];
+	int AEMListSize;
 	int Zoom;
 	int ZoomPosX;
 	int ZoomPosY;
