@@ -587,7 +587,7 @@ bool GMyLiveThread::processCommand()
 		break;
 	}
 #ifdef EDSDK
-	res = err == EDSDK_OK;
+	res = err == EDS_ERR_OK;
 #endif
 #ifdef GPHOTO2
 	res = err >= GP_OK;
@@ -979,6 +979,7 @@ bool GMyLiveThread::fillAvList()
 
 bool GMyLiveThread::fillTvList()
 {
+	int i;
 #ifdef EDSDK
 	EdsPropertyDesc desc;
 	EdsError err = EdsGetPropertyDesc(camera, kEdsPropID_Tv, &desc);
@@ -994,7 +995,6 @@ bool GMyLiveThread::fillTvList()
 	int ret = GP_OK;
 	CameraWidget* widget = 0, *child = 0;
 	const char* choice = 0;
-	int i;
 
 	TvListSize = 0;
 	ret = gp_camera_get_config(camera, &widget, camera_context);
@@ -1019,14 +1019,20 @@ bool GMyLiveThread::fillTvList()
 
 bool GMyLiveThread::fillISOList()
 {
+	int i;
 #ifdef EDSDK
 	EdsPropertyDesc desc;
 	EdsError err = EdsGetPropertyDesc(camera, kEdsPropID_ISOSpeed, &desc);
+	int ind = 0;
 	if (err == EDS_ERR_OK)
 	{
-		ISOListSize = desc.numElements;
-		for (i = 0; i < ISOListSize; i++)
-			ISOList[i] = findISO_edsdk(desc.propDesc[i]);
+		for (i = 0; i < desc.numElements; i++)
+			if (desc.propDesc[i] > 0)
+			{
+				ISOList[ind] = findISO_edsdk(desc.propDesc[i]);
+				ind++;
+			}
+		ISOListSize = ind;
 	}
 	return err == EDS_ERR_OK;
 #endif
@@ -1034,7 +1040,6 @@ bool GMyLiveThread::fillISOList()
 	int ret = GP_OK;
 	CameraWidget* widget = 0, *child = 0;
 	const char* choice = 0;
-	int i;
 
 	ISOListSize = 0;
 	ret = gp_camera_get_config(camera, &widget, camera_context);
@@ -1059,7 +1064,7 @@ bool GMyLiveThread::fillISOList()
 
 bool GMyLiveThread::fillAEMList()
 {
-	int ind, j;
+	int ind, i, j;
 #ifdef EDSDK
 	EdsPropertyDesc desc;
 	EdsError err = EdsGetPropertyDesc(camera, kEdsPropID_AEMode, &desc);
@@ -1083,7 +1088,7 @@ bool GMyLiveThread::fillAEMList()
 	int ret = GP_OK;
 	CameraWidget* widget = 0, *child = 0;
 	const char* choice = 0;
-	int i, size;
+	int size;
 
 	AEMListSize = 0;
 	ret = gp_camera_get_config(camera, &widget, camera_context);
@@ -1370,6 +1375,7 @@ bool GMyLiveThread::initializeEds()
 
 bool GMyLiveThread::deInitializeEds()
 {
+	EdsError err = EDS_ERR_OK;
 	endLiveView();
 	// Close session with camera
 	// and release camera

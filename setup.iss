@@ -24,20 +24,14 @@ SolidCompression=yes
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\DPPDLL.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\DPPLibCom.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\DPPRSC.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\EDSDK.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\EdsImage.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\eos_movrec.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\libjpeg-8.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\libpng-3.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\mingwm10.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\MLib.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\qt.conf"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\QtCore4.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\QtGui4.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\Ucs32P.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\libz-1.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\libgcc_s_dw2-1.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\libstdc++-6.dll"; DestDir: "{app}"; Flags: ignoreversion

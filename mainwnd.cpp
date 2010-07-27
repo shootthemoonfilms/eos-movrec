@@ -79,6 +79,7 @@ GEOSRecWnd::GEOSRecWnd()
 	stopBtn->setIcon(QPixmap(stop_xpm));
 	stopBtn->setEnabled(false);
 	stopBtn->setToolTip(tr("Stop recording (S)"));
+	stopBtn->setVisible(false);
 	btn_layout->addWidget(stopBtn, 0);
 
 	btn_layout->addSpacing(10);
@@ -934,7 +935,9 @@ void GEOSRecWnd::slotStart()
 		selFileBtn->setEnabled(false);
 		showBox->setEnabled(false);
 		startBtn->setEnabled(false);
+		startBtn->setVisible(false);
 		stopBtn->setEnabled(true);
+		stopBtn->setVisible(true);
 		zoom5xBtn->setEnabled(false);
 		optionsBtn->setEnabled(false);
 		LiveThread->startWrite();
@@ -953,7 +956,9 @@ void GEOSRecWnd::slotStop()
 		blinkLabel->setText(str + tr("Ready"));
 		showBox->setEnabled(true);
 		startBtn->setEnabled(true);
+		startBtn->setVisible(true);
 		stopBtn->setEnabled(false);
+		stopBtn->setVisible(false);
 		selFileBtn->setEnabled(true);
 		zoom5xBtn->setEnabled(true);
 		optionsBtn->setEnabled(true);
@@ -1226,6 +1231,8 @@ void GEOSRecWnd::shutdown()
 	showBox->setEnabled(false);
 	startBtn->setEnabled(false);
 	stopBtn->setEnabled(false);
+	startBtn->setVisible(true);
+	stopBtn->setVisible(false);
 	selFileBtn->setEnabled(false);
 	reconnBtn->setEnabled(true);
 	AEModeBox->setEnabled(false);
