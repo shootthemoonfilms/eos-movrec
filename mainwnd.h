@@ -32,6 +32,7 @@ class QToolButton;
 class QComboBox;
 class QSpinBox;
 class QLabel;
+class QStatusBar;
 
 class GMyLiveThread;
 class GAFThread;
@@ -108,6 +109,9 @@ private:
 	QToolButton* AFCamBtn;
 	QToolButton* HistBtn;
 	QToolButton* optionsBtn;
+	QStatusBar* statusBar;
+	QLabel* framesLabel;
+	QLabel* timeLabel;
 	GMyLiveThread* LiveThread;
 	GAFThread* AFThread;
 	GEOSCaptureWnd* CaptureWnd;

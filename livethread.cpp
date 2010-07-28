@@ -877,6 +877,15 @@ void GMyLiveThread::run()
 			if (Owner)
 			{
 				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_FPS_UPDATED, QVariant(TempFPS)));
+				QList<QVariant> counters;
+				int wrt_time = 0;
+				if (WriteMovie)
+					wrt_time = (CurrTime - StartWriteTime)/1000;
+				else //if (PrevWriteMovie)
+					wrt_time = (StopWriteTime - StartWriteTime)/1000;
+				counters.append(QVariant(WritenCount));
+				counters.append(QVariant(wrt_time));
+				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_UPDATE_COUNTERS, QVariant(counters)));
 				if (StableFPSCount == 4)
 					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_FPS_CALCULATED, QVariant((int)StableFPS)));
 			}
@@ -938,15 +947,25 @@ void GMyLiveThread::run()
 
 bool GMyLiveThread::fillAvList()
 {
+	int i;
 #ifdef EDSDK
 	EdsPropertyDesc desc;
-	int i, j;
+	int ind = 0;
+	int j;
 	EdsError err = EdsGetPropertyDesc(camera, kEdsPropID_Av, &desc);
 	if (err == EDS_ERR_OK)
 	{
-		AvListSize = desc.numElements;
-		for (i = 0; i < AvListSize; i++)
-			AvList[i] = findAV_edsdk(desc.propDesc[i]);
+		//AvListSize = desc.numElements;
+		for (i = 0; i < desc.numElements; i++)
+		{
+			j = findAV_edsdk(desc.propDesc[i]);
+			if (j < EOS_AV_TABLE_SZ - 1)
+			{
+				AvList[ind] = j;
+				ind++;
+			}
+		}
+		AvListSize = ind;
 	}
 	return err == EDS_ERR_OK;
 #endif
@@ -954,7 +973,6 @@ bool GMyLiveThread::fillAvList()
 	int ret = GP_OK;
 	CameraWidget* widget = 0, *child = 0;
 	const char* choice = 0;
-	int i;
 
 	AvListSize = 0;
 	ret = gp_camera_get_config(camera, &widget, camera_context);
@@ -981,13 +999,23 @@ bool GMyLiveThread::fillTvList()
 {
 	int i;
 #ifdef EDSDK
+	int ind = 0;
+	int j;
 	EdsPropertyDesc desc;
 	EdsError err = EdsGetPropertyDesc(camera, kEdsPropID_Tv, &desc);
 	if (err == EDS_ERR_OK)
 	{
-		TvListSize = desc.numElements;
-		for (i = 0; i < TvListSize; i++)
-			TvList[i] = findTV_edsdk(desc.propDesc[i]);
+		//TvListSize = desc.numElements;
+		for (i = 0; i < desc.numElements; i++)
+		{
+			j = findTV_edsdk(desc.propDesc[i]);
+			if (j < EOS_TV_TABLE_SZ - 1)
+			{
+				TvList[ind] = j;
+				ind++;
+			}
+		}
+		TvListSize = ind;
 	}
 	return err == EDS_ERR_OK;
 #endif
@@ -1066,6 +1094,8 @@ bool GMyLiveThread::fillAEMList()
 {
 	int ind, i, j;
 #ifdef EDSDK
+#if 0
+	// this code not work. Why? I don't know, but desc.numElements == 0
 	EdsPropertyDesc desc;
 	EdsError err = EdsGetPropertyDesc(camera, kEdsPropID_AEMode, &desc);
 	if (err == EDS_ERR_OK)
@@ -1083,6 +1113,12 @@ bool GMyLiveThread::fillAEMList()
 		AEMListSize = ind;
 	}
 	return err == EDS_ERR_OK;
+#else
+	AEMListSize = EOS_AEM_TABLE_SZ - 1;
+	for (i = 0; i < EOS_AEM_TABLE_SZ; i++)
+		AEMList[i] = i;
+	return true;
+#endif
 #endif
 #ifdef GPHOTO2
 	int ret = GP_OK;

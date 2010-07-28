@@ -24,6 +24,7 @@
 #include <QComboBox>
 #include <QSpinBox>
 #include <QLabel>
+#include <QStatusBar>
 //#include <QTimer>
 #include <QBoxLayout>
 #include <QFileDialog>
@@ -240,7 +241,7 @@ GEOSRecWnd::GEOSRecWnd()
 	focus_layout->addStretch(1);
 
 	blinkLabel = new QBlinkLabel(tr("Starting..."), this);
-	main_layout->addWidget(blinkLabel, 0);
+	//main_layout->addWidget(blinkLabel, 0);
 
 	main_layout->addLayout(btn_layout, 0);
 
@@ -249,6 +250,16 @@ GEOSRecWnd::GEOSRecWnd()
 	CaptureWnd = new GEOSCaptureWnd(this);
 	main_layout->addWidget(CaptureWnd, 0);
 	main_layout->addStretch(1);
+
+	statusBar = new QStatusBar(this);
+	//statusBar->showMessage(tr("xyz"));
+	statusBar->addWidget(blinkLabel, 10);
+	main_layout->addWidget(statusBar, 0);
+
+	framesLabel = new QLabel(this);
+	statusBar->addWidget(framesLabel, 0);
+	timeLabel = new QLabel(this);
+	statusBar->addWidget(timeLabel, 0);
 
 	//setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 	setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -735,6 +746,16 @@ void GEOSRecWnd::customEvent(QEvent* event)
 			char str[10];
 			sprintf(str, "%.1f fps", fps);
 			fpsLabel->setText(QString(str));
+		}
+		break;
+	case CAMERA_EVENT_UPDATE_COUNTERS:
+		{
+			QList<QVariant> counters = e->value().toList();
+			if (counters.length() == 2)
+			{
+				framesLabel->setText(tr("frames: %1").arg(counters.at(0).toInt()));
+				timeLabel->setText(tr("time: %1 s").arg(counters.at(1).toInt()));
+			}
 		}
 		break;
 	case CAMERA_EVENT_FPS_CALCULATED:
