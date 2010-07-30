@@ -24,7 +24,11 @@
 int main(int argc, char **argv)
 {
 	QApplication app(argc, argv);
-
+#ifdef GPHOTO2
+	// disable gphoto2 internalization,
+	// to save enlish names of various modes
+	setlocale(LC_MESSAGES, "POSIX");
+#endif
 	GEOSRecWnd mainwnd;
 	mainwnd.show();
 	return app.exec();

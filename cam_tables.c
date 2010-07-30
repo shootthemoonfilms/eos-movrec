@@ -182,11 +182,11 @@ struct EOSISOTable ISOTable[EOS_ISO_TABLE_SZ] = {
 };
 
 struct EOSAEMTable AEMTable[EOS_AEM_TABLE_SZ] = {
-	{ 0x00, "P" },
-	{ 0x01, "Tv" },
-	{ 0x02, "Av" },
-	{ 0x03, "M" },
-	{ 0x05, "A-DEP" },
+	{ 0x00, "P", "P" },
+	{ 0x01, "TV", "Tv" },
+	{ 0x02, "AV", "Av" },
+	{ 0x03, "Manual", "M" },
+	{ 0x05, "A_DEP", "A-DEP" },
 	{ 0xffffffff, "Err" }
 };
 
@@ -301,7 +301,7 @@ int findAEM_str(const char* str)
 	register int res = EOS_AEM_TABLE_SZ - 1;
 	for (i = 0; i < EOS_AEM_TABLE_SZ; i++)
 	{
-		if (strcmp(str, AEMTable[i].aem) == 0)
+		if (strcmp(str, AEMTable[i].gphoto_str) == 0)
 		{
 			res = i;
 			break;

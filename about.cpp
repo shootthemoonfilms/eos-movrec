@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "about.h"
+#include "config.h"
 
 #include <QBoxLayout>
 #include <QTextBrowser>
@@ -28,7 +29,7 @@ GAboutDlg::GAboutDlg(QWidget* parent)
  : QDialog(parent)
 {
 	QString text = tr("<body bgcolor=\"%1\"><p>EOS Camera Movie Record<br/>"
-										  "Version 0.2.2 Beta"
+										  "Version %2"
 					  "<center>Authors:</center>"
 					  "Chernov Aleksey - main programmer (<a href=\"mailto:valexvir@yandex.ru\">valexvir@yandex.ru</a>)<br/>"
 					  "Uterr - autofocus programmer <br/>"
@@ -57,6 +58,7 @@ GAboutDlg::GAboutDlg(QWidget* parent)
 	browser->setMinimumSize(300, 270);
 	QString color_name = palette().color(QPalette::Window).name();
 	text.replace("%1", color_name);
+	text.replace("%2", QString(VERSION));
 	browser->setText(text);
 	main_layout->addWidget(browser, 0);
 	QHBoxLayout* btn_layout = new QHBoxLayout();

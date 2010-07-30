@@ -52,6 +52,11 @@ static void gp2_errordumper(GPLogLevel level, const char *domain, const char *fo
 static int _gp_lookup_widget(CameraWidget*widget, const char *key, CameraWidget **child);
 static int _gp_get_config_value_string(Camera *camera, const char *key, char **str, GPContext *context);
 static int _gp_set_config_value_string(Camera *camera, const char *key, const char *val, GPContext *context);
+
+#if 0
+//static CameraPrePostFunc _drv_CameraPrePostFunc = 0;
+static int handleCameraTimeOutFunc(Camera *camera, GPContext *context);
+#endif
 #endif
 
 // class GMyLiveThread
@@ -488,12 +493,24 @@ bool GMyLiveThread::processCommand()
 		}
 		break;
 	case COMMAND_SET_AEMODE:	// set AE mode
+		if (param1 >= 0 && param1 < EOS_AEM_TABLE_SZ)
+		{
 #ifdef EDSDK
-		err = EdsSetPropertyData(camera, kEdsPropID_AEMode, 0, sizeof(EdsUInt32), &param1);
+			err = EdsSetPropertyData(camera, kEdsPropID_AEMode, 0, sizeof(EdsUInt32), &param1);
+
+			EdsUInt32 aem;
+			err = EdsGetPropertyData(camera, kEdsPropID_AEMode, 0, sizeof(EdsUInt32), &aem);
+			if (err == EDS_ERR_OK)
+			{
+				if (aem != (EdsUInt32)AEMTable[param1].edsdk_val)
+					err = EdsSetPropertyData(camera, kEdsPropID_AEMode, 0, sizeof(EdsUInt32), &AEMTable[param1].edsdk_val);
+			}
 #endif
 #ifdef GPHOTO2
-		err = _gp_set_config_value_string(camera, "autoexposuremode", TvTable[param1].tv, camera_context);
+			char str[3];
+			err = _gp_set_config_value_string(camera, "autoexposuremode", AEMTable[param1].gphoto_str, camera_context);
 #endif
+		}
 		break;
 	case COMMAND_REQ_AEMODE:	// request AE mode
 		{
@@ -547,6 +564,9 @@ bool GMyLiveThread::processCommand()
 			}
 			err = EdsSendCommand(camera, kEdsCameraCommand_DriveLensEvf, inParam);
 #endif
+#ifdef GPHOTO2
+			#warning "COMMAND_ADJ_FOCUS: not implemented yet!"
+#endif
 		}
 		break;
 	case COMMAND_REQ_AFMODE:	// request AF mode
@@ -558,11 +578,17 @@ bool GMyLiveThread::processCommand()
 				if (Owner)
 					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AFMODE_CHANGED, QVariant((int)mode)));
 #endif
+#ifdef GPHOTO2
+			#warning "COMMAND_REQ_AFMODE: not implemented yet!"
+#endif
 		}
 		break;
 	case COMMAND_SET_ZOOM:
 #ifdef EDSDK
 		err = EdsSetPropertyData(camera, kEdsPropID_Evf_Zoom, 0, sizeof(EdsUInt32), &param1);
+#endif
+#ifdef GPHOTO2
+			#warning "COMMAND_SET_ZOOM: not implemented yet!"
 #endif
 		break;
 	case COMMAND_SET_ZOOMPOS:
@@ -573,6 +599,9 @@ bool GMyLiveThread::processCommand()
 			p.y = (EdsInt32)param2;
 			err = EdsSetPropertyData(camera, kEdsPropID_Evf_ZoomPosition, 0, sizeof(EdsPoint), &p);
 #endif
+#ifdef GPHOTO2
+			#warning "COMMAND_SET_ZOOMPOS: not implemented yet!"
+#endif
 		}
 		break;
 	case COMMAND_DO_LVAF:
@@ -580,6 +609,9 @@ bool GMyLiveThread::processCommand()
 #ifdef EDSDK
 			EdsEvfAFMode mode = (EdsEvfAFMode)param1;
 			err = EdsSendCommand(camera, kEdsCameraCommand_DoEvfAf, mode);
+#endif
+#ifdef GPHOTO2
+			#warning "COMMAND_DO_LVAF: not implemented yet!"
 #endif
 		}
 		break;
@@ -1146,8 +1178,7 @@ bool GMyLiveThread::fillAEMList()
 		ret = gp_widget_get_choice(child, i, &choice);
 		if (ret >= GP_OK)
 		{
-			//j = findAEM_str(choice);
-			j = findAEM_edsdk(i);
+			j = findAEM_str(choice);
 			if (j < EOS_AEM_TABLE_SZ - 1)
 			{
 				AEMList[ind] = j;
@@ -1689,6 +1720,11 @@ bool GMyLiveThread::initializeGPhoto2()
 		gp_camera_free(tmp_camera);
 		return false;
 	}
+#if 0
+	CameraFunctions* cam_funcs = tmp_camera->functions;
+	_drv_CameraPrePostFunc = cam_funcs->post_func;
+	cam_funcs->post_func = handleCameraPrePostFunc;
+#endif
 	camera = tmp_camera;
 
 	return true;
@@ -2134,5 +2170,14 @@ int _gp_set_config_value_string (Camera *camera, const char *key, const char *va
 		gp_widget_free (widget);
 	return ret;
 }
+
+#if 0
+static int handleCameraPrePostFunc(Camera *camera, GPContext *context)
+{
+	if (_drv_CameraPrePostFunc)
+		_drv_CameraPrePostFunc(camera, context);
+	fprintf(stderr, "handleCameraPrePostFunc()\n");
+}
+#endif
 
 #endif

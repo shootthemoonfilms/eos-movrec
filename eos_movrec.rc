@@ -1,2 +1,23 @@
+#include "config.h"
+
 IDI_ICON1               ICON    DISCARDABLE     "eos-movrec2.ico"
 
+VERSIONINFO_1	VERSIONINFO
+//FILEVERSION VERSION_1, VERSION_2, VERSION_3, VERSION_4
+//PRODUCTVERSION VERSION_1, VERSION_2, VERSION_3, VERSION_4
+FILEOS VOS_NT_WINDOWS32
+FILETYPE VFT_APP
+{
+	BLOCK "StringFileInfo"
+	{
+		BLOCK "040904E4"
+		{
+			VALUE "CompanyName", "eos-movrec authors\000"
+			VALUE "FileDescription", "EOS Movies Record\000"
+			VALUE "FileVersion", VERSION"\000"
+			VALUE "InternalName", "eos_movrec\000"
+			VALUE "LegalCopyright", "eos-movrec authors\000"
+			VALUE "OriginalFilename", "eos_movrec.exe\000"
+		}
+	}
+}

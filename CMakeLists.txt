@@ -7,6 +7,16 @@ include(CheckIncludeFile)
 
 #set(CMAKE_VERBOSE_MAKEFILE on)
 
+#set(VERSION_1 0)
+#set(VERSION_2 3)
+#set(VERSION_3 0)
+#set(VERSION_4 0)
+set(VERSION "0.3 beta")
+set(PACKAGE ${PROJECT_NAME})
+
+configure_file(config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h)
+
+
 #check mingw
 if(WIN32)
 	if(MINGW)

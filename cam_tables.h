@@ -46,6 +46,7 @@ struct EOSISOTable
 struct EOSAEMTable
 {
 	unsigned int edsdk_val;
+	char gphoto_str[20];
 	char aem[6];
 };
 
