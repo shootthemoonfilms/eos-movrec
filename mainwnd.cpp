@@ -116,8 +116,8 @@ GEOSRecWnd::GEOSRecWnd()
 	btn_layout->addWidget(tvBox, 0);
 
 	fpsLabel = new QLabel(tr("0 fps"), this);
-	fpsLabel->setFrameShape(QFrame::Box);
-	btn_layout->addWidget(fpsLabel, 0);
+	//fpsLabel->setFrameShape(QFrame::Box);
+	//btn_layout->addWidget(fpsLabel, 0);
 
 	btn_layout->addStretch(10);
 
@@ -254,12 +254,14 @@ GEOSRecWnd::GEOSRecWnd()
 	statusBar = new QStatusBar(this);
 	//statusBar->showMessage(tr("xyz"));
 	statusBar->addWidget(blinkLabel, 10);
-	main_layout->addWidget(statusBar, 0);
+	statusBar->addWidget(fpsLabel, 0);
 
 	framesLabel = new QLabel(this);
 	statusBar->addWidget(framesLabel, 0);
 	timeLabel = new QLabel(this);
 	statusBar->addWidget(timeLabel, 0);
+
+	main_layout->addWidget(statusBar, 0);
 
 	//setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 	setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);

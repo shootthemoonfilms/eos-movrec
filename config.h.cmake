@@ -1,3 +1,5 @@
 
 #cmakedefine PACKAGE "@PACKAGE@"
+#cmakedefine FILEVERSION_V @FILEVERSION_V@
+#cmakedefine PRODUCTVERSION_V @PRODUCTVERSION_V@
 #cmakedefine VERSION "@VERSION@"

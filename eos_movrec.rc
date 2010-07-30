@@ -1,10 +1,18 @@
 #include "config.h"
 
-IDI_ICON1               ICON    DISCARDABLE     "eos-movrec2.ico"
+#include <winver.h>
 
-VERSIONINFO_1	VERSIONINFO
-//FILEVERSION VERSION_1, VERSION_2, VERSION_3, VERSION_4
-//PRODUCTVERSION VERSION_1, VERSION_2, VERSION_3, VERSION_4
+IDI_ICON1	ICON	DISCARDABLE	"eos-movrec2.ico"
+
+1	VERSIONINFO
+FILEVERSION FILEVERSION_V
+PRODUCTVERSION PRODUCTVERSION_V
+FILEFLAGSMASK 0x3fL /* VS_FFI_FILEFLAGSMASK */
+#ifdef _DEBUG
+  FILEFLAGS VS_FF_DEBUG
+#else
+  FILEFLAGS 0x0L
+#endif
 FILEOS VOS_NT_WINDOWS32
 FILETYPE VFT_APP
 {
@@ -12,12 +20,15 @@ FILETYPE VFT_APP
 	{
 		BLOCK "040904E4"
 		{
-			VALUE "CompanyName", "eos-movrec authors\000"
-			VALUE "FileDescription", "EOS Movies Record\000"
-			VALUE "FileVersion", VERSION"\000"
-			VALUE "InternalName", "eos_movrec\000"
-			VALUE "LegalCopyright", "eos-movrec authors\000"
-			VALUE "OriginalFilename", "eos_movrec.exe\000"
+			VALUE "Comments", "This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License. You should have received a copy of the GNU General Public License along with this program. If not, see <http://www.gnu.org/licenses/>.\0"
+			VALUE "CompanyName", "\0"
+			VALUE "FileDescription", "EOS Camera Movies Record\0"
+			VALUE "FileVersion", VERSION "\0"
+			VALUE "InternalName", "eos-movrec\0"
+			VALUE "LegalCopyright", "eos-movrec authors\0"
+			VALUE "OriginalFilename", "eos_movrec.exe\0"
+			VALUE "ProductName", "EOS Camera Movies Record\0"
+			VALUE "ProductVersion", VERSION "\0"
 		}
 	}
 }
