@@ -747,6 +747,7 @@ void GMyLiveThread::run()
 	StartTime = OSGetTickCount();
 	int TempTime1 = StartTime;
 	int TempTime2 = StartTime;
+	int TempTime3 = StartTime;
 	SDKMsgCheckTime1 = StartTime;
 	SDKMsgCheckTime2 = StartTime;
 	// main job
@@ -877,18 +878,22 @@ void GMyLiveThread::run()
 			if (Owner)
 			{
 				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_FPS_UPDATED, QVariant(TempFPS)));
-				QList<QVariant> counters;
-				int wrt_time = 0;
-				if (WriteMovie)
-					wrt_time = (CurrTime - StartWriteTime)/1000;
-				else //if (PrevWriteMovie)
-					wrt_time = (StopWriteTime - StartWriteTime)/1000;
-				counters.append(QVariant(WritenCount));
-				counters.append(QVariant(wrt_time));
-				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_UPDATE_COUNTERS, QVariant(counters)));
 				if (StableFPSCount == 4)
 					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_FPS_CALCULATED, QVariant((int)StableFPS)));
 			}
+		}
+		if (TempTime2 - TempTime3 >= 1000)
+		{
+			TempTime3 = TempTime2;
+			QList<QVariant> counters;
+			int wrt_time = 0;
+			if (WriteMovie)
+				wrt_time = (CurrTime - StartWriteTime)/1000;
+			else //if (PrevWriteMovie)
+				wrt_time = (StopWriteTime - StartWriteTime)/1000;
+			counters.append(QVariant(WritenCount));
+			counters.append(QVariant(wrt_time));
+			QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_UPDATE_COUNTERS, QVariant(counters)));
 		}
 		TempTime2 = OSGetTickCount();
 		SDKMsgCheckTime2 = TempTime2;
