@@ -1735,7 +1735,7 @@ bool GMyLiveThread::deInitializeGPhoto2()
 	if (camera && camera_context)
 	{
 		gp_camera_exit(camera, camera_context);
-		gp_camera_free(camera);
+		gp_camera_unref(camera);
 		camera = 0;
 	}
 	if (camera_context)
