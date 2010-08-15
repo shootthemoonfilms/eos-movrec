@@ -135,6 +135,7 @@ private:
 #ifdef GPHOTO2
 	bool initializeGPhoto2();
 	bool deInitializeGPhoto2();
+	int gp2_camera_check_event();
 #endif
 	bool startLiveView();
 	bool downloadEvfData();

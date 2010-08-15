@@ -52,11 +52,6 @@ static void gp2_errordumper(GPLogLevel level, const char *domain, const char *fo
 static int _gp_lookup_widget(CameraWidget*widget, const char *key, CameraWidget **child);
 static int _gp_get_config_value_string(Camera *camera, const char *key, char **str, GPContext *context);
 static int _gp_set_config_value_string(Camera *camera, const char *key, const char *val, GPContext *context);
-
-#if 0
-//static CameraPrePostFunc _drv_CameraPrePostFunc = 0;
-static int handleCameraTimeOutFunc(Camera *camera, GPContext *context);
-#endif
 #endif
 
 // class GMyLiveThread
@@ -723,7 +718,12 @@ void GMyLiveThread::run()
 	{
 		if (SDKMsgCheckTime2 - SDKMsgCheckTime1 > 100)
 		{
+#ifdef EDSDK
 			OSProcessMsg();
+#endif
+#if GPHOTO2
+			gp2_camera_check_event();
+#endif
 			SDKMsgCheckTime1 = SDKMsgCheckTime2;
 		}
 		while (!CommandsQueue.isEmpty())
@@ -755,7 +755,12 @@ void GMyLiveThread::run()
 	bool start_ok = false;
 	while (!(start_ok = downloadEvfData()) && RealyStartT2 - RealyStartT1 < 10000)
 	{
+#ifdef EDSDK
 		OSProcessMsg();
+#endif
+#if GPHOTO2
+		gp2_camera_check_event();
+#endif
 		OSSleep(50);
 		RealyStartT2 = OSGetTickCount();
 	}
@@ -797,7 +802,12 @@ void GMyLiveThread::run()
 		// process internal EDSDK message queue
 		if (SDKMsgCheckTime2 - SDKMsgCheckTime1 > 500)
 		{
+#ifdef EDSDK
 			OSProcessMsg();
+#endif
+#if GPHOTO2
+			gp2_camera_check_event();
+#endif
 			SDKMsgCheckTime1 = SDKMsgCheckTime2;
 		}
 
@@ -2125,6 +2135,49 @@ static void gp2_errordumper(GPLogLevel level, const char *domain, const char *fo
   fprintf(stdout, "\n");
 }*/
 
+int GMyLiveThread::gp2_camera_check_event()
+{
+	CameraEventType event_type = GP_EVENT_UNKNOWN;
+	char* event_data;
+	int ret;
+
+	while (event_type != GP_EVENT_TIMEOUT)
+	{
+		event_data = 0;
+		ret = gp_camera_wait_for_event(camera, 0, &event_type, (void**)&event_data, camera_context);
+		if (ret >= GP_OK)
+		{
+			fprintf(stderr, "event_type: ");
+			switch(event_type)
+			{
+			case GP_EVENT_UNKNOWN:
+				fprintf(stderr, "unknown");
+				break;
+			case GP_EVENT_TIMEOUT:
+				fprintf(stderr, "timeout");
+				break;
+			case GP_EVENT_FILE_ADDED:
+				fprintf(stderr, "file added");
+				break;
+			case GP_EVENT_FOLDER_ADDED:
+				fprintf(stderr, "folder added");
+				break;
+			case GP_EVENT_CAPTURE_COMPLETE:
+				fprintf(stderr, "capture complete");
+				break;
+			default:
+				fprintf(stderr, "%d", event_type);
+			}
+			if (event_data)
+			{
+				fprintf(stderr, "; event_data = '%s'", event_data);
+				free(event_data);
+			}
+			fprintf(stderr, "\n");
+		}
+	}
+}
+
 static int _gp_lookup_widget(CameraWidget*widget, const char *key, CameraWidget **child)
 {
 	int ret;
@@ -2170,14 +2223,5 @@ int _gp_set_config_value_string (Camera *camera, const char *key, const char *va
 		gp_widget_free (widget);
 	return ret;
 }
-
-#if 0
-static int handleCameraPrePostFunc(Camera *camera, GPContext *context)
-{
-	if (_drv_CameraPrePostFunc)
-		_drv_CameraPrePostFunc(camera, context);
-	fprintf(stderr, "handleCameraPrePostFunc()\n");
-}
-#endif
 
 #endif
