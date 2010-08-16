@@ -37,6 +37,7 @@ TARGET = bin/eos_movrec
 EDSDKPATH = ./EDSDK
 #DEFINES += AF_DEBUG_LOG=1
 win32:DEFINES += EDSDK=1
+unix:DEFINES += GPHOTO2=1
 INCLUDEPATH = $$EDSDKPATH/Header
 LIBS += -L$$EDSDKPATH/Library \
 	-ledsdk

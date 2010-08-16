@@ -136,6 +136,7 @@ private:
 	bool initializeGPhoto2();
 	bool deInitializeGPhoto2();
 	int gp2_camera_check_event();
+	void propertyEvent(const char* prop_name);
 #endif
 	bool startLiveView();
 	bool downloadEvfData();

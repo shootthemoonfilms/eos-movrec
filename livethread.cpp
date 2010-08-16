@@ -2087,6 +2087,13 @@ void GMyLiveThread::stateEvent(EdsStateEvent event, EdsUInt32 parameter)
 }
 #endif
 
+#ifdef GPHOTO2
+void GMyLiveThread::propertyEvent(const char* prop_name)
+{
+	fprintf(stderr, "Property '%s' changed!\n", prop_name);
+}
+#endif
+
 #ifdef EDSDK
 EdsError EDSCALLBACK handleObjectEvent(EdsObjectEvent event, EdsBaseRef object, EdsVoid * context)
 {
@@ -2140,7 +2147,9 @@ int GMyLiveThread::gp2_camera_check_event()
 	CameraEventType event_type = GP_EVENT_UNKNOWN;
 	char* event_data;
 	int ret;
+	char prop_name[64];
 
+	prop_name[0] = 0;
 	while (event_type != GP_EVENT_TIMEOUT)
 	{
 		event_data = 0;
@@ -2151,6 +2160,26 @@ int GMyLiveThread::gp2_camera_check_event()
 			switch(event_type)
 			{
 			case GP_EVENT_UNKNOWN:
+				if (event_data)
+				{
+					char* ptr = strstr(event_data, "changed");
+					char* end_ptr = 0;
+					int str_len = 0;
+					if (ptr)
+					{
+						end_ptr = ptr;
+						ptr = strstr(event_data, "PTP Property");
+						if (ptr)
+						{
+							str_len = end_ptr - ptr + 12;
+							if (str_len > 63)
+								str_len = 63;
+							strncpy(prop_name, event_data + 13, str_len);
+							prop_name[str_len] = 0;
+							propertyEvent(prop_name);
+						}
+					}
+				}
 				fprintf(stderr, "unknown");
 				break;
 			case GP_EVENT_TIMEOUT:
