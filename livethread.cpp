@@ -407,7 +407,7 @@ bool GMyLiveThread::processCommand()
 			{
 				av_ind = findAV_str(str_val);
 				if (Owner)
-					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_ISO_CHANGED, QVariant(av_ind)));
+					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AV_CHANGED, QVariant(av_ind)));
 			}
 			if (str_val)
 				free(str_val);
@@ -456,7 +456,7 @@ bool GMyLiveThread::processCommand()
 			{
 				tv_ind = findTV_str(str_val);
 				if (Owner)
-					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_ISO_CHANGED, QVariant(tv_ind)));
+					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_TV_CHANGED, QVariant(tv_ind)));
 			}
 			if (str_val)
 				free(str_val);
@@ -2091,6 +2091,44 @@ void GMyLiveThread::stateEvent(EdsStateEvent event, EdsUInt32 parameter)
 void GMyLiveThread::propertyEvent(const char* prop_name)
 {
 	fprintf(stderr, "Property '%s' changed!\n", prop_name);
+	if (strncasecmp(prop_name, "d1b0", 4) == 0)			// EVF Output device
+	{
+		fprintf(stderr, "evf\n");
+		cmdRequestEvfOut();
+	}
+	else if (strncasecmp(prop_name, "d103", 4) == 0)	// ISO
+	{
+		fprintf(stderr, "iso\n");
+		cmdRequestISO();
+	}
+	else if (strncasecmp(prop_name, "d101", 4) == 0)	// Av
+	{
+		fprintf(stderr, "av\n");
+		cmdRequestAv();
+	}
+	else if (strncasecmp(prop_name, "d102", 4) == 0)	// Tv
+	{
+		fprintf(stderr, "tv\n");
+		cmdRequestTv();
+	}
+	else if (strncasecmp(prop_name, "d105", 4) == 0)	// AE Mode
+	{
+		fprintf(stderr, "aemode\n");
+		cmdRequestAEMode();
+	}
+	else if (strncasecmp(prop_name, "d108", 4) == 0)	// AF Mode
+	{
+		fprintf(stderr, "afmode\n");
+		cmdRequestAFMode();
+	}
+	/*else if (strncasecmp(prop_name, "", 4) == 0)	//
+	{
+		;
+	}
+	else if (strncasecmp(prop_name, "", 4) == 0)	//
+	{
+		;
+	}*/
 }
 #endif
 
@@ -2171,7 +2209,7 @@ int GMyLiveThread::gp2_camera_check_event()
 						ptr = strstr(event_data, "PTP Property");
 						if (ptr)
 						{
-							str_len = end_ptr - ptr + 12;
+							str_len = end_ptr - ptr - 14;
 							if (str_len > 63)
 								str_len = 63;
 							strncpy(prop_name, event_data + 13, str_len);
@@ -2183,19 +2221,20 @@ int GMyLiveThread::gp2_camera_check_event()
 				fprintf(stderr, "unknown");
 				break;
 			case GP_EVENT_TIMEOUT:
-				fprintf(stderr, "timeout");
+				//fprintf(stderr, "timeout");
 				break;
 			case GP_EVENT_FILE_ADDED:
-				fprintf(stderr, "file added");
+				//fprintf(stderr, "file added");
 				break;
 			case GP_EVENT_FOLDER_ADDED:
-				fprintf(stderr, "folder added");
+				//fprintf(stderr, "folder added");
 				break;
 			case GP_EVENT_CAPTURE_COMPLETE:
-				fprintf(stderr, "capture complete");
+				//fprintf(stderr, "capture complete");
 				break;
 			default:
 				fprintf(stderr, "%d", event_type);
+				;
 			}
 			if (event_data)
 			{
