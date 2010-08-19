@@ -583,7 +583,11 @@ bool GMyLiveThread::processCommand()
 		err = EdsSetPropertyData(camera, kEdsPropID_Evf_Zoom, 0, sizeof(EdsUInt32), &param1);
 #endif
 #ifdef GPHOTO2
-			#warning "COMMAND_SET_ZOOM: not implemented yet!"
+		{
+			char str[10];
+			sprintf(str, "%u", param1);
+			err = _gp_set_config_value_string(camera, "eoszoom", str, camera_context);
+		}
 #endif
 		break;
 	case COMMAND_SET_ZOOMPOS:
@@ -595,7 +599,9 @@ bool GMyLiveThread::processCommand()
 			err = EdsSetPropertyData(camera, kEdsPropID_Evf_ZoomPosition, 0, sizeof(EdsPoint), &p);
 #endif
 #ifdef GPHOTO2
-			#warning "COMMAND_SET_ZOOMPOS: not implemented yet!"
+			char str[20];
+			sprintf(str, "%u,%u", param1, param2);
+			err = _gp_set_config_value_string(camera, "eoszoomposition", str, camera_context);
 #endif
 		}
 		break;
@@ -1904,7 +1910,7 @@ bool GMyLiveThread::downloadEvfData()
 		// owner of 'data' is gpfile
 		ret = gp_file_get_data_and_size(gpfile, &ptr, &data_size);
 	}
-	// TO-DO: get zoom & zoom border position
+
 	if (ret == GP_OK)
 	{
 		// start critical section!!!
@@ -1919,6 +1925,33 @@ bool GMyLiveThread::downloadEvfData()
 		live_buffer::ImageMutex.unlock();
 		// end of critical section!!!
 	}
+#if 0
+	// this code not work, libgphoto2 always get me zero.
+	char* str_val = 0;
+	int x, y, z, c;
+	ret = _gp_get_config_value_string(camera, "eoszoom", &str_val, camera_context);
+	if (ret >= GP_OK && str_val)
+	{
+		c = sscanf(str_val, "%u", &z);
+		if (c == 1)
+			Zoom = z;
+	}
+	if (str_val)
+		free(str_val);
+	ret = _gp_get_config_value_string(camera, "eoszoomposition", &str_val, camera_context);
+	if (ret >= GP_OK && str_val)
+	{
+		c = sscanf(str_val, "%d,%d", &x, &y);
+		if (c == 2)
+		{
+			ZoomPosX = x;
+			ZoomPosY = y;
+		}
+	}
+	if (str_val)
+		free(str_val);
+#endif
+
 	// TO-DO: get histogram
 	if (gpfile)
 		gp_file_free(gpfile);
@@ -2120,6 +2153,24 @@ void GMyLiveThread::propertyEvent(const char* prop_name)
 	{
 		fprintf(stderr, "afmode\n");
 		cmdRequestAFMode();
+	}
+	else if (strncasecmp(prop_name, "d1b3", 4) == 0)	// EOS Zoom
+	{
+#if 0
+		// this not work in libghoto 2.4.10
+		fprintf(stderr, "eoszoom\n");
+		char* str_val = 0;
+		int z, c;
+		int ret = _gp_get_config_value_string(camera, "eoszoom", &str_val, camera_context);
+		if (ret >= GP_OK && str_val)
+		{
+			c = sscanf(str_val, "%u", &z);
+			if (c == 1)
+				Zoom = z;
+		}
+		if (str_val)
+			free(str_val);
+#endif
 	}
 	/*else if (strncasecmp(prop_name, "", 4) == 0)	//
 	{
