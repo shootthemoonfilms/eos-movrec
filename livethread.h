@@ -70,6 +70,8 @@ public:
 	void setFileName(const char* fname);
 	void setBufferSize(int);
 	void setUseStabFPS(bool s);
+	void setTimeTimer(int timer);
+	void setFramesTimer(int timer);
 	void cmdSetAEMode(int ae);
 	void cmdSetWB(int wb, int temp);
 	void cmdSetISO(int iso);
@@ -188,6 +190,8 @@ private:
 	bool UseStabFPS;
 	QString CameraName;
 	struct EOSCamFeatures CamFeatures;
+	int TimeTimer;
+	int FramesTimer;
 	// for statistics
 	long long int AllFramesCount;
 	long long int WritenCount;

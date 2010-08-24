@@ -32,6 +32,7 @@ class QToolButton;
 class QComboBox;
 class QSpinBox;
 class QLabel;
+class QSpinBox;
 class QStatusBar;
 
 class GMyLiveThread;
@@ -74,6 +75,8 @@ protected slots:
 	void slotStopAutoFocus();
 	void slotCameraAF();
 	void slotHistogram();
+	void slotTimeTimerSwitch(bool);
+	void slotFramesTimerSwitch(bool);
 protected:
 	virtual void customEvent(QEvent* event);
 	virtual void closeEvent(QCloseEvent* event);
@@ -112,6 +115,10 @@ private:
 	QStatusBar* statusBar;
 	QLabel* framesLabel;
 	QLabel* timeLabel;
+	QCheckBox* timeTimerBox;
+	QSpinBox* timeTimerSpinBox;
+	QCheckBox* framesTimerBox;
+	QSpinBox* framesTimerSpinBox;
 	GMyLiveThread* LiveThread;
 	GAFThread* AFThread;
 	GEOSCaptureWnd* CaptureWnd;

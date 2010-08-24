@@ -24,6 +24,7 @@
 #include <QComboBox>
 #include <QSpinBox>
 #include <QLabel>
+#include <QSpinBox>
 #include <QStatusBar>
 //#include <QTimer>
 #include <QBoxLayout>
@@ -243,9 +244,38 @@ GEOSRecWnd::GEOSRecWnd()
 	blinkLabel = new QBlinkLabel(tr("Starting..."), this);
 	//main_layout->addWidget(blinkLabel, 0);
 
+	QHBoxLayout* timer_layout = new QHBoxLayout();
+
+	timeTimerBox = new QCheckBox(tr("Time timer"), this);
+	timeTimerBox->setEnabled(false);
+	timeTimerBox->setChecked(false);
+	timer_layout->addWidget(timeTimerBox, 0);
+
+	timeTimerSpinBox = new QSpinBox(this);
+	timeTimerSpinBox->setEnabled(false);
+	timeTimerSpinBox->setRange(1, 1800);
+	timeTimerSpinBox->setSingleStep(1);
+	timeTimerSpinBox->setSuffix(tr("s."));
+	timer_layout->addWidget(timeTimerSpinBox, 0);
+
+	framesTimerBox = new QCheckBox(tr("Frames count timer"), this);
+	framesTimerBox->setEnabled(false);
+	framesTimerBox->setChecked(false);
+	timer_layout->addWidget(framesTimerBox, 0);
+
+	framesTimerSpinBox = new QSpinBox(this);
+	framesTimerSpinBox->setEnabled(false);
+	framesTimerSpinBox->setRange(1, 54000);
+	framesTimerSpinBox->setSingleStep(1);
+	timer_layout->addWidget(framesTimerSpinBox, 0);
+
+	timer_layout->addStretch(1);
+
 	main_layout->addLayout(btn_layout, 0);
 
 	main_layout->addLayout(focus_layout, 0);
+
+	main_layout->addLayout(timer_layout, 0);
 
 	CaptureWnd = new GEOSCaptureWnd(this);
 	main_layout->addWidget(CaptureWnd, 0);
@@ -316,6 +346,9 @@ GEOSRecWnd::GEOSRecWnd()
 	connect(dofShortcut, SIGNAL(activated()), dofBtn, SLOT(click()));
 	connect(zoomShortcut, SIGNAL(activated()), zoom5xBtn, SLOT(click()));
 	connect(captureShortcut, SIGNAL(activated()), showBox, SLOT(click()));
+
+	connect(timeTimerBox, SIGNAL(clicked(bool)), this, SLOT(slotTimeTimerSwitch(bool)));
+	connect(framesTimerBox, SIGNAL(clicked(bool)), this, SLOT(slotFramesTimerSwitch(bool)));
 
 	CurrSettings.Path = tr("out.avi");
 	CurrSettings.Av = -1;
@@ -617,9 +650,32 @@ void GEOSRecWnd::customEvent(QEvent* event)
 			QString str = LiveThread->cameraName() + QString(": ");
 			blinkLabel->setText(str + tr("Ready"));
 			optionsBtn->setEnabled(true);
+			timeTimerBox->setEnabled(true);
+			framesTimerBox->setEnabled(true);
+			slotTimeTimerSwitch(timeTimerBox->isChecked());
+			slotFramesTimerSwitch(framesTimerBox->isChecked());
 			// at this time we already received all settings from camera
 			loadSettings();
 			LiveThread->setUseStabFPS(CurrSettings.UseStabFPS);
+		}
+		break;
+	case CAMERA_EVENT_WRITE_STOPPED:
+		{
+			blinkLabel->stop();
+			QString str = LiveThread->cameraName() + QString(": ");
+			blinkLabel->setText(str + tr("Ready"));
+			showBox->setEnabled(true);
+			startBtn->setEnabled(true);
+			startBtn->setVisible(true);
+			stopBtn->setEnabled(false);
+			stopBtn->setVisible(false);
+			selFileBtn->setEnabled(true);
+			zoom5xBtn->setEnabled(true);
+			optionsBtn->setEnabled(true);
+			timeTimerBox->setEnabled(true);
+			framesTimerBox->setEnabled(true);
+			slotTimeTimerSwitch(timeTimerBox->isChecked());
+			slotFramesTimerSwitch(framesTimerBox->isChecked());
 		}
 		break;
 	case CAMERA_EVENT_ISO_CHANGED:
@@ -963,6 +1019,18 @@ void GEOSRecWnd::slotStart()
 		stopBtn->setVisible(true);
 		zoom5xBtn->setEnabled(false);
 		optionsBtn->setEnabled(false);
+		if (timeTimerBox->isChecked())
+			LiveThread->setTimeTimer(timeTimerSpinBox->value()*1000);
+		else
+			LiveThread->setTimeTimer(-1);
+		if (framesTimerBox->isChecked())
+			LiveThread->setFramesTimer(framesTimerSpinBox->value());
+		else
+			LiveThread->setFramesTimer(-1);
+		timeTimerBox->setEnabled(false);
+		timeTimerSpinBox->setEnabled(false);
+		framesTimerBox->setEnabled(false);
+		framesTimerSpinBox->setEnabled(false);
 		LiveThread->startWrite();
 		blinkLabel->setText(tr("WRITING"));
 		blinkLabel->start();
@@ -973,18 +1041,8 @@ void GEOSRecWnd::slotStop()
 {
 	if (LiveThread && LiveThread->isInit())
 	{
-		LiveThread->stopWrite();
-		blinkLabel->stop();
-		QString str = LiveThread->cameraName() + QString(": ");
-		blinkLabel->setText(str + tr("Ready"));
-		showBox->setEnabled(true);
-		startBtn->setEnabled(true);
-		startBtn->setVisible(true);
 		stopBtn->setEnabled(false);
-		stopBtn->setVisible(false);
-		selFileBtn->setEnabled(true);
-		zoom5xBtn->setEnabled(true);
-		optionsBtn->setEnabled(true);
+		LiveThread->stopWrite();
 	}
 }
 
@@ -1275,6 +1333,8 @@ void GEOSRecWnd::shutdown()
 	optionsBtn->setEnabled(false);
 	AFBtn->setEnabled(false);
 	HistBtn->setEnabled(false);
+	timeTimerBox->setEnabled(false);
+	framesTimerBox->setEnabled(false);
 	fpsLabel->setText(tr("0 fps"));
 }
 
@@ -1299,6 +1359,16 @@ void GEOSRecWnd::slotOptions()
 			LiveThread->setUseStabFPS(CurrSettings.UseStabFPS);
 		}
 	}
+}
+
+void GEOSRecWnd::slotTimeTimerSwitch(bool c)
+{
+	timeTimerSpinBox->setEnabled(c);
+}
+
+void GEOSRecWnd::slotFramesTimerSwitch(bool c)
+{
+	framesTimerSpinBox->setEnabled(c);
 }
 
 void GEOSRecWnd::slotAbout()

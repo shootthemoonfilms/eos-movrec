@@ -81,6 +81,8 @@ GMyLiveThread::GMyLiveThread(QWidget* owner)
 	BufferSize = 1024*1024;
 	UseStabFPS = true;
 	StableFPS = 0.0;
+	TimeTimer = -1;
+	FramesTimer = -1;
 
 	AvListSize = 0;
 }
@@ -106,6 +108,16 @@ void GMyLiveThread::setBufferSize(int buffer_sz)
 void GMyLiveThread::setUseStabFPS(bool s)
 {
 	UseStabFPS = s;
+}
+
+void GMyLiveThread::setTimeTimer(int timer)
+{
+	TimeTimer = timer;
+}
+
+void GMyLiveThread::setFramesTimer(int timer)
+{
+	FramesTimer = timer;
 }
 
 void GMyLiveThread::setCaptureWnd(QWidget* wnd)
@@ -793,6 +805,7 @@ void GMyLiveThread::run()
 	int TempTime3 = StartTime;
 	SDKMsgCheckTime1 = StartTime;
 	SDKMsgCheckTime2 = StartTime;
+	bool StopFromInside = false;
 	// main job
 	while (!Stoped)
 	{
@@ -839,11 +852,14 @@ void GMyLiveThread::run()
 			OldZoom = Zoom;
 			OldZoomPosX = ZoomPosX;
 			OldZoomPosY = ZoomPosY;
+
+			CurrTime = OSGetTickCount();
 			// write to file if needed
 			if (!PrevWriteMovie && WriteMovie)			// start record
 			{
-				StartWriteTime = OSGetTickCount();
+				StartWriteTime = CurrTime;
 				WritenCount = 0;
+				DuplicatedCount = 0;
 				if (mjpeg)
 					mjpegCloseFile(mjpeg);
 				mjpeg = mjpegCreateFile(FileName);
@@ -861,7 +877,7 @@ void GMyLiveThread::run()
 			{
 				mjpegWriteChunk(mjpeg, (unsigned char*)live_buffer::frame, live_buffer::frame_size);
 				WritenCount++;
-				StopWriteTime = OSGetTickCount();
+				StopWriteTime = CurrTime;
 				double fps = ((double)WritenCount*1000.0)/(double)(StopWriteTime - StartWriteTime);
 				if (fps > 60.0)
 					fps = 60.0;
@@ -869,6 +885,7 @@ void GMyLiveThread::run()
 				mjpegSetMaxChunkSize(mjpeg, max_frame_size);
 				mjpegCloseFile(mjpeg);
 				mjpeg = 0;
+				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_WRITE_STOPPED));
 			}
 			else if (PrevWriteMovie && WriteMovie)	// simple write next image
 			{
@@ -881,7 +898,6 @@ void GMyLiveThread::run()
 					}
 					else
 					{
-						CurrTime = OSGetTickCount();
 						MustBeFrames = (int)round((double)(CurrTime - StartWriteTime)*StableFPS/1000.0);
 						if (MustBeFrames < WritenCount + 1)			// too fast, we must skip frame
 						{
@@ -905,11 +921,19 @@ void GMyLiveThread::run()
 					mjpegWriteChunk(mjpeg, (unsigned char*)live_buffer::frame, live_buffer::frame_size);
 					WritenCount++;
 				}
+				if (WritenCount - DuplicatedCount >= FramesTimer - 1 && FramesTimer > 0)
+					StopFromInside = true;
+				if (CurrTime - StartWriteTime >= TimeTimer && TimeTimer > 0)
+					StopFromInside = true;
 			}
 			PrevWriteMovie = WriteMovie;
 			TempFrameCount++;
 			WrtFlagMutex.unlock();
-
+			if (StopFromInside)
+			{
+				WriteMovie = false;
+				StopFromInside = false;
+			}
 		}
 
 		// calc temp fps
