@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2009 by Чернов А.А.                                *
+ *   Copyright (C) 2008-2010 by Чернов А.А.                                *
  *   valexlin@gmail.com                                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -42,6 +42,10 @@
 
 #define HEADERBYTES 0x1000			// 4k
 #define DEFCACHE_SZ	0x100000		// 1M
+
+#define MAXSOFTDESC_SZ	30
+#define MAXCOMMENT_SZ	64
+#define MAXDATE_SZ		22
 
 #pragma pack(push, 2)
 
@@ -93,6 +97,7 @@ struct AVIStreamHeader
 	} rcFrame;
 };
 
+// size - 40
 struct AVIStreamFormat
 {
 	__uint32_t biSize;				// must be 40
@@ -134,6 +139,9 @@ typedef struct
 	struct AVIHeader* aviheader;
 	struct AVIStreamHeader* avistreamheader;
 	struct AVIStreamFormat* avistreamformat;
+	char* pSoftStr;
+	char* pCommentStr;
+	char* pDateStr;
 	unsigned char* cache;
 	unsigned int cache_sz;
 	unsigned int cache_pos;
@@ -176,66 +184,101 @@ void* mjpegCreateFile(const char* fname)
 	*riff->pFileSize = HEADERBYTES - 8;
 	__uint32_t* pnum = 0;
 	__uint32_t offset = 0;
-	char* ptr = (char*)riff->header;
+	char* ptr = (char*)riff->header;					// addr = 0
 	strncpy(ptr, "RIFF", 4);
 	offset += 8;
-	ptr = (char*)(riff->header + offset);
+	ptr = (char*)(riff->header + offset);				// addr = 8
 	strncpy(ptr, "AVI LIST", 8);
 	offset += 8;
-	pnum = (__uint32_t*)(riff->header + offset);
+	pnum = (__uint32_t*)(riff->header + offset);		// addr = 16
 	*pnum = 40 + sizeof(struct AVIHeader) + sizeof(struct AVIStreamHeader) + sizeof(struct AVIStreamFormat);
 	offset += 4;
-	ptr = (char*)(riff->header + offset);
+	ptr = (char*)(riff->header + offset);				// addr = 20
 	strncpy(ptr, "hdrlavih", 8);
 	offset += 8;
-	pnum = (__uint32_t*)(riff->header + offset);
+	pnum = (__uint32_t*)(riff->header + offset);		// addr = 28
 	*pnum = sizeof(struct AVIHeader);
 	offset += 4;
-	riff->aviheader = (struct AVIHeader*)(riff->header + offset);
+	riff->aviheader = (struct AVIHeader*)(riff->header + offset);	// addr = 32
 	riff->aviheader->dwStreams = 1;						// only video stream
 	riff->aviheader->dwFlags = 0x110;					// has index & interlieved
 	offset += sizeof(struct AVIHeader);
-	ptr = (char*)(riff->header + offset);
+	ptr = (char*)(riff->header + offset);				// addr = 88
 	strncpy(ptr, "LIST", 4);
 	offset += 4;
-	pnum = (__uint32_t*)(riff->header + offset);
+	pnum = (__uint32_t*)(riff->header + offset);		// addr = 92
 	*pnum = 20 + sizeof(struct AVIStreamHeader) + sizeof(struct AVIStreamFormat);
 	offset += 4;
-	ptr = (char*)(riff->header + offset);
+	ptr = (char*)(riff->header + offset);				// addr = 96
 	strncpy(ptr, "strlstrh", 8);
 	offset += 8;
-	pnum = (__uint32_t*)(riff->header + offset);
+	pnum = (__uint32_t*)(riff->header + offset);		// addr = 104
 	*pnum = sizeof(struct AVIStreamHeader);
 	offset += 4;
-	riff->avistreamheader = (struct AVIStreamHeader*)(riff->header + offset);
+	riff->avistreamheader = (struct AVIStreamHeader*)(riff->header + offset);	// addr = 108
 	riff->avistreamheader->fccType = 0x73646976;		// 'vids'
 	riff->avistreamheader->fccHandler = 0x67706a6d;		// 'mjpg'
 	offset += sizeof(struct AVIStreamHeader);
-	ptr = (char*)(riff->header + offset);
+	ptr = (char*)(riff->header + offset);				// addr = 164
 	strncpy(ptr, "strf", 4);
 	offset += 4;
-	pnum = (__uint32_t*)(riff->header + offset);
+	pnum = (__uint32_t*)(riff->header + offset);		// addr = 168
 	*pnum = sizeof(struct AVIStreamFormat);
 	offset += 4;
-	riff->avistreamformat = (struct AVIStreamFormat*)(riff->header + offset);
+	riff->avistreamformat = (struct AVIStreamFormat*)(riff->header + offset);	// addr = 172
 	offset += sizeof(struct AVIStreamFormat);
+
+	ptr = (char*)(riff->header + offset);				// addr = 212
+	strncpy(ptr, "LIST", 4);
+	offset += 4;
+	pnum = (__uint32_t*)(riff->header + offset);		// addr = 216
+	*pnum = 12 + MAXSOFTDESC_SZ + 8 + MAXCOMMENT_SZ + 8 + MAXDATE_SZ;	// ISFT, ICMT & ICRD
+	offset += 4;
+	ptr = (char*)(riff->header + offset);				// addr = 220
+	strncpy(ptr, "INFOISFT", 8);
+	offset += 8;
+	pnum = (__uint32_t*)(riff->header + offset);		// addr = 228
+	*pnum = MAXSOFTDESC_SZ;								// ISFT
+	offset += 4;
+	riff->pSoftStr = (char*)(riff->header + offset);	// addr = 232
+	// fill this later
+	offset += MAXSOFTDESC_SZ;
+	ptr = (char*)(riff->header + offset);				// addr = 262
+	strncpy(ptr, "ICMT", 4);
+	offset += 4;
+	pnum = (__uint32_t*)(riff->header + offset);		// addr = 266
+	*pnum = MAXCOMMENT_SZ;								// ICMT
+	offset += 4;
+	riff->pCommentStr = (char*)(riff->header + offset);	// addr = 270
+	// fill this later
+	offset += MAXCOMMENT_SZ;
+
+	ptr = (char*)(riff->header + offset);				// addr = 334
+	strncpy(ptr, "ICRD", 4);
+	offset += 4;
+	pnum = (__uint32_t*)(riff->header + offset);		// addr = 338
+	*pnum = MAXDATE_SZ;									// ICRD
+	offset += 4;
+	riff->pDateStr = (char*)(riff->header + offset);	// addr = 342
+	// fill this later
+	offset += MAXDATE_SZ;
 
 	riff->realHeaderSize = offset;
 
 	// JUNK chunk
-	ptr = (char*)(riff->header + offset);
+	ptr = (char*)(riff->header + offset);				// addr = 364
 	strncpy(ptr, "JUNK", 4);
 	offset += 4;
 	__uint32_t junk_size = HEADERBYTES - riff->realHeaderSize - 20;
-	pnum = (__uint32_t*)(riff->header + offset);
+	pnum = (__uint32_t*)(riff->header + offset);		// addr = 368
 	*pnum = junk_size;
 	offset += 4;
 
-	ptr = (char*)(riff->header + HEADERBYTES - 12);
+	ptr = (char*)(riff->header + HEADERBYTES - 12);		// addr = 4084
 	strncpy(ptr, "LIST", 4);
-	riff->pDataSize = (__uint32_t*)(riff->header + HEADERBYTES - 8);
+	riff->pDataSize = (__uint32_t*)(riff->header + HEADERBYTES - 8);	// 4088
 	*riff->pDataSize = 4;
-	ptr += 8;
+	ptr += 8;											// addr = 4092
 	strncpy(ptr, "movi", 4);
 
 	// for index chunk
@@ -246,7 +289,10 @@ void* mjpegCreateFile(const char* fname)
 	riff->index_curpos = 8;
 	*riff->pFileSize += 8;
 
-	if (!write(riff->fd, riff->header, HEADERBYTES))
+	riff->cache_sz = DEFCACHE_SZ;
+	riff->cache_pos = 0;
+	riff->cache = (unsigned char*)malloc(riff->cache_sz);
+	if (!riff->cache)
 	{
 		close(riff->fd);
 		free(riff->header);
@@ -255,10 +301,7 @@ void* mjpegCreateFile(const char* fname)
 		return 0;
 	}
 
-	riff->cache_sz = DEFCACHE_SZ;
-	riff->cache_pos = 0;
-	riff->cache = (unsigned char*)malloc(riff->cache_sz);
-	if (!riff->cache)
+	if (!write(riff->fd, riff->header, HEADERBYTES))
 	{
 		close(riff->fd);
 		free(riff->header);
@@ -345,7 +388,35 @@ int mjpegSetup(void* p, int fwidth, int fheight, double fps, int quality)
 	rf->avistreamformat->biBitCount = 24;
 	rf->avistreamformat->biCompression = 0x47504A4D;			// 'MJPG'
 	rf->avistreamformat->biSizeImage = fwidth*fheight*3;
+	return 1;
+}
 
+int mjpegSetInfo(void* p, const char* software, const char* comment, const char* date)
+{
+	RIFFFILE* rf = (RIFFFILE*)p;
+	if (!rf)
+		return 0;
+	if (software)
+	{
+		strncpy(rf->pSoftStr, software, MAXSOFTDESC_SZ - 1);
+		rf->pSoftStr[MAXSOFTDESC_SZ - 1] = 0;
+	}
+	else
+		rf->pSoftStr[0] = 0;
+	if (comment)
+	{
+		strncpy(rf->pCommentStr, comment, MAXCOMMENT_SZ - 1);
+		rf->pCommentStr[MAXCOMMENT_SZ - 1] = 0;
+	}
+	else
+		rf->pCommentStr[0] = 0;
+	if (date)
+	{
+		strncpy(rf->pDateStr, date, MAXDATE_SZ - 1);
+		rf->pDateStr[MAXDATE_SZ - 1] = 0;
+	}
+	else
+		rf->pDateStr[0] = 0;
 	return 1;
 }
 

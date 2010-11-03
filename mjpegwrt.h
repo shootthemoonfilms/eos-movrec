@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2009 by Чернов А.А.                                *
+ *   Copyright (C) 2008-2010 by Чернов А.А.                                *
  *   valexlin@gmail.com                                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -30,6 +30,7 @@ extern "C" {
 
 void* mjpegCreateFile(const char* fname);
 int mjpegSetup(void* rf, int fwidth, int fheight, double fps, int quality);
+int mjpegSetInfo(void* rf, const char* software, const char* comment, const char* date);
 int mjpegSetCache(void* rf, int sz);
 int mjpegSetMaxChunkSize(void* rf, unsigned int sz);
 int mjpegWriteChunk(void* rf, const unsigned char* jpeg_data, unsigned int size);

@@ -33,9 +33,11 @@
 #include "events.h"
 #include "command.h"
 #include "cam_tables.h"
+#include "config.h"
 
 #include <math.h>
 #include <stdio.h>
+#include <time.h>
 
 static QMutex ImageMutex;
 
@@ -118,6 +120,12 @@ void GMyLiveThread::setTimeTimer(int timer)
 void GMyLiveThread::setFramesTimer(int timer)
 {
 	FramesTimer = timer;
+}
+
+void GMyLiveThread::setMovieInfo(const char* info)
+{
+	strncpy(MovieInfo, info, 63);
+	MovieInfo[63] = 0;
 }
 
 void GMyLiveThread::setCaptureWnd(QWidget* wnd)
@@ -725,6 +733,9 @@ void GMyLiveThread::run()
 	long long int MustBeFrames = 0;	// need to control stable fps recording
 	int CurrTime;
 
+	char software[30];
+	char date[22];
+
 	// for internal EDSDK message queue
 	int SDKMsgCheckTime1 = StartTime;
 	int SDKMsgCheckTime2 = StartTime;
@@ -794,6 +805,12 @@ void GMyLiveThread::run()
 			QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_LV_NOTSTARTED));
 		return;
 	}
+	// fill info
+	sprintf(software, "eos-movrec %s", VERSION);
+	time_t t = time(0);
+	struct tm* tm = localtime(&t);
+	sprintf(date, "%04u/%02u/%02u %02u:%02u:%02u", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
+
 	// get camera name & its resolution
 	fillCameraName();
 	Inited = true;
@@ -863,15 +880,23 @@ void GMyLiveThread::run()
 				if (mjpeg)
 					mjpegCloseFile(mjpeg);
 				mjpeg = mjpegCreateFile(FileName);
-				max_frame_size = 0;
-				mjpegSetup(mjpeg, 0, 0, 25.0, 10000);
-				if (!mjpegSetCache(mjpeg, BufferSize))
+				if (mjpeg)
 				{
-					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_SHOWMSG, tr("Can't alloc buffer with size %1 MB").arg(BufferSize/(1024*1024))));
+					max_frame_size = 0;
+					mjpegSetup(mjpeg, 0, 0, StableFPS, 10000);
+					if (!mjpegSetCache(mjpeg, BufferSize))
+					{
+						QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_SHOWMSG, tr("Can't alloc buffer with size %1 MB").arg(BufferSize/(1024*1024))));
+					}
+					// here we read buffer - this is not a critical section
+					mjpegWriteChunk(mjpeg, (unsigned char*)live_buffer::frame, live_buffer::frame_size);
+					WritenCount++;
 				}
-				// here we read buffer - this is not a critical section
-				mjpegWriteChunk(mjpeg, (unsigned char*)live_buffer::frame, live_buffer::frame_size);
-				WritenCount++;
+				else
+				{
+					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_SHOWMSG, tr("Can't create video file!")));
+					StopFromInside = true;
+				}
 			}
 			else if (PrevWriteMovie && !WriteMovie)	// stop recording
 			{
@@ -883,6 +908,7 @@ void GMyLiveThread::run()
 					fps = 60.0;
 				mjpegSetup(mjpeg, live_buffer::frame_width, live_buffer::frame_height, fps, 10000);
 				mjpegSetMaxChunkSize(mjpeg, max_frame_size);
+				mjpegSetInfo(mjpeg, software, MovieInfo, date);
 				mjpegCloseFile(mjpeg);
 				mjpeg = 0;
 				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_WRITE_STOPPED));
@@ -990,7 +1016,7 @@ void GMyLiveThread::run()
 				WorkSleep(1000*sleep_time);
 		}*/
 	}
-	// cleanup
+	// cleanup (при выходе из программы без остановки записи)
 	if (mjpeg)
 	{
 		WriteMovie = false;
@@ -1001,6 +1027,7 @@ void GMyLiveThread::run()
 		mjpegSetup(mjpeg, live_buffer::frame_width, live_buffer::frame_height, fps, 10000);
 		//mjpegSetup(mjpeg, frame_width, frame_height, 25.0, 10000);
 		mjpegSetMaxChunkSize(mjpeg, max_frame_size);
+		mjpegSetInfo(mjpeg, software, MovieInfo, date);
 		mjpegCloseFile(mjpeg);
 		mjpeg = 0;
 	}

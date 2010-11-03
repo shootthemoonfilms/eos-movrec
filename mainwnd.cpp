@@ -1027,6 +1027,25 @@ void GEOSRecWnd::slotStart()
 			LiveThread->setFramesTimer(framesTimerSpinBox->value());
 		else
 			LiveThread->setFramesTimer(-1);
+		/*char info[48];
+		sprintf(info, "AEMODE %s; ISO %s; AV %s; TV %s",
+			AEModeBox->currentText().toLatin1().data(),
+			isoBox->currentText().toLatin1().data(),
+			avBox->currentText().toLatin1().data(),
+			tvBox->currentText().toLatin1().data());*/
+		QString aemode = AEModeBox->currentText();
+		QString info = QString("AE: %1").arg(aemode);
+		if (aemode == "M" || aemode == "Manual" || aemode == "TV" || aemode == "Tv")
+		{
+			info += QString("; ISO: %1").arg(isoBox->currentText());
+			info += QString("; Tv: %1").arg(tvBox->currentText());
+		}
+		if (aemode == "M" || aemode == "Manual" || aemode == "AV" || aemode == "Av")
+		{
+			info += QString("; Av: %1").arg(avBox->currentText());
+		}
+		info.replace(".", ",");
+		LiveThread->setMovieInfo(info.toLatin1().data());
 		timeTimerBox->setEnabled(false);
 		timeTimerSpinBox->setEnabled(false);
 		framesTimerBox->setEnabled(false);

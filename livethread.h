@@ -72,6 +72,7 @@ public:
 	void setUseStabFPS(bool s);
 	void setTimeTimer(int timer);
 	void setFramesTimer(int timer);
+	void setMovieInfo(const char* info);
 	void cmdSetAEMode(int ae);
 	void cmdSetWB(int wb, int temp);
 	void cmdSetISO(int iso);
@@ -166,6 +167,7 @@ private:
 	QMutex HistogramMutex;
 	GCameraCommandsQueue CommandsQueue;
 	int max_frame_size;
+	char MovieInfo[64];
 #ifdef EDSDK
 	EdsCameraRef camera;
 #endif
