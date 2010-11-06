@@ -57,29 +57,26 @@ GEOSCaptureWnd::~GEOSCaptureWnd()
 void GEOSCaptureWnd::paintEvent(QPaintEvent* /*event*/)
 {
 	QPainter painter(this);
-	if (ShowLiveImage)
+	if (ShowLiveImage && !LiveImage.isNull())
 	{
-		if (!LiveImage.isNull())
+		painter.drawImage(QPoint(0, 0), LiveImage);
+		if (Zoom == 1)
 		{
-			painter.drawImage(QPoint(0, 0), LiveImage);
-			if (Zoom == 1)
-			{
-				QPen p(QColor(255, 255, 255));
-				p.setWidth(2);
-				painter.setPen(p);
-				painter.drawRect(ZoomRect);
-			}
-		}
-		if (!Text.isEmpty())
-		{
-			painter.setPen(QColor(255, 255, 255));
-			painter.drawText(50, 100, Text);
+			QPen p(QColor(255, 255, 255));
+			p.setWidth(2);
+			painter.setPen(p);
+			painter.drawRect(ZoomRect);
 		}
 	}
 	else
 	{
 		QBrush br(QColor(0, 0, 0), Qt::SolidPattern);
 		painter.fillRect(0, 0, width(), height(), br);
+	}
+	if (!Text.isEmpty())
+	{
+		painter.setPen(QColor(255, 255, 255));
+		painter.drawText(50, 100, Text);
 	}
 }
 

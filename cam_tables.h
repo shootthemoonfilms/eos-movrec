@@ -35,6 +35,7 @@ struct EOSTvTable
 {
 	unsigned int edsdk_val;
 	char tv[8];
+	char gp2_tv[8];
 };
 
 struct EOSISOTable
@@ -64,6 +65,7 @@ int findAV_edsdk(int edsdk_val);
 int findAV_str(const char* str);
 int findTV_edsdk(int edsdk_val);
 int findTV_str(const char* str);
+int findTV_gp2_str(const char* str);
 int findISO_edsdk(int edsdk_val);
 int findISO_str(const char* str);
 int findAEM_edsdk(int edsdk_val);

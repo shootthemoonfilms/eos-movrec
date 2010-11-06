@@ -452,7 +452,7 @@ bool GMyLiveThread::processCommand()
 			}
 #endif
 #ifdef GPHOTO2
-			err = _gp_set_config_value_string(camera, "shutterspeed", TvTable[param1].tv, camera_context);
+			err = _gp_set_config_value_string(camera, "shutterspeed", TvTable[param1].gp2_tv, camera_context);
 #endif
 		}
 		break;
@@ -474,7 +474,7 @@ bool GMyLiveThread::processCommand()
 			err = _gp_get_config_value_string(camera, "shutterspeed", &str_val, camera_context);
 			if (err >= GP_OK && str_val)
 			{
-				tv_ind = findTV_str(str_val);
+				tv_ind = findTV_gp2_str(str_val);
 				if (Owner)
 					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_TV_CHANGED, QVariant(tv_ind)));
 			}
@@ -580,7 +580,21 @@ bool GMyLiveThread::processCommand()
 			err = EdsSendCommand(camera, kEdsCameraCommand_DriveLensEvf, inParam);
 #endif
 #ifdef GPHOTO2
-			#warning "COMMAND_ADJ_FOCUS: not implemented yet!"
+			const char* focus_dir = 0;
+			switch (param2)
+			{
+				case 1:
+					focus_dir = param1 == 0 ? "Near 1" : "Far 1";
+					break;
+				case 2:
+					focus_dir = param1 == 0 ? "Near 2" : "Far 2";
+					break;
+				case 3:
+					focus_dir = param1 == 0 ? "Near 3" : "Far 3";
+					break;
+			}
+			if (focus_dir)
+				err = _gp_set_config_value_string(camera, "manualfocusdrive", focus_dir, camera_context);
 #endif
 		}
 		break;
@@ -595,6 +609,20 @@ bool GMyLiveThread::processCommand()
 #endif
 #ifdef GPHOTO2
 			#warning "COMMAND_REQ_AFMODE: not implemented yet!"
+			int mode = 0;
+#if 0
+			char* str_val = 0;
+			err = _gp_get_config_value_string(camera, "d108", &str_val, camera_context);
+			if (err >= GP_OK && str_val)
+			{
+				fprintf(stderr, "afmode: %s\n", str_val);
+			}
+			if (str_val)
+				free(str_val);
+#endif
+			// I don't know how detect AF mode, this is stub!
+			if (Owner)
+				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AFMODE_CHANGED, QVariant((int)mode)));
 #endif
 		}
 		break;
@@ -1141,7 +1169,7 @@ bool GMyLiveThread::fillTvList()
 		TvList[i] = 0;
 		ret = gp_widget_get_choice(child, i, &choice);
 		if (ret >= GP_OK)
-			TvList[i] = findTV_str(choice);
+			TvList[i] = findTV_gp2_str(choice);
 	}
 	if (widget)
 		gp_widget_free(widget);
