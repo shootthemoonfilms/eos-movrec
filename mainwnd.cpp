@@ -644,6 +644,7 @@ void GEOSRecWnd::customEvent(QEvent* event)
 			zoom5xBtn->setEnabled(true);
 			HistBtn->setEnabled(true);
 			showBox->setEnabled(true);
+			wbBox->setEnabled(true);
 			// next line realy work in customEvents()
 			//AFCamBtn->setEnabled(features.HasAF);
 			blinkLabel->stop();

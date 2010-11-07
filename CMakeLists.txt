@@ -7,9 +7,9 @@ include(CheckIncludeFile)
 
 #set(CMAKE_VERBOSE_MAKEFILE on)
 
-set(FILEVERSION_V		"0, 3, 0, 0")
-set(PRODUCTVERSION_V	"0, 3, 0, 0")
-set(VERSION				"0.3 beta")
+set(FILEVERSION_V		"0, 3, 1, 0")
+set(PRODUCTVERSION_V	"0, 3, 1, 0")
+set(VERSION				"0.3.1 beta")
 set(PACKAGE				${PROJECT_NAME})
 
 configure_file(config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h)
