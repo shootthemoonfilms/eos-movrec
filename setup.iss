@@ -7,7 +7,7 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{5B0D20D7-AA12-4FC8-9A4A-AF722F430738}
 AppName=EOS Camera Movie Record
-AppVerName=EOS Camera Movie Record 0.3.1 Beta
+AppVerName=EOS Camera Movie Record 0.3.1.1 Beta
 AppPublisher=Chernov A.A.
 AppPublisherURL=http://sourceforge.net/projects/eos-movrec/
 AppSupportURL=http://sourceforge.net/projects/eos-movrec/support/
@@ -16,7 +16,7 @@ DefaultDirName={pf}\eos_movrec
 DefaultGroupName=EOS Camera Movie Record
 AllowNoIcons=yes
 OutputDir=dist
-OutputBaseFilename=eos_movrec-0.3.1_beta-setup
+OutputBaseFilename=eos_movrec-0.3.1.1_beta-setup
 Compression=lzma
 SolidCompression=yes
 
@@ -27,7 +27,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\EDSDK.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\EdsImage.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\eos_movrec.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\libpng14-14.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\libpng15-15.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\libjpeg-8.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\mingwm10.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\develop\mingw\eos_movrec\dist\eos_movrec\qt.conf"; DestDir: "{app}"; Flags: ignoreversion
