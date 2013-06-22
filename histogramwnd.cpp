@@ -27,13 +27,16 @@
 
 GHistogramWnd::GHistogramWnd(QWidget* parent, GMyLiveThread* thread)
  : QWidget(0, Qt::Tool | Qt::WindowStaysOnTopHint | Qt::WindowTitleHint |
- 		   Qt::WindowSystemMenuHint |
+		   Qt::WindowSystemMenuHint |
  #ifndef __MACOS__
- 		   Qt::WindowCloseButtonHint |
+		   Qt::WindowCloseButtonHint |
  #endif
 		   Qt::MSWindowsFixedSizeDialogHint)
 {
-	Histogram = 0;
+	HistogramY = 0;
+	HistogramR = 0;
+	HistogramG = 0;
+	HistogramB = 0;
 	HistogramSize = 0;
 	LiveThread = thread;
 	Owner = parent;
@@ -42,8 +45,14 @@ GHistogramWnd::GHistogramWnd(QWidget* parent, GMyLiveThread* thread)
 
 GHistogramWnd::~GHistogramWnd()
 {
-	if (Histogram)
-		free(Histogram);
+	if (HistogramY)
+		free(HistogramY);
+	if (HistogramR)
+		free(HistogramR);
+	if (HistogramG)
+		free(HistogramG);
+	if (HistogramB)
+		free(HistogramB);
 }
 
 static int max_4(int x, int a, int b, int c)
@@ -63,19 +72,25 @@ void GHistogramWnd::updateHistogram()
 	if (!LiveThread)
 		return;
 	LiveThread->lockHistogram();
-	if (LiveThread->histogramSize()/4 != HistogramSize)
+	if (LiveThread->histogramSize() != HistogramSize)
 	{
-		HistogramSize = LiveThread->histogramSize()/4;
-		Histogram = (struct YRGB*)realloc(Histogram, sizeof(struct YRGB)*HistogramSize);
+		HistogramSize = LiveThread->histogramSize();
+		HistogramY = (int*)realloc(HistogramY, sizeof(int)*HistogramSize);
+		HistogramR = (int*)realloc(HistogramR, sizeof(int)*HistogramSize);
+		HistogramG = (int*)realloc(HistogramG, sizeof(int)*HistogramSize);
+		HistogramB = (int*)realloc(HistogramB, sizeof(int)*HistogramSize);
 	}
-	memcpy((void*)Histogram, (void*)LiveThread->histogram(), HistogramSize*sizeof(struct YRGB));
+	memcpy((void*)HistogramY, (void*)LiveThread->histogramY(), HistogramSize*sizeof(int));
+	memcpy((void*)HistogramR, (void*)LiveThread->histogramR(), HistogramSize*sizeof(int));
+	memcpy((void*)HistogramG, (void*)LiveThread->histogramG(), HistogramSize*sizeof(int));
+	memcpy((void*)HistogramB, (void*)LiveThread->histogramB(), HistogramSize*sizeof(int));
 	LiveThread->unlockHistogram();
 	int i;
 	int v;
-	HistogramMax = max_4(Histogram[0].Y, Histogram[0].R, Histogram[0].G, Histogram[0].B);
+	HistogramMax = max_4(HistogramY[0], HistogramR[0], HistogramG[0], HistogramB[0]);
 	for (i = 0; i < HistogramSize; i++)
 	{
-		v = max_4(Histogram[i].Y, Histogram[i].R, Histogram[i].G, Histogram[i].B);
+		v = max_4(HistogramY[i], HistogramR[i], HistogramG[i], HistogramB[i]);
 		if (HistogramMax < v)
 			HistogramMax = v;
 	}
@@ -99,7 +114,7 @@ void GHistogramWnd::paintEvent(QPaintEvent * event)
 	for (i = 0; i < HistogramSize; i++)
 	{
 		x = kx*(double)i + 2;
-		y = h - ky*(double)Histogram[i].Y;
+		y = h - ky*(double)HistogramY[i];
 		p.drawLine(x, h - 1, x, y);
 	}
 	h += h_step;
@@ -107,7 +122,7 @@ void GHistogramWnd::paintEvent(QPaintEvent * event)
 	for (i = 0; i < HistogramSize; i++)
 	{
 		x = kx*(double)i + 2;
-		y = h - ky*(double)Histogram[i].R;
+		y = h - ky*(double)HistogramR[i];
 		p.drawLine(x, h - 1, x, y);
 	}
 	h += h_step;
@@ -115,7 +130,7 @@ void GHistogramWnd::paintEvent(QPaintEvent * event)
 	for (i = 0; i < HistogramSize; i++)
 	{
 		x = kx*(double)i + 2;
-		y = h - ky*(double)Histogram[i].G;
+		y = h - ky*(double)HistogramG[i];
 		p.drawLine(x, h - 1, x, y);
 	}
 	h += h_step;
@@ -123,7 +138,7 @@ void GHistogramWnd::paintEvent(QPaintEvent * event)
 	for (i = 0; i < HistogramSize; i++)
 	{
 		x = kx*(double)i + 2;
-		y = h - ky*(double)Histogram[i].B;
+		y = h - ky*(double)HistogramB[i];
 		p.drawLine(x, h - 1, x, y);
 	}
 }

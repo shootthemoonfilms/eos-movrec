@@ -31,14 +31,16 @@ class GOptionsDlg: public QDialog
 {
 public:
 	GOptionsDlg(QWidget* parent);
-	void setOptions(int buff_sz, int afmode, bool s);
+	void setOptions(int buff_sz, int afmode, bool s, bool w);
 	int bufferSize();
 	int afMode();
 	bool useStabFPS();
+	bool showWhiteBox();
 private:
 	QSpinBox* BufferBox;
 	QComboBox* AFModeBox;
 	QCheckBox* StabFPSBox;
+	QCheckBox* ShowWhiteBox;
 };
 
 #endif // _optionsdlg_h

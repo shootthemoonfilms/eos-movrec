@@ -115,8 +115,11 @@ public:
 	int zoom() const { return Zoom; }
 	int zoomPosX() const { return ZoomPosX; }
 	int zoomPosY() const { return ZoomPosY; }
-	int* histogram() { return (int*)Histogram; }
-	int histogramSize() { return 256 * 4; }
+	int* histogramY() { return (int*)HistogramY; }
+	int* histogramR() { return (int*)HistogramR; }
+	int* histogramG() { return (int*)HistogramG; }
+	int* histogramB() { return (int*)HistogramB; }
+	int histogramSize() { return 256; }
 	void setWantHistogram(bool w) { WantHistogram = w; }
 	void lockHistogram() { HistogramMutex.lock(); }
 	void unlockHistogram() { HistogramMutex.unlock(); }
@@ -187,7 +190,10 @@ private:
 	int ZoomPosX;
 	int ZoomPosY;
 	bool WantHistogram;
-	int Histogram[256*4];
+	int HistogramY[256];
+	int HistogramR[256];
+	int HistogramG[256];
+	int HistogramB[256];
 	bool isSDKLoaded;
 	bool UseStabFPS;
 	QString CameraName;

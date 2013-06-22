@@ -5,11 +5,11 @@ cmake_minimum_required(VERSION 2.6.2)
 include(FindPkgConfig)
 include(CheckIncludeFile)
 
-#set(CMAKE_VERBOSE_MAKEFILE on)
+set(CMAKE_VERBOSE_MAKEFILE on)
 
-set(FILEVERSION_V		"0, 3, 1, 0")
-set(PRODUCTVERSION_V	"0, 3, 1, 0")
-set(VERSION				"0.3.1 beta")
+set(FILEVERSION_V		"0, 3, 2, 0")
+set(PRODUCTVERSION_V	"0, 3, 2, 0")
+set(VERSION				"0.3.2 beta")
 set(PACKAGE				${PROJECT_NAME})
 
 configure_file(config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h)

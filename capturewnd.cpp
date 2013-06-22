@@ -35,6 +35,7 @@ GEOSCaptureWnd::GEOSCaptureWnd(QWidget* parent)
 	max_frame_size = 0;
 	frame = 0;
 	ShowLiveImage = true;
+	ShowWhiteBox = true;
 	//setAttribute(Qt::WA_NoSystemBackground, true);
 	setAttribute(Qt::WA_OpaquePaintEvent, true);
 	setMinimumSize(768, 512);
@@ -60,7 +61,7 @@ void GEOSCaptureWnd::paintEvent(QPaintEvent* /*event*/)
 	if (ShowLiveImage && !LiveImage.isNull())
 	{
 		painter.drawImage(QPoint(0, 0), LiveImage);
-		if (Zoom == 1)
+		if (Zoom == 1 && ShowWhiteBox)
 		{
 			QPen p(QColor(255, 255, 255));
 			p.setWidth(2);

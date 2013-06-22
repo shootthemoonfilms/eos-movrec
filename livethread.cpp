@@ -1953,7 +1953,10 @@ bool GMyLiveThread::downloadEvfData()
 		{
 // start critical section!!!
 			HistogramMutex.lock();
-			EdsGetPropertyData(evfImage, kEdsPropID_Evf_Histogram, 0, sizeof(Histogram), Histogram);
+			EdsGetPropertyData(evfImage, kEdsPropID_Evf_HistogramY, 0, sizeof(HistogramY), HistogramY);
+			EdsGetPropertyData(evfImage, kEdsPropID_Evf_HistogramR, 0, sizeof(HistogramR), HistogramR);
+			EdsGetPropertyData(evfImage, kEdsPropID_Evf_HistogramG, 0, sizeof(HistogramG), HistogramG);
+			EdsGetPropertyData(evfImage, kEdsPropID_Evf_HistogramB, 0, sizeof(HistogramB), HistogramB);
 			HistogramMutex.unlock();
 // end of critical section!!!
 		}

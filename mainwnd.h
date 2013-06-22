@@ -135,6 +135,7 @@ private:
 		int AFMode;
 		int BufferSize;
 		bool UseStabFPS;
+		bool ShowWhiteBox;
 	};
 	struct GSavedSettings CurrSettings;
 	struct GSavedSettings BackupSettings;

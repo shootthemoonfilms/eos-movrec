@@ -31,7 +31,15 @@ class GEOSCaptureWnd: public QWidget
 public:
 	GEOSCaptureWnd(QWidget* parent);
 	~GEOSCaptureWnd();
-	void setShowLiveImage(bool s) { ShowLiveImage = s; }
+	void setShowLiveImage(bool s)
+	{
+		ShowLiveImage = s;
+	}
+	void setShowWhiteBox(bool w)
+	{
+		ShowWhiteBox = w;
+		repaint();
+	}
 	// called from other thread
 	void lockFocusingArea();
 	void unlockFocusingArea();
@@ -57,6 +65,7 @@ private:
 	int max_frame_size;
 	unsigned char* frame;
 	bool ShowLiveImage;
+	bool ShowWhiteBox;
 	int Zoom;
 	QRect ZoomRect;
 	QPoint MousePressPoint;

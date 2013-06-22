@@ -360,6 +360,7 @@ GEOSRecWnd::GEOSRecWnd()
 	CurrSettings.AFMode = 1;
 	CurrSettings.BufferSize = 1024*1024;
 	CurrSettings.UseStabFPS = true;
+	CurrSettings.ShowWhiteBox = false;
 
 	BackupSettings.Path = CurrSettings.Path;
 	BackupSettings.Av = CurrSettings.Av;
@@ -371,6 +372,7 @@ GEOSRecWnd::GEOSRecWnd()
 	BackupSettings.AFMode = CurrSettings.AFMode;
 	BackupSettings.BufferSize = CurrSettings.BufferSize;
 	BackupSettings.UseStabFPS = CurrSettings.UseStabFPS;
+	BackupSettings.ShowWhiteBox = CurrSettings.ShowWhiteBox;
 
 	LiveThread = new GMyLiveThread(this);
 	LiveThread->setCaptureWnd(CaptureWnd);
@@ -528,6 +530,7 @@ void GEOSRecWnd::loadSettings()
 	BackupSettings.AFMode = CurrSettings.AFMode;
 	BackupSettings.BufferSize = CurrSettings.BufferSize;
 	BackupSettings.UseStabFPS = CurrSettings.UseStabFPS;
+	BackupSettings.ShowWhiteBox = CurrSettings.ShowWhiteBox;
 
 	QSettings settings(QSettings::UserScope, QString("eos_movrec"));
 	CurrSettings.Path = settings.value(QString("Path"), QVariant(QString("out.avi"))).toString();
@@ -581,6 +584,7 @@ void GEOSRecWnd::loadSettings()
 	CurrSettings.AFMode = settings.value(QString("AFMode"), (int)1).toInt();
 	CurrSettings.BufferSize = settings.value(QString("BufferSize"), (int)1024*1024).toInt();
 	CurrSettings.UseStabFPS = settings.value(QString("UseStabFPS"), true).toBool();
+	CurrSettings.ShowWhiteBox = settings.value(QString("ShowWhiteBox"), false).toBool();
 }
 
 void GEOSRecWnd::saveSettings()
@@ -608,6 +612,7 @@ void GEOSRecWnd::saveSettings()
 	settings.setValue(QString("AFMode"), QVariant(CurrSettings.AFMode));
 	settings.setValue(QString("BufferSize"), QVariant(CurrSettings.BufferSize));
 	settings.setValue(QString("UseStabFPS"), QVariant(CurrSettings.UseStabFPS));
+	settings.setValue(QString("ShowWhiteBox"), QVariant(CurrSettings.ShowWhiteBox));
 }
 
 void GEOSRecWnd::customEvent(QEvent* event)
@@ -658,6 +663,7 @@ void GEOSRecWnd::customEvent(QEvent* event)
 			// at this time we already received all settings from camera
 			loadSettings();
 			LiveThread->setUseStabFPS(CurrSettings.UseStabFPS);
+			CaptureWnd->setShowWhiteBox(CurrSettings.ShowWhiteBox);
 		}
 		break;
 	case CAMERA_EVENT_WRITE_STOPPED:
@@ -1367,12 +1373,14 @@ void GEOSRecWnd::slotShowImageChanged(int state)
 void GEOSRecWnd::slotOptions()
 {
 	GOptionsDlg dlg(this);
-	dlg.setOptions(CurrSettings.BufferSize, CurrSettings.AFMode, CurrSettings.UseStabFPS);
+	dlg.setOptions(CurrSettings.BufferSize, CurrSettings.AFMode, CurrSettings.UseStabFPS, CurrSettings.ShowWhiteBox);
 	if (dlg.exec() == QDialog::Accepted)
 	{
 		CurrSettings.BufferSize = dlg.bufferSize();
 		CurrSettings.AFMode = dlg.afMode();
 		CurrSettings.UseStabFPS = dlg.useStabFPS();
+		CurrSettings.ShowWhiteBox = dlg.showWhiteBox();
+		CaptureWnd->setShowWhiteBox(CurrSettings.ShowWhiteBox);
 		if (LiveThread && LiveThread->isInit())
 		{
 			LiveThread->setBufferSize(CurrSettings.BufferSize);

@@ -35,6 +35,7 @@ protected:
 	virtual void paintEvent(QPaintEvent * event);
 	virtual void closeEvent(QCloseEvent* event);
 private:
+	/*
 	struct YRGB
 	{
 		int Y;
@@ -43,6 +44,11 @@ private:
 		int B;
 	};
 	struct YRGB* Histogram;
+	*/
+	int* HistogramY;
+	int* HistogramR;
+	int* HistogramG;
+	int* HistogramB;
 	int HistogramSize;
 	int HistogramMax;
 	GMyLiveThread* LiveThread;

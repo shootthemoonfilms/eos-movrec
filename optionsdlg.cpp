@@ -57,6 +57,9 @@ GOptionsDlg::GOptionsDlg(QWidget* parent)
 	StabFPSBox = new QCheckBox(tr("Use stabilized FPS"), this);
 	layout->addWidget(StabFPSBox, 0);
 
+	ShowWhiteBox = new QCheckBox(tr("Show zoom white box"), this);
+	layout->addWidget(ShowWhiteBox, 0);
+
 	QHBoxLayout* layout_btn = new QHBoxLayout();
 	layout_btn->addStretch(10);
 	QPushButton* okBtn = new QPushButton(this);
@@ -75,11 +78,12 @@ GOptionsDlg::GOptionsDlg(QWidget* parent)
 	connect(cancelBtn, SIGNAL(clicked()), this, SLOT(reject()));
 }
 
-void GOptionsDlg::setOptions(int buff_sz, int afmode, bool s)
+void GOptionsDlg::setOptions(int buff_sz, int afmode, bool s, bool w)
 {
 	BufferBox->setValue(buff_sz/1048576);
 	AFModeBox->setCurrentIndex(afmode);
 	StabFPSBox->setChecked(s);
+	ShowWhiteBox->setChecked(w);
 }
 
 int GOptionsDlg::bufferSize()
@@ -95,4 +99,9 @@ int GOptionsDlg::afMode()
 bool GOptionsDlg::useStabFPS()
 {
 	return StabFPSBox->isChecked();
+}
+
+bool GOptionsDlg::showWhiteBox()
+{
+	return ShowWhiteBox->isChecked();
 }
