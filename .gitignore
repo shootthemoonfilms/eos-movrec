@@ -1,0 +1,10 @@
+CMakeCache.txt
+CMakeFiles
+Makefile
+cmake_install.cmake
+config.h
+debug_info.txt
+eos_movrec
+moc_blinklabel.cxx
+moc_mainwnd.cxx
+
