@@ -26,6 +26,8 @@
 #include <QMutex>
 #include <QWaitCondition>
 
+#include "mainwnd.h"
+
 class GEOSCaptureWnd: public QWidget
 {
 public:
@@ -50,6 +52,7 @@ public:
 	void setZoomPositionDivisor(double zpd_x, double zpd_y) { ZPD_x = zpd_x; ZPD_y = zpd_y; }
 	// call only from other thread!
 	void waitPicture();
+	QPoint LVPointToZoomPos(QPoint LV);
 protected:
 	//virtual void showEvent(QShowEvent* event);
 	virtual void paintEvent(QPaintEvent * event);
@@ -66,7 +69,7 @@ private:
 	unsigned char* frame;
 	bool ShowLiveImage;
 	bool ShowWhiteBox;
-	int Zoom;
+	int Zoom = 1;
 	QRect ZoomRect;
 	QPoint MousePressPoint;
 	double ZPD_x, ZPD_y;

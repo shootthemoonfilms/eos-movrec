@@ -57,7 +57,7 @@ GHistogramWnd::~GHistogramWnd()
 
 static int max_4(int x, int a, int b, int c)
 {
-	register int t = x;
+	int t = x;
 	if (x < a)
 		t = a;
 	if (t < b)

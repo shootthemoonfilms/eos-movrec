@@ -7,9 +7,9 @@ include(CheckIncludeFile)
 
 set(CMAKE_VERBOSE_MAKEFILE on)
 
-set(FILEVERSION_V		"0, 3, 2, 0")
-set(PRODUCTVERSION_V	"0, 3, 2, 0")
-set(VERSION				"0.3.2 beta")
+set(FILEVERSION_V		"0, 3, 3, 0")
+set(PRODUCTVERSION_V	"0, 3, 3, 0")
+set(VERSION				"0.3.3 beta")
 set(PACKAGE				${PROJECT_NAME})
 
 configure_file(config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h)
@@ -24,10 +24,10 @@ if(WIN32)
 	endif(MINGW)
 endif(WIN32)
 
-find_package(Qt4 4.4.2 COMPONENTS QtCore QtGui REQUIRED)
-include(${QT_USE_FILE})
+find_package(Qt5 REQUIRED COMPONENTS Widgets)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
 
-add_definitions (${QT_DEFINITIONS})
 include_directories (${QT_INCLUDES} ${CMAKE_BINARY_DIR})
 
 set(EDSDK_LDFLAGS "")
@@ -61,7 +61,9 @@ set(eos_movrec_SRCS
 	os_api.c
 	afthread.cpp
 	histogramwnd.cpp
+	pathsdlg.cpp
 	optionsdlg.cpp
+	resources.qrc
 )
 
 if(WIN32)
@@ -72,6 +74,7 @@ endif(WIN32)
 set(eos_movrec_MOC_HEADERS
 	mainwnd.h
 	blinklabel.h
+	pathsdlg.h
 )
 
 # force use exceptions
@@ -81,7 +84,6 @@ set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -DAF_DEBUG_LOG")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG")
 
 add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGE_FILES=1)
-QT4_WRAP_CPP(MOC_SRCS ${eos_movrec_MOC_HEADERS})
 
 if (WIN32)
 	set(CMAKE_RC_COMPILER windres)
@@ -99,8 +101,8 @@ endif(WIN32)
 
 add_executable(eos_movrec ${eos_movrec_SRCS} ${MOC_SRCS})
 if (WIN32)
-	TARGET_LINK_LIBRARIES(eos_movrec ${QT_LIBRARIES} ${EDSDK_LDFLAGS})
+	TARGET_LINK_LIBRARIES(eos_movrec Qt5::Widgets ${EDSDK_LDFLAGS})
 elseif(UNIX)
-	TARGET_LINK_LIBRARIES(eos_movrec ${QT_LIBRARIES} ${LIBGPHOTO2_LDFLAGS})
+	TARGET_LINK_LIBRARIES(eos_movrec Qt5::Widgets ${LIBGPHOTO2_LDFLAGS})
 endif(WIN32)
 install(TARGETS eos_movrec RUNTIME DESTINATION bin)

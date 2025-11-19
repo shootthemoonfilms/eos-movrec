@@ -1,3 +1,3 @@
-1. Запись звука.
-2. Запоминание 2-х точек фокуса и переключении между ними.
-3. Определить направление автофокуса либо вычисляя производную, либо по первым точкам с большим шагом.
+1. Recording sound.
+2. Remembering 2 focus points and switching between them.
+3. Determine the direction of autofocus either by calculating the derivative or by the first points with a large step.

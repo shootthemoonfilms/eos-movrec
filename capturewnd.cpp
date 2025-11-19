@@ -18,6 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "debug.h"
+
 #include "capturewnd.h"
 #include "buffer.h"
 #include "events.h"
@@ -43,6 +45,7 @@ GEOSCaptureWnd::GEOSCaptureWnd(QWidget* parent)
 	ZoomRectMoving = false;
 	FocusArea = 0;
 	ZPD_x = ZPD_y = 5.0;
+	ZoomRect = QRect();
 }
 
 GEOSCaptureWnd::~GEOSCaptureWnd()
@@ -85,8 +88,39 @@ void GEOSCaptureWnd::closeEvent(QCloseEvent* /*event*/)
 {
 }
 
+QPoint GEOSCaptureWnd::LVPointToZoomPos(QPoint LV_xy)
+{
+	GEOSRecWnd* LV = (GEOSRecWnd *)parentWidget();
+	
+	if (!LV->isLive())
+		return QPoint();
+	
+	EOSZoomVars zv = LV->getZoomVars();
+	
+	int x_off = zv.sensor_w * LV_xy.x() / this->width();
+	int y_off = zv.sensor_h * LV_xy.y()  / this->height();
+	
+	if (x_off <= zv.x_min)		{x_off = 0;}
+	else if (x_off > zv.x_max)	{x_off = zv.x_max;}
+	else						{x_off -= zv.x_min;}
+	
+	if (y_off <= zv.y_min)		{y_off = 0;}
+	else if (y_off > zv.y_max)	{y_off = zv.y_max;}
+	else						{y_off -= zv.y_min;}
+	
+	return QPoint( x_off, y_off);
+}
+
 void GEOSCaptureWnd::mousePressEvent(QMouseEvent* event)
 {
+	GEOSRecWnd* LV = (GEOSRecWnd *)parentWidget();
+	
+	if (LV->isLive() && LV->zoomPosByClick)
+	{
+		QPoint zoomPos = LVPointToZoomPos(event->pos());
+		QApplication::postEvent(parentWidget(), new GCameraEvent(CAMERA_EVENT_ZOOMPOS_NEEDCHANGE, zoomPos));
+	}
+	
 	ZoomRectMoving = (Zoom == 1 && ZoomRect.contains(event->pos(), true)) || Zoom == 5;
 	if (ZoomRectMoving)
 		MousePressPoint = event->pos();

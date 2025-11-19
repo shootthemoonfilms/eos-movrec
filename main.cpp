@@ -18,8 +18,17 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <signal.h>
+
 #include <qapplication.h>
 #include "mainwnd.h"
+
+GEOSRecWnd *mainwnd_p;
+
+void sig_hand(int s){
+	mainwnd_p->signal_handler(s);	// This prevents locking out gphoto connection
+	exit(1); 
+}
 
 int main(int argc, char **argv)
 {
@@ -30,6 +39,10 @@ int main(int argc, char **argv)
 	setlocale(LC_MESSAGES, "POSIX");
 #endif
 	GEOSRecWnd mainwnd;
+	mainwnd_p = &mainwnd;
+	
+	signal (SIGINT, sig_hand);
+	
 	mainwnd.show();
 	return app.exec();
 }

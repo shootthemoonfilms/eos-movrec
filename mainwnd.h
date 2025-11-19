@@ -31,9 +31,10 @@ class QPushButton;
 class QToolButton;
 class QComboBox;
 class QSpinBox;
-class QLabel;
 class QSpinBox;
+class QLabel;
 class QStatusBar;
+class QPoint;
 
 class GMyLiveThread;
 class GAFThread;
@@ -41,17 +42,25 @@ class GEOSCaptureWnd;
 class QBlinkLabel;
 class GHistogramWnd;
 
+#include "livethread.h"	// to get the declaration for EOSZoomVars
+
 class GEOSRecWnd: public QWidget
 {
 	Q_OBJECT
 public:
 	GEOSRecWnd();
 	~GEOSRecWnd();
+	void signal_handler(int s);
+	void close_app();
+	bool isLive();
+	bool zoomPosByClick;
+	EOSZoomVars getZoomVars();
 protected slots:
 	void slotReconnect();
-	void slotSelFile();
 	void slotStart();
 	void slotStop();
+	void slotCPT();
+	void slotSettings();
 	//void slotStartTimeout();
 	//void slotWorkTimeout();
 	void slotAESelected(int ae_ind);
@@ -64,13 +73,16 @@ protected slots:
 	void slotShowImageChanged(int);
 	void slotOptions();
 	void slotAbout();
+	void doFocus(int nearFar, int amount);
 	void slotFocusNear3();
 	void slotFocusNear2();
 	void slotFocusNear1();
 	void slotFocusFar1();
 	void slotFocusFar2();
 	void slotFocusFar3();
+	void slotZoomPosClick();
 	void slotZoom5x();
+	void slotZoom10x();
 	void slotAutoFocus();
 	void slotStopAutoFocus();
 	void slotCameraAF();
@@ -78,20 +90,34 @@ protected slots:
 	void slotTimeTimerSwitch(bool);
 	void slotFramesTimerSwitch(bool);
 protected:
+	void setPathLabel();
+	void derivePath();
 	virtual void customEvent(QEvent* event);
 	virtual void closeEvent(QCloseEvent* event);
+	virtual void resizeEvent(QResizeEvent *event) override;
 private:
 	QString giveNextName(const QString& path);
+	QString getNextfName(const QString& fName);
 	void shutdown();
+	void loadSettingsFilepaths();
 	void loadSettings();
+	void saveSettingsFilepaths();
 	void saveSettings();
+	void doZoomPos(QPoint qp);
+	void doZoom(int amount);
+	void populateOptionBoxes();
+	void populateOptionBox(QComboBox* box, valArr featureList, int selOpt);
+	void changeSelection(QComboBox* box, int* setting, int idx);
+	void setBatteryLevelLabel(QLabel* batteryLevelLabel, QString batteryLevelStr);
 private:
 	//QTimer* StartTimer;
 	QBlinkLabel* blinkLabel;
 	QToolButton* reconnBtn;
-	QToolButton* selFileBtn;
+	QToolButton* selSettingsBtn;
 	QPushButton* startBtn;
 	QPushButton* stopBtn;
+	QPushButton* cptBtn;
+	QLabel* path_label;
 	QComboBox* AEModeBox;
 	QToolButton* dofBtn;
 	QComboBox* isoBox;
@@ -107,7 +133,9 @@ private:
 	QToolButton* focusFar1Btn;
 	QToolButton* focusFar2Btn;
 	QToolButton* focusFar3Btn;
+	QToolButton* zoomPosClickBtn;
 	QToolButton* zoom5xBtn;
+	QToolButton* zoom10xBtn;
 	QToolButton* AFBtn;
 	QToolButton* AFCamBtn;
 	QToolButton* HistBtn;
@@ -119,13 +147,17 @@ private:
 	QSpinBox* timeTimerSpinBox;
 	QCheckBox* framesTimerBox;
 	QSpinBox* framesTimerSpinBox;
+	QLabel* batteryLevelIcon;
+	QLabel* batteryLevelLabel;
 	GMyLiveThread* LiveThread;
 	GAFThread* AFThread;
 	GEOSCaptureWnd* CaptureWnd;
 	GHistogramWnd* HistogramWnd;
+	QString commonFilePath;
 	struct GSavedSettings
 	{
-		QString Path;
+		QString VidName;
+		QString ImgName;
 		int Av;
 		int Tv;
 		int ISO;
@@ -139,6 +171,8 @@ private:
 	};
 	struct GSavedSettings CurrSettings;
 	struct GSavedSettings BackupSettings;
+	
+	void wheelEvent(QWheelEvent* event);
 };
 
 #endif	// _mainwnd_h

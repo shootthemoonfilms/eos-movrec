@@ -35,6 +35,15 @@ GOptionsDlg::GOptionsDlg(QWidget* parent)
 	setSizeGripEnabled(false);
 	QVBoxLayout* layout = new QVBoxLayout(this);
 	layout->setSizeConstraint(QLayout::SetFixedSize);
+	
+	// save cpt as: "ext"
+	// save vid as: "ext"
+	// cpt path
+	// vid path
+	// cpt name
+	// vid name
+	
+	
 	QHBoxLayout* layout_line1 = new QHBoxLayout();
 	layout_line1->addWidget(new QLabel(tr("Buffer size (for writing)")), 0);
 	BufferBox = new QSpinBox(this);

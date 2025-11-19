@@ -2,6 +2,7 @@ TEMPLATE = app
 CONFIG += qt
 QT = core \
 	gui
+
 HEADERS = mainwnd.h \
 	about.h \
 	blinklabel.h \
@@ -17,7 +18,9 @@ HEADERS = mainwnd.h \
 	command.h \
 	cam_tables.h \
 	histogramwnd.h \
+	pathsdlg.h \
 	optionsdlg.h
+ 
 SOURCES = main.cpp \
 	mainwnd.cpp \
 	livethread.cpp \
@@ -32,7 +35,9 @@ SOURCES = main.cpp \
 	os_api.c \
 	afthread.cpp \
 	histogramwnd.cpp \
+	pathsdlg.cpp \
 	optionsdlg.cpp
+
 TARGET = bin/eos_movrec
 EDSDKPATH = ./EDSDK
 #DEFINES += AF_DEBUG_LOG=1
@@ -42,3 +47,4 @@ INCLUDEPATH = $$EDSDKPATH/Header
 LIBS += -L$$EDSDKPATH/Library \
 	-ledsdk
 win32:RC_FILE = eos_movrec.rc
+RESOURCES += resources.qrc

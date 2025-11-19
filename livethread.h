@@ -33,6 +33,7 @@
 #include <QMutex>
 #include <QWaitCondition>
 #include <QSize>
+#include <QPoint>
 
 #include "command.h"
 #ifdef EDSDK
@@ -46,13 +47,46 @@
 
 class QWidget;
 
+struct EOSZoomVars
+{
+	bool enabled;
+	unsigned int sensor_w;
+	unsigned int sensor_h;
+	unsigned int x_min;
+	unsigned int x_max;
+	unsigned int y_min;
+	unsigned int y_max;
+};
+
+struct valArr
+{
+	QString *opt_name = NULL;
+	int length = 0;
+};
+
 struct EOSCamFeatures
 {
 	unsigned int JpegLargeSize_x;
 	unsigned int JpegLargeSize_y;
 	unsigned int LiveViewSize_x;
 	unsigned int LiveViewSize_y;
+	EOSZoomVars zoomVars;
 	bool HasAF;
+	
+	QString lens_name;
+	
+	// any updates to these need to also be updated in _gp_get_config_value_options_free_all
+	valArr whitebalance;
+	valArr autoexposuremode;// AE mode
+	valArr iso;				// ISO
+	valArr aperture;		// AV
+	valArr shutterspeed;	// Tv
+	valArr evfmode;			// LiveView mode (Electronic ViewFinder)
+	valArr drivemode;		// camera shutter timer
+	valArr aeb;				// exposure compensation
+	valArr eosremoterelease;// camera trigger
+	
+	valArr TEST;
 };
 
 class GMyLiveThread: public QThread
@@ -68,17 +102,24 @@ public:
 	void stopWrite();
 	bool writeEnabled() { return WriteMovie; }
 	void setFileName(const char* fname);
+	void setVidFileName(const char* fname);
+	void setImgFileName(const char* fname);
 	void setBufferSize(int);
 	void setUseStabFPS(bool s);
 	void setTimeTimer(int timer);
 	void setFramesTimer(int timer);
 	void setMovieInfo(const char* info);
+	QString getBatteryLevel();
+	void cmdUpdateBatteryLevel();
+	void cmdDoCPT();
 	void cmdSetAEMode(int ae);
 	void cmdSetWB(int wb, int temp);
 	void cmdSetISO(int iso);
 	void cmdRequestISO();
 	void cmdRequestISOList();
 	void cmdSetAv(int av, int dof);
+	void cmdRequestWB();
+	void cmdRequestWBList();
 	void cmdRequestAv();
 	void cmdRequestAvList();
 	void cmdSetTv(int tv);
@@ -90,7 +131,8 @@ public:
 	void cmdRequestAFMode();
 	void cmdAdjFocus(int direction, int val);
 	void cmdSetZoom(int zoom);
-	void cmdSetZoomPos(int x, int y);
+	void cmdSetZoomPos(QPoint qp);
+	void cmdCancelCAF();
 	void cmdDoLVAF(int mode);
 	// wait for all commands
 	// call only from other threads!
@@ -147,12 +189,18 @@ private:
 	bool startLiveView();
 	bool downloadEvfData();
 	bool endLiveView();
+	int camera_auto_focus(Camera* camera, GPContext* context, int onoff);
 	bool processCommand();
+	void updateBatteryLevel();
+	bool fillWBList();
 	bool fillAvList();
 	bool fillTvList();
 	bool fillISOList();
 	bool fillAEMList();
-	bool fillCameraName();
+	bool fillCameraInfo();
+#ifdef GPHOTO2
+	void gp_free_all();
+#endif
 private:
 	bool Stoped;
 	bool Inited;
@@ -161,6 +209,8 @@ private:
 	QWidget* CaptureWnd;
 	bool WriteMovie;
 	char* FileName;
+	char* vidFileName;
+	char* imgFileName;
 	int BufferSize;
 	double StableFPS;
 	QMutex CommandMutex;
@@ -177,6 +227,7 @@ private:
 #ifdef GPHOTO2
 	GPContext *camera_context;
 	Camera* camera;
+	bool CAF_blocked = false;
 #endif
 	unsigned int AvList[128];
 	int AvListSize;
@@ -186,9 +237,10 @@ private:
 	int ISOListSize;
 	unsigned int AEMList[16];
 	int AEMListSize;
-	int Zoom;
-	int ZoomPosX;
-	int ZoomPosY;
+	 // if we don't initialize we get warnings in valgrind (while we wait for libgphoto2 to implement zoom and zoomposition
+	int Zoom = 1;
+	int ZoomPosX = 0;
+	int ZoomPosY = 0;
 	bool WantHistogram;
 	int HistogramY[256];
 	int HistogramR[256];
@@ -197,6 +249,7 @@ private:
 	bool isSDKLoaded;
 	bool UseStabFPS;
 	QString CameraName;
+	QString batteryLevel;
 	struct EOSCamFeatures CamFeatures;
 	int TimeTimer;
 	int FramesTimer;

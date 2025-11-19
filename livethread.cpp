@@ -18,6 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "debug.h"
+
 #include "livethread.h"
 #include <QMutex>
 #include <QWidget>
@@ -39,6 +41,8 @@
 #include <stdio.h>
 #include <time.h>
 
+#include <fcntl.h>
+
 static QMutex ImageMutex;
 
 #ifdef EDSDK
@@ -54,6 +58,10 @@ static void gp2_errordumper(GPLogLevel level, const char *domain, const char *fo
 static int _gp_lookup_widget(CameraWidget*widget, const char *key, CameraWidget **child);
 static int _gp_get_config_value_string(Camera *camera, const char *key, char **str, GPContext *context);
 static int _gp_set_config_value_string(Camera *camera, const char *key, const char *val, GPContext *context);
+static int _gp_get_config_value_options(Camera *camera, const char *key, valArr *opts_arr, GPContext *context);
+static void _gp_get_config_value_options_free(valArr *opts_arr);
+static int _gp_print_config_value(Camera *camera, const char *key, GPContext *context);
+static int str_index_in_valArr(QString str, valArr list);
 #endif
 
 // class GMyLiveThread
@@ -67,6 +75,7 @@ GMyLiveThread::GMyLiveThread(QWidget* owner)
 	camera = 0;
 #ifdef GPHOTO2
 	camera_context = 0;
+	CAF_blocked = false;
 #endif
 	isSDKLoaded = false;
 	WriteMovie = false;
@@ -80,6 +89,8 @@ GMyLiveThread::GMyLiveThread(QWidget* owner)
 	DuplicatedCount = 0;
 	ElapsedTime = 0;
 	FileName = strdup("out.avi");
+	vidFileName = strdup("vid_out.avi");
+	imgFileName = strdup("img_out.jpg");
 	BufferSize = 1024*1024;
 	UseStabFPS = true;
 	StableFPS = 0.0;
@@ -92,6 +103,12 @@ GMyLiveThread::GMyLiveThread(QWidget* owner)
 GMyLiveThread::~GMyLiveThread()
 {
 	free(FileName);
+	free(vidFileName);
+	free(imgFileName);
+	
+#ifdef GPHOTO2
+	gp_free_all();
+#endif
 }
 
 void GMyLiveThread::setFileName(const char* fname)
@@ -100,6 +117,20 @@ void GMyLiveThread::setFileName(const char* fname)
 		free(FileName);
 	FileName = strdup(fname);
 }
+
+void GMyLiveThread::setVidFileName(const char* fname)
+{
+	if (vidFileName)
+		free(vidFileName);
+	vidFileName = strdup(fname);
+}
+void GMyLiveThread::setImgFileName(const char* fname)
+{
+	if (imgFileName)
+		free(imgFileName);
+	imgFileName = strdup(fname);
+}
+
 
 void GMyLiveThread::setBufferSize(int buffer_sz)
 {
@@ -151,6 +182,22 @@ void GMyLiveThread::stopWrite()
 	WrtFlagMutex.lock();
 	WriteMovie = false;
 	WrtFlagMutex.unlock();
+}
+
+void GMyLiveThread::cmdUpdateBatteryLevel()
+{
+	CommandMutex.lock();
+	GCameraCommand cmd(COMMAND_UPDATE_BATTERY_LEVEL, 0, 0);
+	CommandsQueue.append(cmd);
+	CommandMutex.unlock();
+}
+
+void GMyLiveThread::cmdDoCPT()
+{
+	CommandMutex.lock();
+	GCameraCommand cmd(COMMAND_DO_CPT, 0, 0);
+	CommandsQueue.append(cmd);
+	CommandMutex.unlock();
 }
 
 void GMyLiveThread::cmdSetAEMode(int ae)
@@ -205,6 +252,22 @@ void GMyLiveThread::cmdRequestAv()
 {
 	CommandMutex.lock();
 	GCameraCommand cmd(COMMAND_REQ_AV, 0, 0);
+	CommandsQueue.append(cmd);
+	CommandMutex.unlock();
+}
+
+void GMyLiveThread::cmdRequestWB()
+{
+	CommandMutex.lock();
+	GCameraCommand cmd(COMMAND_REQ_WB, 0, 0);
+	CommandsQueue.append(cmd);
+	CommandMutex.unlock();
+}
+
+void GMyLiveThread::cmdRequestWBList()
+{
+	CommandMutex.lock();
+	GCameraCommand cmd(COMMAND_REQ_WBLIST, 0, 0);
 	CommandsQueue.append(cmd);
 	CommandMutex.unlock();
 }
@@ -289,12 +352,23 @@ void GMyLiveThread::cmdSetZoom(int zoom)
 	CommandMutex.unlock();
 }
 
-void GMyLiveThread::cmdSetZoomPos(int x, int y)
+void GMyLiveThread::cmdSetZoomPos(QPoint qp)
 {
 	CommandMutex.lock();
-	GCameraCommand cmd(COMMAND_SET_ZOOMPOS, x, y);
+	if (DEBUG) fprintf(stderr, " GMyLiveThread::cmdSetZoomPos - pos: [%d][%d]\n", qp.x(), qp.y());
+	GCameraCommand cmd(COMMAND_SET_ZOOMPOS, qp.x(), qp.y());
 	CommandsQueue.append(cmd);
 	CommandMutex.unlock();
+}
+
+void GMyLiveThread::cmdCancelCAF()
+{
+		// Needed so camera connection is not blocked after a CAF command
+	CommandMutex.lock();
+	GCameraCommand cmd(COMMAND_CANCEL_CAF, 0, 0);
+	CommandsQueue.append(cmd);
+	CommandMutex.unlock();
+	CAF_blocked = false;
 }
 
 void GMyLiveThread::cmdDoLVAF(int mode)
@@ -325,6 +399,26 @@ bool GMyLiveThread::processCommand()
 #endif
 	switch (cmd.command())
 	{
+	case COMMAND_UPDATE_BATTERY_LEVEL:
+		updateBatteryLevel();
+		break;
+	case COMMAND_DO_CPT:
+		{
+				// NOTE: no exif data yet
+		FILE *jpgfile;
+		if (imgFileName != "")
+			{jpgfile = fopen(imgFileName,  "wb");}
+		
+		 if (jpgfile == NULL) {
+		 	fprintf(stderr, "Error: could not save image: [%s] \n", imgFileName);
+		 	}
+		 else {
+			fwrite(live_buffer::frame, live_buffer::frame_size, 1, jpgfile);
+			fclose(jpgfile);
+			fprintf(stderr, "Saved image: [%s]\n", imgFileName);
+			}
+		}
+		break;
 	case COMMAND_SET_WB:		// set WB
 #ifdef EDSDK
 		err = EdsSetPropertyData(camera, kEdsPropID_Evf_WhiteBalance, 0, sizeof(EdsInt32), &param1);
@@ -335,39 +429,83 @@ bool GMyLiveThread::processCommand()
 		}
 #endif
 #ifdef GPHOTO2
-#warning "COMMAND_SET_WB: Not implemented yet!"
+				// $ gphoto2 --get-config whitebalance 
+		if (param1 >= 0 && param1 < CamFeatures.whitebalance.length)
+		{
+			err = _gp_set_config_value_string(camera, "whitebalance", CamFeatures.whitebalance.opt_name[param1].toLocal8Bit().constData(), camera_context);
+			
+			if (param1 == CamFeatures.whitebalance.length - 1)		// FIXME: check if the last option will always be manual select
+			{
+				fprintf(stderr, "GMyLiveThread::COMMAND_SET_WB  whitebalance set temperature UNIMPLEMENTED\n");
+				if (param2)	// set color temp to param2
+				{
+					if (DEBUG)
+						fprintf(stderr, "GMyLiveThread::COMMAND_SET_WB  set temperature params=[%d][%d]\n", param1, param2);
+					// TODO this is where the actual call to set the color temperature would go
+					// err = _gp_set_config_value_string(camera, "whitebalance_temperature", param2, camera_context);
+				}
+			}
+		}
 #endif
 		break;
-	case COMMAND_SET_ISO:		// set ISO
-		if (param1 >= 0 && param1 < EOS_ISO_TABLE_SZ)
+	case COMMAND_REQ_WB:
 		{
 #ifdef EDSDK
-			err = EdsSetPropertyData(camera, kEdsPropID_ISOSpeed, 0, sizeof(EdsUInt32), &ISOTable[param1].edsdk_val);
+		/*  TODO  */
 #endif
 #ifdef GPHOTO2
-			err = _gp_set_config_value_string(camera, "iso", ISOTable[param1].ISO, camera_context);
+			char* str_val = NULL;
+			err = _gp_get_config_value_string(camera, "whitebalance", &str_val, camera_context);
+			if (err >= GP_OK && str_val)
+			{
+				int wb_ind = str_index_in_valArr(QString(str_val), cameraFeatures().whitebalance);
+				if (Owner)
+					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_WB_CHANGED, QVariant(wb_ind)));
+			}
+			if (str_val)
+				free(str_val);
 #endif
 		}
 		break;
+	case COMMAND_REQ_WBLIST:
+		if (fillWBList())
+			if (Owner)
+			{
+				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_WBLIST_CHANGED, 0));
+			}
+			break;
+	case COMMAND_SET_ISO:		// set ISO
+#ifdef EDSDK
+		if (param1 >= 0 && param1 < EOS_ISO_TABLE_SZ)
+		{
+			err = EdsSetPropertyData(camera, kEdsPropID_ISOSpeed, 0, sizeof(EdsUInt32), &ISOTable[param1].edsdk_val);
+		}
+#endif
+#ifdef GPHOTO2
+		if (param1 >= 0 && param1 < CamFeatures.iso.length)
+		{
+			err = _gp_set_config_value_string(camera, "iso", cameraFeatures().iso.opt_name[param1].toLocal8Bit().constData(), camera_context);
+		}
+#endif
+		break;
 	case COMMAND_REQ_ISO:
 	{
-		int iso_ind;
 #ifdef EDSDK
 		int iso = 0;
 		err = EdsGetPropertyData(camera, kEdsPropID_ISOSpeed, 0, sizeof(EdsUInt32), &iso);
 		if (err == EDS_ERR_OK)
 		{
-			iso_ind = findISO_edsdk(iso);
+			int iso_ind = findISO_edsdk(iso);
 			if (Owner)
 				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_ISO_CHANGED, QVariant((int)iso_ind)));
 		}
 #endif
 #ifdef GPHOTO2
-			char* str_val = 0;
+			char* str_val = NULL;
 			err = _gp_get_config_value_string(camera, "iso", &str_val, camera_context);
 			if (err >= GP_OK && str_val)
 			{
-				iso_ind = findISO_str(str_val);
+				int iso_ind = str_index_in_valArr(QString(str_val), cameraFeatures().iso);
 				if (Owner)
 					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_ISO_CHANGED, QVariant(iso_ind)));
 			}
@@ -384,9 +522,9 @@ bool GMyLiveThread::processCommand()
 			}
 			break;
 	case COMMAND_SET_AV:		// set Av & DOF
+#ifdef EDSDK
 		if (param1 > 0 && param1 < EOS_AV_TABLE_SZ)
 		{
-#ifdef EDSDK
 			EdsUInt32 av;
 			err = EdsGetPropertyData(camera, kEdsPropID_Av, 0, sizeof(EdsUInt32), &av);
 			if (err == EDS_ERR_OK)
@@ -394,38 +532,37 @@ bool GMyLiveThread::processCommand()
 				if (av != (EdsUInt32)AvTable[param1].edsdk_val)
 					err = EdsSetPropertyData(camera, kEdsPropID_Av, 0, sizeof(EdsUInt32), &param1);
 			}
-#endif
-#ifdef GPHOTO2
-			err = _gp_set_config_value_string(camera, "aperture", AvTable[param1].av, camera_context);
-#endif
 		}
-#ifdef EDSDK
 		if (err == EDS_ERR_OK)
 			err = EdsSetPropertyData(camera, kEdsPropID_Evf_DepthOfFieldPreview, 0, sizeof(EdsUInt32), &param2);
 #endif
 #ifdef GPHOTO2
-		#warning "COMMAND_SET_AV: set dof not implemented yet!"
+		if (param1 > 0 && param1 < CamFeatures.aperture.length)
+		{
+			err = _gp_set_config_value_string(camera, "aperture", cameraFeatures().aperture.opt_name[param1].toLocal8Bit().constData(), camera_context);
+			if (err >= GP_OK)
+				err = _gp_set_config_value_string(camera, "depthoffield", param2 ? "1" : "0", camera_context);	// DOF is used to let the camera figure out the settings for you
+		}
 #endif
 		break;
 	case COMMAND_REQ_AV:		// request Av
 		{
-			int av_ind = 0;
 #ifdef EDSDK
 			int av = 0;
 			err = EdsGetPropertyData(camera, kEdsPropID_Av, 0, sizeof(EdsUInt32), &av);
 			if (err == EDS_ERR_OK)
 			{
-				av_ind = findAV_edsdk(av);
+				int av_ind = findAV_edsdk(av);
 				if (Owner)
 					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AV_CHANGED, QVariant(av_ind)));
 			}
 #endif
 #ifdef GPHOTO2
-			char* str_val = 0;
+			char* str_val = NULL;
 			err = _gp_get_config_value_string(camera, "aperture", &str_val, camera_context);
 			if (err >= GP_OK && str_val)
 			{
-				av_ind = findAV_str(str_val);
+				int av_ind = str_index_in_valArr(QString(str_val), cameraFeatures().aperture);
 				if (Owner)
 					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AV_CHANGED, QVariant(av_ind)));
 			}
@@ -440,9 +577,9 @@ bool GMyLiveThread::processCommand()
 				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AVLIST_CHANGED, 0));
 		break;
 	case COMMAND_SET_TV:		// set Tv
+#ifdef EDSDK
 		if (param1 >= 0 && param1 < EOS_TV_TABLE_SZ)
 		{
-#ifdef EDSDK
 			EdsUInt32 tv;
 			err = EdsGetPropertyData(camera, kEdsPropID_Tv, 0, sizeof(EdsUInt32), &tv);
 			if (err == EDS_ERR_OK)
@@ -450,31 +587,33 @@ bool GMyLiveThread::processCommand()
 				if (tv != (EdsUInt32)TvTable[param1].edsdk_val)
 					err = EdsSetPropertyData(camera, kEdsPropID_Tv, 0, sizeof(EdsUInt32), &TvTable[param1].edsdk_val);
 			}
+		}
 #endif
 #ifdef GPHOTO2
-			err = _gp_set_config_value_string(camera, "shutterspeed", TvTable[param1].gp2_tv, camera_context);
-#endif
+		if (param1 >= 0 && param1 < CamFeatures.shutterspeed.length)
+		{
+			err = _gp_set_config_value_string(camera, "shutterspeed", cameraFeatures().shutterspeed.opt_name[param1].toLocal8Bit().constData(), camera_context);
 		}
+#endif
 		break;
 	case COMMAND_REQ_TV:		// request Tv
 		{
-			int tv_ind = 0;
 #ifdef EDSDK
 			int tv = 0;
 			err = EdsGetPropertyData(camera, kEdsPropID_Tv, 0, sizeof(EdsUInt32), &tv);
 			if (err == EDS_ERR_OK)
 			{
-				tv_ind = findTV_edsdk(tv);
+				int tv_ind = findTV_edsdk(tv);
 				if (Owner)
 					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_TV_CHANGED, QVariant((int)tv_ind)));
 			}
 #endif
 #ifdef GPHOTO2
-			char* str_val = 0;
+			char* str_val = NULL;
 			err = _gp_get_config_value_string(camera, "shutterspeed", &str_val, camera_context);
 			if (err >= GP_OK && str_val)
 			{
-				tv_ind = findTV_gp2_str(str_val);
+				int tv_ind = str_index_in_valArr(QString(str_val), cameraFeatures().shutterspeed);
 				if (Owner)
 					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_TV_CHANGED, QVariant(tv_ind)));
 			}
@@ -503,14 +642,15 @@ bool GMyLiveThread::processCommand()
 			}
 #endif
 #ifdef GPHOTO2
-			#warning "COMMAND_REQ_EVF_OUT: not implementet yet!"
+			#warning "COMMAND_REQ_EVF_OUT: not implemented yet!"
+			if (DEBUG) fprintf(stderr, "GMyLiveThread:: COMMAND_REQ_EVF_OUT: not implemented yet! \n" );
 #endif
 		}
 		break;
 	case COMMAND_SET_AEMODE:	// set AE mode
+#ifdef EDSDK
 		if (param1 >= 0 && param1 < EOS_AEM_TABLE_SZ)
 		{
-#ifdef EDSDK
 			err = EdsSetPropertyData(camera, kEdsPropID_AEMode, 0, sizeof(EdsUInt32), &param1);
 
 			EdsUInt32 aem;
@@ -520,12 +660,21 @@ bool GMyLiveThread::processCommand()
 				if (aem != (EdsUInt32)AEMTable[param1].edsdk_val)
 					err = EdsSetPropertyData(camera, kEdsPropID_AEMode, 0, sizeof(EdsUInt32), &AEMTable[param1].edsdk_val);
 			}
+		}
 #endif
 #ifdef GPHOTO2
-			char str[3];
-			err = _gp_set_config_value_string(camera, "autoexposuremode", AEMTable[param1].gphoto_str, camera_context);
-#endif
+		// NOTE: you might not be able to "set" autoexposuremode, but only read it when changed physically on the camera 
+		if (param1 >= 0 && param1 < CamFeatures.autoexposuremode.length)
+		{
+			err = _gp_set_config_value_string(camera, "autoexposuremode", cameraFeatures().autoexposuremode.opt_name[param1].toLocal8Bit().constData(), camera_context);
+			if (err < GP_OK)
+			{
+				fprintf(stderr, "Could not set 'autoexposuremode' to [%s]. Might be readonly. GP error was: [%d]", cameraFeatures().autoexposuremode.opt_name[param1].toLocal8Bit().constData(), err);
+				if (DEBUG) fprintf(stderr, " [%s]", gp_result_as_string(err));
+				fprintf(stderr, "\n");
+			}
 		}
+#endif
 		break;
 	case COMMAND_REQ_AEMODE:	// request AE mode
 		{
@@ -541,11 +690,11 @@ bool GMyLiveThread::processCommand()
 			}
 #endif
 #ifdef GPHOTO2
-			char* str_val = 0;
+			char* str_val = NULL;
 			err = _gp_get_config_value_string(camera, "autoexposuremode", &str_val, camera_context);
 			if (err >= GP_OK && str_val)
 			{
-				aem_ind = findAEM_str(str_val);
+				aem_ind = str_index_in_valArr(QString(str_val), cameraFeatures().autoexposuremode);
 				if (Owner)
 					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AEMODE_CHANGED, QVariant(aem_ind)));
 			}
@@ -608,21 +757,23 @@ bool GMyLiveThread::processCommand()
 					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AFMODE_CHANGED, QVariant((int)mode)));
 #endif
 #ifdef GPHOTO2
-			#warning "COMMAND_REQ_AFMODE: not implemented yet!"
-			int mode = 0;
-#if 0
-			char* str_val = 0;
-			err = _gp_get_config_value_string(camera, "d108", &str_val, camera_context);
-			if (err >= GP_OK && str_val)
+			if (DEBUG) _gp_print_config_value(camera, "focusmode", camera_context);
+			
+			// gphoto2 --get-config focusmode
+			// [0:One Shot, 1:AI Focus, 2:AI Servo, 3:Manual]
+			
+			char* str_val = NULL;
+			err = _gp_get_config_value_string(camera, "focusmode", &str_val, camera_context);
+			if (err >= GP_OK && str_val )
 			{
-				fprintf(stderr, "afmode: %s\n", str_val);
+				int mode = 0;
+				if (strcmp("Manual", str_val) == 0)
+					mode = 3;
+				if (Owner)
+					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AFMODE_CHANGED, QVariant((int)mode)));
 			}
 			if (str_val)
 				free(str_val);
-#endif
-			// I don't know how detect AF mode, this is stub!
-			if (Owner)
-				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_AFMODE_CHANGED, QVariant((int)mode)));
 #endif
 		}
 		break;
@@ -653,14 +804,25 @@ bool GMyLiveThread::processCommand()
 #endif
 		}
 		break;
+	case COMMAND_CANCEL_CAF:
+		{
+#ifdef GPHOTO2
+			err = _gp_set_config_value_string(camera, "cancelautofocus", "1", camera_context);
+#endif
+		}
+		break;
 	case COMMAND_DO_LVAF:
 		{
 #ifdef EDSDK
 			EdsEvfAFMode mode = (EdsEvfAFMode)param1;
+			// first try to turn off AF
+			err = EdsSendCommand(camera, kEdsCameraCommand_DoEvfAf, kEdsCameraCommand_EvfAf_OFF);
 			err = EdsSendCommand(camera, kEdsCameraCommand_DoEvfAf, mode);
 #endif
 #ifdef GPHOTO2
-			#warning "COMMAND_DO_LVAF: not implemented yet!"
+			//err = _gp_set_config_value_string(camera, "eosremoterelease", "5", camera_context);
+			err = _gp_set_config_value_string(camera, "autofocusdrive", "1", camera_context);	// this blocks the connection if you don't do a "cancelautofocus"
+			CAF_blocked = true;
 #endif
 		}
 		break;
@@ -694,12 +856,15 @@ void GMyLiveThread::run()
 #endif
 	if (!ok)
 	{
+		fprintf(stderr, "error initializing photo lib\n");
 		if (Owner)
 			QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_NOCAMERA));
 #ifdef EDSDK
+		fprintf(stderr, "deInitializeEds\n");
 		deInitializeEds();
 #endif
 #ifdef GPHOTO2
+		fprintf(stderr, "deInitializeGPhoto2\n");
 		deInitializeGPhoto2();
 #endif
 		return;
@@ -717,12 +882,16 @@ void GMyLiveThread::run()
 			QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_LV_NOTSTARTED));
 		return;
 	}
+	// get WB list to main window
+	cmdRequestWBList();
 	// get Av list to main window
 	cmdRequestAvList();
 	// get Tv list to main window
 	cmdRequestTvList();
 	// get ISO list to main window
 	cmdRequestISOList();
+	// get WB value to main window
+	cmdRequestWB();
 	// get Av value to main window
 	cmdRequestAv();
 	// get Tv value to main window
@@ -734,6 +903,8 @@ void GMyLiveThread::run()
 	// get AE mode
 	cmdRequestAEModeList();
 	cmdRequestAEMode();
+	
+	cmdUpdateBatteryLevel();
 
 	SkippedCount = 0;
 	AllFramesCount = 0;
@@ -771,7 +942,8 @@ void GMyLiveThread::run()
 	// Wait a camera
 	int RealyStartT1 = StartTime;
 	int RealyStartT2 = StartTime;
-	while (!LiveViewStarted && RealyStartT2 - RealyStartT1 < 4000)
+	
+	while (!LiveViewStarted && RealyStartT2 - RealyStartT1 < 2000)
 	{
 		if (SDKMsgCheckTime2 - SDKMsgCheckTime1 > 100)
 		{
@@ -779,7 +951,11 @@ void GMyLiveThread::run()
 			OSProcessMsg();
 #endif
 #if GPHOTO2
-			gp2_camera_check_event();
+			if (gp2_camera_check_event() < GP_OK) { // NOTE: camera has been disconnected / turned off
+				fprintf(stderr, "camera has been disconnected\n");
+				//QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_SHUTDOWN));
+				// break;
+				}
 #endif
 			SDKMsgCheckTime1 = SDKMsgCheckTime2;
 		}
@@ -816,7 +992,11 @@ void GMyLiveThread::run()
 		OSProcessMsg();
 #endif
 #if GPHOTO2
-		gp2_camera_check_event();
+		if (gp2_camera_check_event() < GP_OK) { // NOTE: camera has been disconnected / turned off
+			fprintf(stderr, "camera has been disconnected\n");
+			//QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_SHUTDOWN));
+			// break;
+			}
 #endif
 		OSSleep(50);
 		RealyStartT2 = OSGetTickCount();
@@ -839,8 +1019,8 @@ void GMyLiveThread::run()
 	struct tm* tm = localtime(&t);
 	sprintf(date, "%04u/%02u/%02u %02u:%02u:%02u", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
 
-	// get camera name & its resolution
-	fillCameraName();
+	// get camera name, resolution, and other details
+	fillCameraInfo();
 	Inited = true;
 	if (Owner)
 		QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_LV_STARTED));
@@ -864,13 +1044,19 @@ void GMyLiveThread::run()
 		CommandMutex.unlock();
 
 		// process internal EDSDK message queue
-		if (SDKMsgCheckTime2 - SDKMsgCheckTime1 > 500)
+		//if (SDKMsgCheckTime2 - SDKMsgCheckTime1 > 500)
+		if (SDKMsgCheckTime2 - SDKMsgCheckTime1 > 5)
 		{
 #ifdef EDSDK
 			OSProcessMsg();
 #endif
 #if GPHOTO2
-			gp2_camera_check_event();
+		if (gp2_camera_check_event() < GP_OK) { // NOTE: camera has been disconnected / turned off
+			fprintf(stderr, "camera has been disconnected\n");
+			QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_SHUTDOWN));
+			// break;
+			}
+
 #endif
 			SDKMsgCheckTime1 = SDKMsgCheckTime2;
 		}
@@ -892,6 +1078,7 @@ void GMyLiveThread::run()
 				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_ZOOM_CHANGED_STOP, QVariant(Zoom)));
 				WriteMovie = false;
 			}
+			
 			if (Zoom != OldZoom || OldZoomPosX != ZoomPosX || OldZoomPosY != ZoomPosY)
 				QApplication::postEvent(CaptureWnd, new GCameraEvent(CAMERA_EVENT_ZOOM_CHANGED, QVariant(QRect(Zoom, 0, ZoomPosX, ZoomPosY))));
 			OldZoom = Zoom;
@@ -907,7 +1094,7 @@ void GMyLiveThread::run()
 				DuplicatedCount = 0;
 				if (mjpeg)
 					mjpegCloseFile(mjpeg);
-				mjpeg = mjpegCreateFile(FileName);
+				mjpeg = mjpegCreateFile(vidFileName);
 				if (mjpeg)
 				{
 					max_frame_size = 0;
@@ -990,7 +1177,7 @@ void GMyLiveThread::run()
 			}
 		}
 
-		// calc temp fps
+		// calc temp fps, and refresh battery level display
 		if (TempTime2 - TempTime1 >= 2000)
 		{
 			TempFPS = ((double)TempFrameCount*1000.0)/(double)(TempTime2 - TempTime1);
@@ -1003,6 +1190,8 @@ void GMyLiveThread::run()
 				StableFPS = ((double)(StableFPSCount - 2)*StableFPS + TempFPS)/(double)(StableFPSCount - 1);
 			if (Owner)
 			{
+				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_UPDATE_BATTERY));
+				
 				QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_FPS_UPDATED, QVariant(TempFPS)));
 				if (StableFPSCount == 4)
 					QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_FPS_CALCULATED, QVariant((int)StableFPS)));
@@ -1044,7 +1233,7 @@ void GMyLiveThread::run()
 				WorkSleep(1000*sleep_time);
 		}*/
 	}
-	// cleanup (при выходе из программы без остановки записи)
+	// cleanup (when exiting the program without stopping recording)
 	if (mjpeg)
 	{
 		WriteMovie = false;
@@ -1077,10 +1266,57 @@ void GMyLiveThread::run()
 	}
 }
 
+QString GMyLiveThread::getBatteryLevel()
+{
+	cmdUpdateBatteryLevel();
+	return batteryLevel;
+}
+
+void GMyLiveThread::updateBatteryLevel()
+{
+	QString ret = "error";
+#ifdef EDSDK
+	fprintf(stderr, "GMyLiveThread::updateBatteryLevel()  UNIMPLEMENTED \n");
+#endif
+	
+#ifdef GPHOTO2
+	char* str_val = NULL;
+	int err = _gp_get_config_value_string(camera, "batterylevel", &str_val, camera_context);
+	if (err >= GP_OK && str_val)
+	{
+		ret = QString(str_val);
+		if (DEBUG) fprintf(stderr, "GMyLiveThread::getBatteryLevel  battery = [%s]\n", str_val);
+	}
+	if (err == GP_ERROR_CAMERA_BUSY)	// error -110 is: I/O in progress
+	{
+		ret = QString("BUSY");
+	}
+	// http://gphoto.org/doc/api/gphoto2-result_8h.html
+	if (DEBUG) fprintf(stderr, "GMyLiveThread::getBatteryLevel  err = [%d] - [%s]\n", err, gp_result_as_string(err));
+	
+	if (str_val)
+		free(str_val);
+#endif
+	batteryLevel = ret;
+}
+
+bool GMyLiveThread::fillWBList()
+{
+#ifdef EDSDK
+	fprintf(stderr, "GMyLiveThread::fillWBList()  UNIMPLEMENTED \n");
+	return false;
+#endif
+
+#ifdef GPHOTO2
+	int err = _gp_get_config_value_options(camera, "whitebalance", &CamFeatures.whitebalance, camera_context);
+	return err >= GP_OK;
+#endif
+}
+
 bool GMyLiveThread::fillAvList()
 {
-	int i;
 #ifdef EDSDK
+	int i;
 	EdsPropertyDesc desc;
 	int ind = 0;
 	int j;
@@ -1101,36 +1337,17 @@ bool GMyLiveThread::fillAvList()
 	}
 	return err == EDS_ERR_OK;
 #endif
-#ifdef GPHOTO2
-	int ret = GP_OK;
-	CameraWidget* widget = 0, *child = 0;
-	const char* choice = 0;
 
-	AvListSize = 0;
-	ret = gp_camera_get_config(camera, &widget, camera_context);
-	if (ret >= GP_OK)
-		ret = _gp_lookup_widget(widget, "aperture", &child);
-	if (ret >= GP_OK)
-		ret = gp_widget_count_choices(child);
-	if (ret >= GP_OK)
-		AvListSize = ret;
-	for (i = 0; i < AvListSize; i++)
-	{
-		AvList[i] = 0;
-		ret = gp_widget_get_choice(child, i, &choice);
-		if (ret >= GP_OK)
-			AvList[i] = findAV_str(choice);
-	}
-	if (widget)
-		gp_widget_free(widget);
-	return AvListSize > 0;
+#ifdef GPHOTO2
+	int err = _gp_get_config_value_options(camera, "aperture", &CamFeatures.aperture, camera_context);
+	return err >= GP_OK;
 #endif
 }
 
 bool GMyLiveThread::fillTvList()
 {
-	int i;
 #ifdef EDSDK
+	int i;
 	int ind = 0;
 	int j;
 	EdsPropertyDesc desc;
@@ -1151,36 +1368,17 @@ bool GMyLiveThread::fillTvList()
 	}
 	return err == EDS_ERR_OK;
 #endif
-#ifdef GPHOTO2
-	int ret = GP_OK;
-	CameraWidget* widget = 0, *child = 0;
-	const char* choice = 0;
 
-	TvListSize = 0;
-	ret = gp_camera_get_config(camera, &widget, camera_context);
-	if (ret >= GP_OK)
-		ret = _gp_lookup_widget(widget, "shutterspeed", &child);
-	if (ret >= GP_OK)
-		ret = gp_widget_count_choices(child);
-	if (ret >= GP_OK)
-		TvListSize = ret;
-	for (i = 0; i < TvListSize; i++)
-	{
-		TvList[i] = 0;
-		ret = gp_widget_get_choice(child, i, &choice);
-		if (ret >= GP_OK)
-			TvList[i] = findTV_gp2_str(choice);
-	}
-	if (widget)
-		gp_widget_free(widget);
-	return TvListSize > 0;
+#ifdef GPHOTO2
+	int err = _gp_get_config_value_options(camera, "shutterspeed", &CamFeatures.shutterspeed, camera_context);
+	return err >= GP_OK;
 #endif
 }
 
 bool GMyLiveThread::fillISOList()
 {
-	int i;
 #ifdef EDSDK
+	int i;
 	EdsPropertyDesc desc;
 	EdsError err = EdsGetPropertyDesc(camera, kEdsPropID_ISOSpeed, &desc);
 	int ind = 0;
@@ -1196,37 +1394,18 @@ bool GMyLiveThread::fillISOList()
 	}
 	return err == EDS_ERR_OK;
 #endif
-#ifdef GPHOTO2
-	int ret = GP_OK;
-	CameraWidget* widget = 0, *child = 0;
-	const char* choice = 0;
 
-	ISOListSize = 0;
-	ret = gp_camera_get_config(camera, &widget, camera_context);
-	if (ret >= GP_OK)
-		ret = _gp_lookup_widget(widget, "iso", &child);
-	if (ret >= GP_OK)
-		ret = gp_widget_count_choices(child);
-	if (ret >= GP_OK)
-		ISOListSize = ret;
-	for (i = 0; i < ISOListSize; i++)
-	{
-		ISOList[i] = 0;
-		ret = gp_widget_get_choice(child, i, &choice);
-		if (ret >= GP_OK)
-			ISOList[i] = findISO_str(choice);
-	}
-	if (widget)
-		gp_widget_free(widget);
-	return ISOListSize > 0;
+#ifdef GPHOTO2
+	int err = _gp_get_config_value_options(camera, "iso", &CamFeatures.iso, camera_context);
+	return err >= GP_OK;
 #endif
 }
 
 bool GMyLiveThread::fillAEMList()
 {
-	int ind, i, j;
 #ifdef EDSDK
 #if 0
+	int ind, i, j;
 	// this code not work. Why? I don't know, but desc.numElements == 0
 	EdsPropertyDesc desc;
 	EdsError err = EdsGetPropertyDesc(camera, kEdsPropID_AEMode, &desc);
@@ -1252,54 +1431,25 @@ bool GMyLiveThread::fillAEMList()
 	return true;
 #endif
 #endif
-#ifdef GPHOTO2
-	int ret = GP_OK;
-	CameraWidget* widget = 0, *child = 0;
-	const char* choice = 0;
-	int size;
 
-	AEMListSize = 0;
-	ret = gp_camera_get_config(camera, &widget, camera_context);
-	if (ret >= GP_OK)
-		ret = _gp_lookup_widget(widget, "autoexposuremode", &child);
-	if (ret >= GP_OK)
-		ret = gp_widget_count_choices(child);
-	if (ret >= GP_OK)
-		size = ret;
-	ind = 0;
-	for (i = 0; i < size; i++)
-	{
-		AEMList[ind] = 0;
-		ret = gp_widget_get_choice(child, i, &choice);
-		if (ret >= GP_OK)
-		{
-			j = findAEM_str(choice);
-			if (j < EOS_AEM_TABLE_SZ - 1)
-			{
-				AEMList[ind] = j;
-				ind++;
-			}
-		}
-	}
-	AEMListSize = ind;
-	if (widget)
-		gp_widget_free(widget);
-	return AEMListSize > 0;
+#ifdef GPHOTO2
+	int err = _gp_get_config_value_options(camera, "autoexposuremode", &CamFeatures.autoexposuremode, camera_context); // AE mode
+	return err >= GP_OK;
 #endif
 }
 
 // call only first successfull downloadEvfData()!
-bool GMyLiveThread::fillCameraName()
+bool GMyLiveThread::fillCameraInfo()
 {
-#ifdef EDSDK
 	CameraName.clear();
-	//CameraFotoLargeSize = QSize(0, 0);
-	//CameraLVSize = QSize(0, 0);
 	CamFeatures.JpegLargeSize_x = 0;
 	CamFeatures.JpegLargeSize_y = 0;
 	CamFeatures.LiveViewSize_x = 0;
 	CamFeatures.LiveViewSize_y = 0;
 	CamFeatures.HasAF = false;
+#ifdef EDSDK
+	//CameraFotoLargeSize = QSize(0, 0);
+	//CameraLVSize = QSize(0, 0);
 	EdsChar str[EDS_MAX_NAME];
 	EdsError err = EdsGetPropertyData(camera, kEdsPropID_ProductName, 0, sizeof(EdsChar)*EDS_MAX_NAME, str);
 	if (err == EDS_ERR_OK)
@@ -1466,17 +1616,109 @@ bool GMyLiveThread::fillCameraName()
 		evfImage = NULL;
 	}
 
-
-
-
-
-
 	if (CameraName.isEmpty())
 		CameraName = tr("Unknown camera");
 	return err == EDS_ERR_OK;
 #endif
 #ifdef GPHOTO2
-	return false;
+		// this code imported from: canon_eos_planetmovie_recorder
+	char* str_val = NULL;
+	int err = _gp_get_config_value_string(camera, "cameramodel", &str_val, camera_context);
+	if (err >= GP_OK && str_val)
+	{
+		CameraName = QString(str_val);
+		fprintf(stderr, "CameraName: [%s]\n", CameraName.toLocal8Bit().constData());
+	}
+	
+	// gphoto2 --get-config focusinfo
+	err = _gp_get_config_value_string(camera, "focusinfo", &str_val, camera_context);
+	if (err >= GP_OK && str_val)
+	{
+		if (DEBUG) fprintf(stderr, "focusinfo: %s\n", str_val);
+		char *pch = strstr(str_val, "size=");
+		if (pch != NULL)
+		{
+			int sensor_w, sensor_h;
+			int c = sscanf(pch, "size=%dx%d", &CamFeatures.zoomVars.sensor_w, &CamFeatures.zoomVars.sensor_h);
+			if (c == 2)
+				fprintf(stderr, "Camera sensor dimensions: [%d, %d]\n", CamFeatures.zoomVars.sensor_w, CamFeatures.zoomVars.sensor_h);
+			else
+				fprintf(stderr, "Could not scan for camera sensor dimensions\n");
+		}
+	}
+	 
+	CamFeatures.LiveViewSize_x = 928; // defaults
+	CamFeatures.LiveViewSize_y = 616;
+		
+	// TODO: check EVF resolution & camera's autofocus feature.
+	if (CameraName == "Canon EOS 600D" || CameraName == "Canon EOS REBEL T3i" || CameraName == "Canon EOS DIGITAL REBEL T3i")
+	{
+		CamFeatures.zoomVars.enabled = true;
+		if (!CamFeatures.zoomVars.sensor_w || !CamFeatures.zoomVars.sensor_h)
+		{
+			fprintf(stderr, "Could not scan for camera sensor dimensions\n");
+			CamFeatures.zoomVars.sensor_w = 5184;
+			CamFeatures.zoomVars.sensor_h = 3456;
+		}
+		CamFeatures.zoomVars.x_min = CamFeatures.zoomVars.sensor_w * .1;	// because the zoom box does not go all the way to the edge of the preview area
+		CamFeatures.zoomVars.x_max = CamFeatures.zoomVars.sensor_w * .9;
+		
+		CamFeatures.zoomVars.y_min = CamFeatures.zoomVars.sensor_h * .1;
+		CamFeatures.zoomVars.y_max = CamFeatures.zoomVars.sensor_h * .9;
+		if (DEBUG) fprintf(stderr, "    COMPARE: x_max[%d]  sensor_w[%d]  JpegLargeSize_x[4752] LiveViewSize_x[928]\n", CamFeatures.zoomVars.x_max, CamFeatures.zoomVars.sensor_w);
+		//CamFeatures.JpegLargeSize_x = 4752;
+		//CamFeatures.JpegLargeSize_y = 3168;
+		CamFeatures.JpegLargeSize_x = CamFeatures.zoomVars.sensor_w;
+		CamFeatures.JpegLargeSize_y = CamFeatures.zoomVars.sensor_h;
+		CamFeatures.HasAF = true;
+	}
+	else // default values. You'll have to check these against your camera, and create an entry for it
+	{
+		fprintf(stderr, "Using default camera zoom settings.\n");
+		CamFeatures.zoomVars.enabled = false;
+		if (!CamFeatures.zoomVars.sensor_w || !CamFeatures.zoomVars.sensor_h)
+		{
+			CamFeatures.zoomVars.sensor_w = 5184;
+			CamFeatures.zoomVars.sensor_h = 3456;
+		}
+		CamFeatures.zoomVars.x_min = CamFeatures.zoomVars.sensor_w * .1;
+		CamFeatures.zoomVars.x_max = CamFeatures.zoomVars.sensor_w * .9;
+		
+		CamFeatures.zoomVars.y_min = CamFeatures.zoomVars.sensor_h * .1;
+		CamFeatures.zoomVars.y_max = CamFeatures.zoomVars.sensor_h * .9;
+		//CamFeatures.JpegLargeSize_x = 4752;
+		//CamFeatures.JpegLargeSize_y = 3168;
+		//CamFeatures.LiveViewSize_x = 928;
+		//CamFeatures.LiveViewSize_y = 616;
+		//CamFeatures.HasAF = true;
+		
+		CamFeatures.JpegLargeSize_x = CamFeatures.zoomVars.sensor_w;
+		CamFeatures.JpegLargeSize_y = CamFeatures.zoomVars.sensor_h;
+	}
+	
+	err = _gp_get_config_value_string(camera, "lensname", &str_val, camera_context);
+	if (err >= GP_OK && str_val)
+	{
+		fprintf(stderr, "lens_name: [%s]\n", str_val);
+		CamFeatures.lens_name = QString(str_val);
+	}
+	
+	// $ gphoto2 --list-config
+	_gp_get_config_value_options(camera, "whitebalance", &CamFeatures.whitebalance, camera_context);
+	_gp_get_config_value_options(camera, "autoexposuremode", &CamFeatures.autoexposuremode, camera_context); // AE mode
+	
+	_gp_get_config_value_options(camera, "iso", &CamFeatures.iso, camera_context);					// ISO
+	_gp_get_config_value_options(camera, "aperture", &CamFeatures.aperture, camera_context);		// AV
+	_gp_get_config_value_options(camera, "shutterspeed", &CamFeatures.shutterspeed, camera_context);// Tv
+	_gp_get_config_value_options(camera, "evfmode", &CamFeatures.evfmode, camera_context);			// LiveView mode (Electronic ViewFinder)
+	_gp_get_config_value_options(camera, "drivemode", &CamFeatures.drivemode, camera_context);		// camera shutter timer
+	_gp_get_config_value_options(camera, "aeb", &CamFeatures.aeb, camera_context);					// exposure compensation
+	_gp_get_config_value_options(camera, "eosremoterelease", &CamFeatures.eosremoterelease, camera_context);// camera trigger
+	
+	if (str_val)
+		free(str_val);
+	// TODO: check EVF resolution & camera's autofocus feature.
+	return err >= GP_OK;
 #endif
 }
 
@@ -1561,6 +1803,7 @@ bool GMyLiveThread::deInitializeEds()
 #ifdef GPHOTO2
 bool GMyLiveThread::initializeGPhoto2()
 {
+	fprintf(stderr, "* NOTE * If you experience a crash or a hang, make sure the camera is not set to 'movie' mode, and LiveView is on.\n");
 	camera_context = gp_context_new();
 	if (!camera_context)
 		return false;
@@ -1821,6 +2064,9 @@ bool GMyLiveThread::initializeGPhoto2()
 	cam_funcs->post_func = handleCameraPrePostFunc;
 #endif
 	camera = tmp_camera;
+	
+	
+	QApplication::postEvent(Owner, new GCameraEvent(CAMERA_EVENT_UPDATE_BATTERY)); // because we can fail to connect to the camera if the battery is drained
 
 	return true;
 }
@@ -1839,6 +2085,7 @@ bool GMyLiveThread::deInitializeGPhoto2()
 		//free(camera_context);
 		camera_context = 0;
 	}
+	return true;
 }
 #endif
 
@@ -2008,7 +2255,9 @@ bool GMyLiveThread::downloadEvfData()
 		// end of critical section!!!
 	}
 #if 0
-	// this code not work, libgphoto2 always get me zero.
+			ZoomPosX = 0; // if we don't initialize we get warnings in valgrind
+			ZoomPosY = 0; // if we don't initialize we get warnings in valgrind
+	// this code not work, libgphoto2 always get me zero & and this zero hardcoded in sources
 	char* str_val = 0;
 	int x, y, z, c;
 	ret = _gp_get_config_value_string(camera, "eoszoom", &str_val, camera_context);
@@ -2034,7 +2283,7 @@ bool GMyLiveThread::downloadEvfData()
 		free(str_val);
 #endif
 
-	// TO-DO: get histogram
+	// TODO: get histogram
 	if (gpfile)
 		gp_file_free(gpfile);
 	return ret == GP_OK;
@@ -2205,44 +2454,52 @@ void GMyLiveThread::stateEvent(EdsStateEvent event, EdsUInt32 parameter)
 #ifdef GPHOTO2
 void GMyLiveThread::propertyEvent(const char* prop_name)
 {
-	fprintf(stderr, "Property '%s' changed!\n", prop_name);
+		//  libgphoto2/camlibs/ptp2/ptp.h
+	if (DEBUG) fprintf(stderr, "Property '%s' changed! ", prop_name);
 	if (strncasecmp(prop_name, "d1b0", 4) == 0)			// EVF Output device
 	{
-		fprintf(stderr, "evf\n");
+		if (DEBUG) fprintf(stderr, "evf\n");
 		cmdRequestEvfOut();
 	}
 	else if (strncasecmp(prop_name, "d103", 4) == 0)	// ISO
 	{
-		fprintf(stderr, "iso\n");
+		if (DEBUG) fprintf(stderr, "iso\n");
 		cmdRequestISO();
 	}
 	else if (strncasecmp(prop_name, "d101", 4) == 0)	// Av
 	{
-		fprintf(stderr, "av\n");
+		if (DEBUG) fprintf(stderr, "av\n");
 		cmdRequestAv();
 	}
 	else if (strncasecmp(prop_name, "d102", 4) == 0)	// Tv
 	{
-		fprintf(stderr, "tv\n");
+		if (DEBUG) fprintf(stderr, "tv\n");
 		cmdRequestTv();
 	}
 	else if (strncasecmp(prop_name, "d105", 4) == 0)	// AE Mode
 	{
-		fprintf(stderr, "aemode\n");
+		if (DEBUG) fprintf(stderr, "aemode\n");
 		cmdRequestAEMode();
 	}
 	else if (strncasecmp(prop_name, "d108", 4) == 0)	// AF Mode
 	{
-		fprintf(stderr, "afmode\n");
+		if (DEBUG) fprintf(stderr, "afmode\n");
 		cmdRequestAFMode();
+	}
+	else if (strncasecmp(prop_name, "d109", 4) == 0)	// White Balance
+	{
+		if (DEBUG) fprintf(stderr, "whitebalance\n");
+		cmdRequestWB();
 	}
 	else if (strncasecmp(prop_name, "d1b3", 4) == 0)	// EOS Zoom
 	{
+		if (DEBUG) fprintf(stderr, "eoszoom - UNIMPLEMENTED\n");
 #if 0
-		// this not work in libghoto 2.4.10
+		// these are still unimplemented in libghoto (as of 2.5.25) and will return 0
 		fprintf(stderr, "eoszoom\n");
 		char* str_val = 0;
 		int z, c;
+		//int ret = _gp_get_config_value_string(camera, "eoszoomposition", &str_val, camera_context);
 		int ret = _gp_get_config_value_string(camera, "eoszoom", &str_val, camera_context);
 		if (ret >= GP_OK && str_val)
 		{
@@ -2254,14 +2511,22 @@ void GMyLiveThread::propertyEvent(const char* prop_name)
 			free(str_val);
 #endif
 	}
-	/*else if (strncasecmp(prop_name, "", 4) == 0)	//
+	else if (strncasecmp(prop_name, "d1b7", 4) == 0)		// exposure light? -- not 100% sure
 	{
-		;
+		if (DEBUG) fprintf(stderr, "d1b7 - exposure light?\n");		// ptp.h: PTP_DPC_CANON_EOS_ExposureSimMode	0xD1b7
 	}
-	else if (strncasecmp(prop_name, "", 4) == 0)	//
+	else if (strncasecmp(prop_name, "d1c0", 4) == 0)		// autofocus complete? -- not 100% sure
 	{
-		;
-	}*/
+		if (DEBUG) fprintf(stderr, "d1c0 - autofocus complete?\n");	// ptp.h:  PTP_DPC_CANON_EOS_FlashChargingState	0xD1C0
+		if (CAF_blocked)
+			cmdCancelCAF();
+	}
+	else 
+	{
+		// fprintf(stderr, "d1c7 - StroboDispState\n");			// ptp.h:  PTP_DPC_CANON_EOS_StroboDispState	0xD1C7
+		if (DEBUG) fprintf(stderr, "UNKNOWN Property '%s' changed! ", prop_name);
+	}
+	if (DEBUG) fprintf(stderr, "\n");
 }
 #endif
 
@@ -2317,7 +2582,7 @@ int GMyLiveThread::gp2_camera_check_event()
 {
 	CameraEventType event_type = GP_EVENT_UNKNOWN;
 	char* event_data;
-	int ret;
+	int ret = GP_ERROR;
 	char prop_name[64];
 
 	prop_name[0] = 0;
@@ -2327,10 +2592,12 @@ int GMyLiveThread::gp2_camera_check_event()
 		ret = gp_camera_wait_for_event(camera, 0, &event_type, (void**)&event_data, camera_context);
 		if (ret >= GP_OK)
 		{
-			fprintf(stderr, "event_type: ");
+			if (event_type != GP_EVENT_TIMEOUT )	// otherwise these messages would flood the console
+				if (DEBUG) fprintf(stderr, "   event_type: ");
 			switch(event_type)
 			{
 			case GP_EVENT_UNKNOWN:
+				if (DEBUG) fprintf(stderr, "unknown - ");
 				if (event_data)
 				{
 					char* ptr = strstr(event_data, "changed");
@@ -2351,32 +2618,40 @@ int GMyLiveThread::gp2_camera_check_event()
 						}
 					}
 				}
-				fprintf(stderr, "unknown");
+				if (DEBUG) fprintf(stderr, "unknown");
 				break;
 			case GP_EVENT_TIMEOUT:
-				//fprintf(stderr, "timeout");
+				// fprintf(stderr, "timeout");
+				// fprintf(stderr, "\n");
+				//return 1;
 				break;
 			case GP_EVENT_FILE_ADDED:
-				//fprintf(stderr, "file added");
+				if (DEBUG) fprintf(stderr, "file added");
 				break;
 			case GP_EVENT_FOLDER_ADDED:
-				//fprintf(stderr, "folder added");
+				if (DEBUG) fprintf(stderr, "folder added");
 				break;
 			case GP_EVENT_CAPTURE_COMPLETE:
-				//fprintf(stderr, "capture complete");
+				if (DEBUG) fprintf(stderr, "capture complete");
 				break;
 			default:
-				fprintf(stderr, "%d", event_type);
+				if (DEBUG) fprintf(stderr, "event_type: [%d]", event_type);
+				if (DEBUG) fprintf(stderr, "\n");
 				;
 			}
 			if (event_data)
 			{
-				fprintf(stderr, "; event_data = '%s'", event_data);
+				// if (DEBUG) fprintf(stderr, "; event_data = '%s'", event_data);
 				free(event_data);
 			}
-			fprintf(stderr, "\n");
+			if (DEBUG) fprintf(stderr, "\n");
+		}
+		else
+		{
+			return ret;
 		}
 	}
+	return ret;
 }
 
 static int _gp_lookup_widget(CameraWidget*widget, const char *key, CameraWidget **child)
@@ -2388,12 +2663,103 @@ static int _gp_lookup_widget(CameraWidget*widget, const char *key, CameraWidget 
 	return ret;
 }
 
+int _gp_print_config_value(Camera *camera, const char *key, GPContext *context)
+{
+	// To print a GP error string:
+	// fprintf(stderr, "error [%d] error string: [%s]\n", err, gp_result_as_string(err));
+	
+	char* str_val = NULL;
+	int ret = _gp_get_config_value_string(camera, key, &str_val, context);
+	if (ret >= GP_OK && str_val)
+	{
+		fprintf(stderr, "  _gp_print_config_value   key[%s] = [%s]\n", key, str_val);
+	}
+	else
+	{
+		fprintf(stderr, "  _gp_print_config_value   key[%s]   ERROR\n", key);
+	}
+	if (str_val)
+		free(str_val);
+	return ret;
+}
+
+void GMyLiveThread::gp_free_all()
+{
+	_gp_get_config_value_options_free(&CamFeatures.whitebalance);
+	_gp_get_config_value_options_free(&CamFeatures.autoexposuremode);
+	_gp_get_config_value_options_free(&CamFeatures.iso);
+	_gp_get_config_value_options_free(&CamFeatures.aperture);
+	_gp_get_config_value_options_free(&CamFeatures.shutterspeed);
+	_gp_get_config_value_options_free(&CamFeatures.evfmode);
+	_gp_get_config_value_options_free(&CamFeatures.drivemode);
+	_gp_get_config_value_options_free(&CamFeatures.aeb);
+	_gp_get_config_value_options_free(&CamFeatures.eosremoterelease);
+}
+
+void _gp_get_config_value_options_free(valArr *opts_arr)
+{
+	if (opts_arr->length > 0)
+	{
+		if (DEBUG) fprintf(stderr, "++++++ GMyLiveThread::  _gp_get_config_value_options_free  ! NULL [%d]\n", opts_arr->length);
+		delete[] opts_arr->opt_name;
+		opts_arr->opt_name = nullptr;
+	}
+	opts_arr->length = 0;
+}
+
+int _gp_get_config_value_options(Camera *camera, const char *key, valArr *opts_arr, GPContext *context)
+{
+	CameraWidget* widget = 0;
+	CameraWidget* child = 0;
+	int ret;
+	char *val;
+
+	_gp_get_config_value_options_free(opts_arr);
+
+					// $ gphoto2 --get-config whitebalance 
+	ret = gp_camera_get_config(camera, &widget, context);
+	if (ret >= GP_OK)
+		ret = _gp_lookup_widget(widget, key, &child);
+	if (ret >= GP_OK)
+		ret = gp_widget_get_value(child, &val);
+	if (ret >= GP_OK)
+	{
+		ret = gp_widget_count_choices(child);
+	}
+	if (ret >= GP_OK)
+	{
+		opts_arr->length = ret;
+		
+		opts_arr->opt_name = new QString[opts_arr->length];
+		
+		QString item[opts_arr->length];
+		for (int i = 0; i < opts_arr->length; i++)
+		{
+			CameraWidget *widget_tmp;
+			const char *choicename;
+			gp_widget_get_choice (child, i,  &choicename);
+			if (DEBUG) fprintf(stderr, " _gp_get_config_value_options   [%d] = [%s]\n", i, choicename );
+			opts_arr->opt_name[i] = QString(choicename); //  opts_arr->opt_name[i].toLocal8Bit().constData() 
+		}
+	}
+	
+	if (widget)
+		gp_widget_free(widget);
+	return ret;
+}
+
 int _gp_get_config_value_string(Camera *camera, const char *key, char **str, GPContext *context)
 {
 	CameraWidget* widget = 0;
 	CameraWidget* child = 0;
 	int ret;
 	char *val;
+	
+	if (*str != NULL)
+	{
+		if (DEBUG) fprintf(stderr, "++++++ GMyLiveThread::  _gp_get_config_value_string  ! NULL [%d]\n", *str);
+		free(*str);
+	}
 
 	ret = gp_camera_get_config(camera, &widget, context);
 	if (ret >= GP_OK)
@@ -2407,7 +2773,20 @@ int _gp_get_config_value_string(Camera *camera, const char *key, char **str, GPC
 	return ret;
 }
 
-int _gp_set_config_value_string (Camera *camera, const char *key, const char *val, GPContext *context)
+int str_index_in_valArr(QString str, valArr list)
+{
+	for (int i = 0; i < list.length; i++)
+	{
+		//if (strcmp(str, list.opt_name[i]) == 0)
+		if (str == list.opt_name[i])
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+int _gp_set_config_value_string(Camera *camera, const char *key, const char *val, GPContext *context)
 {
 	CameraWidget* widget = 0;
 	CameraWidget* child = 0;

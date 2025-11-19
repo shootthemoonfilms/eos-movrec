@@ -23,6 +23,7 @@
 #include <stdlib.h>
 //#include <stdio.h>
 
+// FIXME: once the EDSDK code is migrated to pulling the info straight from the camera, all these tables can be removed
 struct EOSAvTable AvTable[EOS_AV_TABLE_SZ] = {
 	{ 0x00, "0" },
 	{ 0x08, "1" },

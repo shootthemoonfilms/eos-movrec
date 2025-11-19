@@ -36,8 +36,10 @@ GAboutDlg::GAboutDlg(QWidget* parent)
 					  "Golubinsky Yury - Mac OS X port (<a href=\"mailto:urix@me.com\">urix@me.com</a>)<br/>"
 					  "Lukyanenko Vlad - homepage design (<a href=\"mailto:xkimx@rambler.ru\">xkimx@rambler.ru</a>)<br/>"
 					  "Emel'yanov Denis - icon maker (<a href=\"mailto:suzuntu@yandex.ru\">suzuntu@yandex.ru</a>)<br/>"
+					  "insaner - gphoto feature adder (<a href=\"mailto:eosmovrec@insaner.com\">eosmovrec@insaner.com</a>)<br/>"
 					  "<br/>"
 					  "homepage: <a href=\"http://valexvir.narod.ru\">http://valexvir.narod.ru</a><br/>"
+					  "github page: <a href=\"https://github.com/shootthemoonfilms/eos-movrec\">https://github.com/shootthemoonfilms/eos-movrec</a><br/>"
 					  "sf.net page: <a href=\"http://sf.net/projects/eos-movrec\">http://sf.net/projects/eos-movrec</a><br/>"
 					  "forum: <a href=\"http://forum.ixbt.com/topic.cgi?id=20:26019\">http://forum.ixbt.com/topic.cgi?id=20:26019</a>"
 					  "</p>"
@@ -55,7 +57,7 @@ GAboutDlg::GAboutDlg(QWidget* parent)
 	QTextBrowser *browser = new QTextBrowser(this);
 	browser->setOpenExternalLinks(true);
 	browser->setFrameStyle(QFrame::NoFrame);
-	browser->setMinimumSize(300, 270);
+	browser->setMinimumSize(450, 270);
 	QString color_name = palette().color(QPalette::Window).name();
 	text.replace("%1", color_name);
 	text.replace("%2", QString(VERSION));
